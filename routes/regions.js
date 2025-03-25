@@ -81,6 +81,11 @@ route.get('/', async (req, res) => {
       include: [
         {
           model: LearningCenter,
+          include: [
+            {
+              model: Branches,
+            },
+          ],
         },
         { model: Branch },
       ],
@@ -116,13 +121,16 @@ route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const region = await Region.findByPk(id, {
-      // include: [
-      //   {
-      //     model: LearningCenter,
-      //     through: { attributes: [] },
-      //     include: [{ model: Branches }],
-      //   },
-      // ],
+      include: [
+        {
+          model: LearningCenter,
+          include: [
+            {
+              model: Branches,
+            },
+          ],
+        },
+      ],
     });
     if (!region) {
       return res.status(404).json({ error: 'viloyat topilmadi' });
@@ -155,6 +163,7 @@ route.get('/:id', async (req, res) => {
  *       400:
  *         description: Xato so‘rov
  */
+
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { error } = regionSchema.validate(req.body);

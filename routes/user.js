@@ -1,20 +1,20 @@
-const Users = require('../models/user');
-const { Router } = require('express');
+const Users = require("../models/user");
+const { Router } = require("express");
 const route = Router();
-const bcrypt = require('bcrypt');
-const { totp } = require('otplib');
-const jwt = require('jsonwebtoken');
-const { sendSms } = require('../functions/eskiz');
-const { Op } = require('sequelize');
-const { getToken } = require('../functions/eskiz');
-const { refreshToken } = require('../functions/eskiz');
+const bcrypt = require("bcrypt");
+const { totp } = require("otplib");
+const jwt = require("jsonwebtoken");
+const { sendSms } = require("../functions/eskiz");
+const { Op } = require("sequelize");
+const { getToken } = require("../functions/eskiz");
+const { refreshToken } = require("../functions/eskiz");
 const {
   userValidation,
   loginValidation,
   otpValidation,
   sendOtpValidation,
   refreshTokenValidation,
-} = require('../validations/user');
+} = require("../validations/user");
 /**
  * @swagger
  * tags:
@@ -44,7 +44,7 @@ const {
  *         description: User already exists
  */
 
-route.post('/send-otp', async (req, res) => {
+route.post("/send-otp", async (req, res) => {
   const { error } = sendOtpValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -52,11 +52,11 @@ route.post('/send-otp', async (req, res) => {
   try {
     let { phone } = req.body;
 
-    let otp = totp.generate(phone + 'lorem');
+    let otp = totp.generate(phone + "lorem");
     await sendSms(phone, otp);
     res.send(otp);
   } catch (error) {
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: "Internal server error" });
   }
 });
 
@@ -65,26 +65,69 @@ route.post('/send-otp', async (req, res) => {
  * /users/verify-otp:
  *   post:
  *     summary: Verify OTP
- *     tags: [Authorization]
+ *     description: Verify the OTP sent to the user's phone number.
+ *     tags:
+ *       - Authorization
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - phone
+ *               - otp
  *             properties:
  *               phone:
  *                 type: string
+ *                 example: "+998901234567"
  *               otp:
  *                 type: string
+ *                 example: "1234"
  *     responses:
  *       200:
  *         description: OTP verified successfully
- *       402:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "OTP verified successfully"
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Phone is required"
+ *       401:
  *         description: Invalid OTP or phone number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid OTP"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
-route.post('/verify-otp', async (req, res) => {
+route.post("/verify-otp", async (req, res) => {
   const { error } = otpValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -98,21 +141,22 @@ route.post('/verify-otp', async (req, res) => {
     console.log(otp);
 
     if (!user) {
-      return res.status(401).json({ message: 'Phone not found' });
+      return res.status(401).json({ message: "Phone not found" });
     }
 
     if (user.otp != otp) {
-      return res.status(401).json({ message: 'Invalid OTP' });
+      return res.status(401).json({ message: "Invalid OTP" });
     }
-    let match = totp.verify({ token: otp, secret: phone + 'lorem' });
+    let match = totp.verify({ token: otp, secret: phone + "lorem" });
 
     res.send(match);
   } catch (error) {
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: "Internal server error" });
     console.log(error);
   }
 });
-totp.options = { step: 3000, digits: 4 };
+totp.options = { step: 3000, digits: 6 };
+
 /**
  * @swagger
  * /users/register:
@@ -157,7 +201,7 @@ totp.options = { step: 3000, digits: 4 };
  *         description: Username, email, or phone already exists
  */
 
-route.post('/register', async (req, res) => {
+route.post("/register", async (req, res) => {
   const { error } = userValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -168,27 +212,27 @@ route.post('/register', async (req, res) => {
       where: { firstName },
     });
     if (userExists) {
-      return res.status(401).send({ message: 'first name already exists' });
+      return res.status(401).send({ message: "first name already exists" });
     }
     let lastNameExists = await Users.findOne({
       where: { lastName },
     });
     if (lastNameExists) {
-      return res.status(401).send({ message: 'last name already exists' });
+      return res.status(401).send({ message: "last name already exists" });
     }
 
     let emailExists = await Users.findOne({
       where: { email },
     });
     if (emailExists) {
-      return res.status(401).send({ message: 'Email already exists' });
+      return res.status(401).send({ message: "Email already exists" });
     }
 
     let phoneExists = await Users.findOne({
       where: { phone },
     });
     if (phoneExists) {
-      return res.status(401).send({ message: 'Phone already exists' });
+      return res.status(401).send({ message: "Phone already exists" });
     }
     let hash = bcrypt.hashSync(password, 10);
     let newUser = await Users.create({
@@ -198,12 +242,12 @@ route.post('/register', async (req, res) => {
       lastName,
       phone,
       password: hash,
-      status: 'PENDING',
+      status: "PENDING",
     });
 
     res.send(newUser);
   } catch (error) {
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: "Internal server error" });
     console.log(error);
   }
 });
@@ -234,7 +278,7 @@ route.post('/register', async (req, res) => {
  *         description: User not found
  */
 
-route.post('/login', async (req, res) => {
+route.post("/login", async (req, res) => {
   const { error } = loginValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -244,12 +288,12 @@ route.post('/login', async (req, res) => {
     let user = await Users.findOne({ where: { firstName } });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     let match = bcrypt.compareSync(password, user.password);
     if (!match) {
-      return res.status(401).json({ message: 'Invalid password' });
+      return res.status(401).json({ message: "Invalid password" });
     }
 
     let userIp = req.ip;
@@ -263,7 +307,7 @@ route.post('/login', async (req, res) => {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -287,18 +331,18 @@ route.post('/login', async (req, res) => {
  *         description: New access token generated
  */
 
-route.post('/refresh', async (req, res) => {
+route.post("/refresh", async (req, res) => {
   let { error } = refreshTokenValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
     let { refreshTok } = req.body;
-    const user = jwt.verify(refreshTok, 'refresh');
+    const user = jwt.verify(refreshTok, "refresh");
     const newAccestoken = getToken(user.id);
     res.send({ newAccestoken });
   } catch (error) {
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: "Internal server error" });
     console.log(error);
   }
 });
@@ -333,12 +377,12 @@ route.post('/refresh', async (req, res) => {
  *         description: "Server xatosi"
  */
 
-route.get('/', async (req, res) => {
+route.get("/", async (req, res) => {
   try {
     let data = await Users.findAll();
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

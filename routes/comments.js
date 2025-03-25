@@ -5,6 +5,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Users = require('../models/user');
 const LearningCenter = require('../models/learningCenter');
 const { message } = require('../validations/regions');
+const { Op } = require('sequelize');
 
 /**
  * @swagger
@@ -43,28 +44,134 @@ const { message } = require('../validations/regions');
  * @swagger
  * /comments:
  *   get:
- *     summary: Barcha izohlarni olish
+ *     summary: Barcha izohlarni olish (Filtr, Sort, Pagination bilan)
  *     tags: [Comment]
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         description: Foydalanuvchi ID bo‘yicha filtr
+ *       - in: query
+ *         name: learningCenterId
+ *         schema:
+ *           type: integer
+ *         description: O‘quv markazi ID bo‘yicha filtr
+ *       - in: query
+ *         name: rating
+ *         schema:
+ *           type: integer
+ *         description: Reyting bo‘yicha filtr
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, rating]
+ *         description: Saralash (createdAt, rating)
+ *       - in: query
+ *         name: orderDirection
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Saralash tartibi (ASC yoki DESC)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Sahifalash (Nechinchi sahifa)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Sahifalash (Bir sahifada nechta)
  *     responses:
  *       200:
- *         description: Izohlar ro'yxati
+ *         description: Izohlar ro‘yxati
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Comment'
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   example: 100
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       userId:
+ *                         type: integer
+ *                         example: 5
+ *                       learningCenterId:
+ *                         type: integer
+ *                         example: 3
+ *                       rating:
+ *                         type: integer
+ *                         example: 4
+ *                       comment:
+ *                         type: string
+ *                         example: "Yaxshi o‘quv markazi!"
+ *       500:
+ *         description: Server xatosi
  */
+
 route.get('/', async (req, res) => {
   try {
-    const comments = await Comments.findAll({
-      include: [{ model: Users }, { model: LearningCenter }],
-    });
-    if (!comments.length) return res.send({ message: 'Comment not found' });
+    const {
+      userId,
+      learningCenterId,
+      rating,
+      orderBy,
+      orderDirection,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
-    res.send(comments);
+    let whereClause = {};
+    if (userId) whereClause.userId = userId;
+    if (learningCenterId) whereClause.learningCenterId = learningCenterId;
+    if (rating) whereClause.rating = rating;
+
+    let order = [['createdAt', 'DESC']];
+    if (orderBy) {
+      order = [
+        [
+          orderBy,
+          orderDirection && orderDirection.toUpperCase() === 'ASC'
+            ? 'ASC'
+            : 'DESC',
+        ],
+      ];
+    }
+
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const { count, rows } = await Comments.findAndCountAll({
+      where: whereClause,
+      include: [{ model: Users }, { model: LearningCenter }],
+      order,
+      limit: parseInt(limit),
+      offset,
+    });
+
+    res.json({
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      data: rows,
+    });
   } catch (error) {
     res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
+    console.error('Xatolik yuz berdi:', error);
   }
 });
 
@@ -107,7 +214,9 @@ route.get('/:id', async (req, res) => {
  * /comments:
  *   post:
  *     summary: Yangi izoh qo'shish
- *     tags: [Comment]
+ *     description: Foydalanuvchi yangi izoh qoldiradi
+ *     tags:
+ *       - Comment
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -115,16 +224,83 @@ route.get('/:id', async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Comment'
+ *             type: object
+ *             required:
+ *               - learningCenterId
+ *               - star
+ *               - message
+ *             properties:
+ *               learningCenterId:
+ *                 type: integer
+ *                 example: 1
+ *               star:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 5
+ *               message:
+ *                 type: string
+ *                 example: "Juda yaxshi o‘quv markazi!"
  *     responses:
- *       200:
+ *       201:
  *         description: Yangi izoh qo'shildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 10
+ *                 userId:
+ *                   type: integer
+ *                   example: 2
+ *                 learningCenterId:
+ *                   type: integer
+ *                   example: 1
+ *                 star:
+ *                   type: integer
+ *                   example: 5
+ *                 message:
+ *                   type: string
+ *                   example: "Juda yaxshi o‘quv markazi!"
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "star is required"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized user"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Server error"
  */
+
 route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
   try {
     const { learningCenterId, star, message } = req.body;
 
-    const userId = req.userId;
+    const userId = req?.userId;
 
     const newComment = await Comments.create({
       userId,

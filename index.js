@@ -1,3 +1,4 @@
+
 const express = require('express');
 const { connectedDb } = require('./config/db');
 const LikeRoutes = require('./routes/likes');
@@ -11,8 +12,10 @@ const { swaggerUi, swaggerDocs } = require('./swagger');
 const UsersRoute = require('./routes/user');
 const RegionRoute = require('./routes/regions');
 const SubjectRoute = require('./routes/subjects');
+
 const app = express();
 app.use(express.json());
+
 connectedDb();
 app.use('/likes', LikeRoutes);
 app.use('/professions', ProfessionRoutes);

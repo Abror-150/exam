@@ -7,14 +7,18 @@ const Branch = require('../models/branches');
 const Profession = require('../models/professions');
 const Comments = require('../models/comment');
 const Region = require('../models/regions');
+const { Op } = require('sequelize');
+
 /**
  * @swagger
  * /learning-centers:
  *   post:
  *     summary: Create a new Learning Center
+ *     description: This endpoint allows ADMIN and CEO to create a new Learning Center.
  *     security:
  *       - BearerAuth: []
- *     tags: [Learning Centers]
+ *     tags:
+ *       - Learning Centers
  *     requestBody:
  *       required: true
  *       content:
@@ -31,19 +35,26 @@ const Region = require('../models/regions');
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Best Learning Center"
  *               phone:
  *                 type: string
+ *                 example: "+998901234567"
  *               img:
  *                 type: string
+ *                 format: url
+ *                 example: "https://example.com/image.png"
  *               regionId:
  *                 type: integer
+ *                 example: 1
  *               address:
  *                 type: string
+ *                 example: "123 Main Street, Tashkent"
  *               branchNumber:
  *                 type: integer
+ *                 example: 5
  *     responses:
  *       201:
- *         description: Learning Center created
+ *         description: Learning Center successfully created
  *         content:
  *           application/json:
  *             schema:
@@ -51,56 +62,17 @@ const Region = require('../models/regions');
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "Learning Center created"
  *                 data:
  *                   $ref: '#/components/schemas/LearningCenter'
  *       400:
  *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       401:
  *         description: Unauthorized (token missing or invalid)
  *       403:
  *         description: Forbidden (role not allowed)
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 error:
- *                   type: string
- */
-/**
- * @swagger
- * components:
- *   schemas:
- *     LearningCenter:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         name:
- *           type: string
- *         phone:
- *           type: string
- *         img:
- *           type: string
- *         regionId:
- *           type: integer
- *         address:
- *           type: string
- *         branchNumber:
- *           type: integer
- *         userId:
- *           type: integer
  */
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   let { error } = learningCenterValidation.validate(req.body);
@@ -109,7 +81,6 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   }
   try {
     const { name, phone, ...rest } = req.body;
-
     const userId = req?.userId;
 
     const learningCenter = await LearningCenter.create({
@@ -134,25 +105,70 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  * @swagger
  * /learning-centers:
  *   get:
- *     summary: Get all Learning Centers
+ *     summary: Get all Learning Centers with filters, sorting, and pagination
  *     tags: [Learning Centers]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search learning centers by name
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, createdAt]
+ *         description: Column to sort by
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Sorting order (ascending or descending)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: List of Learning Centers
+ *         description: List of learning centers
  *       500:
  *         description: Server error
  */
 route.get('/', async (req, res) => {
   try {
-    const learningCenters = await LearningCenter.findAll({
-      include: [
-        { model: Branch },
-        { model: Profession },
-        { model: Comments },
-        { model: Region },
-      ],
+    let { search, sortBy, order, page, limit } = req.query;
+
+    sortBy = sortBy || 'createdAt';
+    order = order || 'DESC';
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    let offset = (page - 1) * limit;
+
+    let whereCondition = {};
+    if (search) {
+      whereCondition.name = { [Op.like]: `%${search}%` };
+    }
+
+    const learningCenters = await LearningCenter.findAndCountAll({
+      where: whereCondition,
+      order: [[sortBy, order]],
+      limit,
+      offset,
     });
-    res.status(200).send({ data: learningCenters });
+
+    res.status(200).send({
+      total: learningCenters.count,
+      page,
+      limit,
+      data: learningCenters.rows,
+    });
   } catch (error) {
     res.status(500).send({
       message: 'Error fetching Learning Centers',
@@ -179,6 +195,7 @@ route.get('/', async (req, res) => {
  *       404:
  *         description: Learning Center not found
  */
+
 route.get('/:id', async (req, res) => {
   try {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
@@ -220,9 +237,9 @@ route.get('/:id', async (req, res) => {
  *       404:
  *         description: Learning Center not found
  */
+
 route.patch(
   '/:id',
-
   roleAuthMiddleware(['ADMIN', 'CEO', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
