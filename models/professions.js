@@ -15,4 +15,5 @@ const Profession = db.define("kasblar", {
     allowNull: false,
   },
 });
+
 module.exports = Profession;

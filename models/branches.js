@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const { db } = require('../config/db');
+const { DataTypes } = require("sequelize");
+const { db } = require("../config/db");
 
-const Branches = db.define('Branches', {
+const Branches = db.define("Branches", {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -20,7 +20,7 @@ const Branches = db.define('Branches', {
     allowNull: false,
   },
   regionId: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   address: {

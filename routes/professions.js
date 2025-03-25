@@ -1,8 +1,12 @@
 const { Router } = require("express");
-const Profession = require("../models/professions");
+const { Fields } = require("../models/connections");
 const { Op } = require("sequelize");
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/auth");
+const roleAuthMiddleware = require("../middlewares/roleAuth");
+const { professionSchema } = require("../validations/professions");
+const LearningCenter = require("../models/learningCenter");
+const Profession = require("../models/professions");
+const Field = require("../models/fields");
 
 /**
  * @swagger
@@ -30,7 +34,8 @@ const roleAuthMiddleware = require("../middlewares/auth");
  *         name: sortBy
  *         schema:
  *           type: string
- *         description: Saralash maydoni (masalan, id, name)
+ *           enum: [id, name, createdAt, updatedAt]
+ *         description: Saralash maydoni (id, name, createdAt, updatedAt)
  *       - in: query
  *         name: order
  *         schema:
@@ -61,21 +66,29 @@ route.get("/", async (req, res) => {
     let data = await Profession.findAll({
       where: whereClause,
       order: [[sortBy, order.toUpperCase()]],
-      limit: limit,
+      limit,
       offset: (page - 1) * limit,
+      include: [
+        {
+          model: LearningCenter,
+          as: "markaz",
+          through: { attributes: [] },
+        },
+      ],
     });
 
-    res.send(data);
+    res.status(200).json(data);
   } catch (error) {
-    res.send(error);
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
+
 /**
  * @swagger
  * /professions/{id}:
  *   get:
- *     summary: Bitta kasbni olish
+ *     summary: ID bo‘yicha kasbni olish
  *     tags: [Professions]
  *     parameters:
  *       - in: path
@@ -86,15 +99,28 @@ route.get("/", async (req, res) => {
  *         description: Kasb IDsi
  *     responses:
  *       200:
- *         description: Kasb ma'lumotlari
+ *         description: Kasb ma’lumotlari
+ *       404:
+ *         description: Kasb topilmadi
  */
 route.get("/:id", async (req, res) => {
   try {
-    let id = await Profession.findByPk(req.params.id);
-    res.send(id);
+    const { id } = req.params;
+    const profession = await Profession.findByPk(id, {
+      include: [
+        {
+          model: LearningCenter,
+          as: "markaz",
+          through: { attributes: [] },
+        },
+      ],
+    });
+    if (!profession) {
+      return res.status(404).json({ error: "Kasb topilmadi" });
+    }
+    res.json(profession);
   } catch (error) {
-    res.send(error);
-    console.log(error);
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
 
@@ -120,23 +146,23 @@ route.get("/:id", async (req, res) => {
  *     responses:
  *       201:
  *         description: Kasb muvaffaqiyatli qo‘shildi
+ *       400:
+ *         description: Noto‘g‘ri ma'lumot
+ *       500:
+ *         description: Server xatosi
  */
-route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.post("/", async (req, res) => {
   try {
+    console.log(req.body);
+
     const { error } = professionSchema.validate(req.body);
     if (error) {
-      return res.status(400).send({ error: error.details[0].message });
+      return res.status(400).json({ error: error.details[0].message });
     }
-    const { userId } = req.user.id;
-    const { learningCenterId } = req.body;
-
-    const one = await Like.create({ userId, learningCenterId });
-    res.status(201).send(one);
+    const newProfession = await Profession.create(req.body);
+    res.status(201).json(newProfession);
   } catch (error) {
-    res
-      .status(400)
-      .send({ error: "Ma'lumot noto'g'ri", details: error.message });
-    console.log(error);
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
 
@@ -169,6 +195,12 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *     responses:
  *       200:
  *         description: Kasb muvaffaqiyatli yangilandi
+ *       400:
+ *         description: Noto‘g‘ri ma'lumot
+ *       404:
+ *         description: Kasb topilmadi
+ *       500:
+ *         description: Server xatosi
  */
 route.patch(
   "/:id",
@@ -181,11 +213,13 @@ route.patch(
       }
       const { id } = req.params;
       const one = await Profession.findByPk(id);
+      if (!one) {
+        return res.status(404).send({ error: "Kasb topilmadi" });
+      }
       await one.update(req.body);
       res.json(one);
     } catch (error) {
-      res.status(500).json({ error: "Server xatosi" });
-      console.log(error);
+      res.status(500).json({ error: "Server xatosi", details: error.message });
     }
   }
 );
@@ -208,15 +242,19 @@ route.patch(
  *     responses:
  *       200:
  *         description: Kasb muvaffaqiyatli o‘chirildi
+ *       404:
+ *         description: Kasb topilmadi
+ *       500:
+ *         description: Server xatosi
  */
 route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Like.destroy({ where: { id } });
+    const deleted = await Profession.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "Like o‘chirildi" });
+      return res.send({ message: "Kasb o‘chirildi" });
     }
-    res.status(404).send({ error: "Like bosmagan" });
+    res.status(404).send({ error: "Kasb topilmadi" });
   } catch (error) {
     res.status(500).send({ error: "Server xatosi", details: error.message });
   }

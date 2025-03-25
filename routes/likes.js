@@ -2,7 +2,8 @@ const { Router } = require("express");
 const Like = require("../models/likes");
 const { Op } = require("sequelize");
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/auth");
+const roleAuthMiddleware = require("../middlewares/roleAuth");
+const LikeValidate = require("../validations/likes");
 
 /**
  * @swagger
