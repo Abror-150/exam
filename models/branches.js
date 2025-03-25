@@ -1,9 +1,9 @@
-const { DataTypes } = require("sequelize");
-const { db } = require("../config/db");
-const Region = require("./regions");
-const LearningCenter = require("./learningCenter");
+const { DataTypes } = require('sequelize');
+const { db } = require('../config/db');
+const Region = require('./regions');
+const LearningCenter = require('./learningCenter');
 
-const Branch = db.define("Branches", {
+const Branch = db.define('Branches', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -34,11 +34,5 @@ const Branch = db.define("Branches", {
     allowNull: false,
   },
 });
-
-Region.hasMany(Branch, { foreignKey: "regionId" });
-Branch.belongsTo(Region, { foreignKey: "regionId" });
-
-LearningCenter.hasMany(Branch, { foreignKey: "learningCenterId" });
-Branch.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
 
 module.exports = Branch;

@@ -286,7 +286,6 @@ route.post("/login", async (req, res) => {
   try {
     let { firstName, password } = req.body;
     let user = await Users.findOne({ where: { firstName } });
-    console.log(user);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

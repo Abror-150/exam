@@ -1,15 +1,15 @@
-const express = require("express");
+const express = require('express');
 const route = express.Router();
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 
-const Branch = require("../models/branches");
+const Branch = require('../models/branches');
 const {
   branchesValidation,
   validateBranchUpdate,
-} = require("../validations/branches");
-const LearningCenter = require("../models/learningCenter");
-const Region = require("../models/regions");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
+} = require('../validations/branches');
+const LearningCenter = require('../models/learningCenter');
+const Region = require('../models/regions');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
 /**
  * @swagger
  * tags:
@@ -99,9 +99,8 @@ const roleAuthMiddleware = require("../middlewares/roleAuth");
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
-    // Query parametrlari
     const {
       name,
       regionId,
@@ -112,26 +111,23 @@ route.get("/", async (req, res) => {
       limit = 10,
     } = req.query;
 
-    // Filtir
     let whereClause = {};
-    if (name) whereClause.name = { [Op.iLike]: `%${name}%` }; // Case-insensitive search
+    if (name) whereClause.name = { [Op.iLike]: `%${name}%` };
     if (regionId) whereClause.regionId = regionId;
     if (learningCenterId) whereClause.learningCenterId = learningCenterId;
 
-    // Sortlash
-    let order = [["createdAt", "DESC"]]; // Default createdAt DESC
+    let order = [['createdAt', 'DESC']];
     if (orderBy) {
       order = [
         [
           orderBy,
-          orderDirection && orderDirection.toUpperCase() === "ASC"
-            ? "ASC"
-            : "DESC",
+          orderDirection && orderDirection.toUpperCase() === 'ASC'
+            ? 'ASC'
+            : 'DESC',
         ],
       ];
     }
 
-    // Pagination
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const { count, rows } = await Branch.findAndCountAll({
       where: whereClause,
@@ -148,8 +144,8 @@ route.get("/", async (req, res) => {
       data: rows,
     });
   } catch (error) {
-    console.error("error", error);
-    res.status(500).json({ error: "Serverda xatolik yuz berdi" });
+    console.error('error', error);
+    res.status(500).json({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -172,15 +168,16 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Filial topilmadi
  */
-route.get("/:id", async (req, res) => {
+
+route.get('/:id', async (req, res) => {
   try {
     const branch = await Branch.findByPk(req.params.id, {
       include: [{ model: Region }, { model: LearningCenter }],
     });
-    if (!branch) return res.status(404).send({ message: "Branch not found" });
+    if (!branch) return res.status(404).send({ message: 'Branch not found' });
     res.send(branch);
   } catch (error) {
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -213,7 +210,7 @@ route.get("/:id", async (req, res) => {
  *       201:
  *         description: Yangi filial yaratildi
  */
-route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   let { error } = branchesValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -231,9 +228,9 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     });
     res.status(201).send(newBranch);
   } catch (error) {
-    console.log("error", error);
+    console.log('error', error);
 
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -275,19 +272,19 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *       404:
  *         description: Filial topilmadi
  */
-route.patch("/:id", async (req, res) => {
+route.patch('/:id', async (req, res) => {
   const { error } = validateBranchUpdate.validateBranchUpdate(req.body);
   if (error) {
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
     const branch = await Branch.findByPk(req.params.id);
-    if (!branch) return res.status(404).send({ message: "Branch not found" });
+    if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.update(req.body);
     res.send(branch);
   } catch (error) {
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -310,15 +307,15 @@ route.patch("/:id", async (req, res) => {
  *       404:
  *         description: Filial topilmadi
  */
-route.delete("/:id", async (req, res) => {
+route.delete('/:id', async (req, res) => {
   try {
     const branch = await Branch.findByPk(req.params.id);
-    if (!branch) return res.status(404).send({ message: "Branch not found" });
+    if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.destroy();
     res.send({ message: "Filial o'chirildi" });
   } catch (error) {
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 

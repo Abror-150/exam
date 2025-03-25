@@ -11,6 +11,7 @@ const userValidation = Joi.object({
       'string.pattern.base':
         'Phone number must be in Uzbekistan format: +998 XX XXX XX XX',
     }),
+  password: Joi.string().min(6).max(100).required(),
   password: Joi.string()
     .min(6)
     .max(100)
