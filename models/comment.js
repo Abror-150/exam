@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { db } = require('../config/db');
+const Users = require('./user');
+const LearningCenter = require('./learningCenter');
 
 const Comments = db.define('Comments', {
   id: {
@@ -23,7 +25,12 @@ const Comments = db.define('Comments', {
     type: DataTypes.STRING,
     allowNull: false,
   },
- 
 });
+
+Users.hasMany(Comments, { foreignKey: 'userId' });
+Comments.belongsTo(Users, { foreignKey: 'userId' });
+
+LearningCenter.hasMany(Comments, { foreignKey: 'learningCenterId' });
+Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
 module.exports = Comments;

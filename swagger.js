@@ -5,9 +5,9 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
     info: {
-      title: "API Documentation",
+      title: "EduCenter API",
       version: "1.0.0",
-      description: "Like API uchun Swagger hujjatlari",
+      description: "O'quv Markaz",
     },
     servers: [{ url: "http://localhost:3000" }],
     components: {
