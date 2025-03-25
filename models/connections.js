@@ -1,8 +1,8 @@
 const LearningCenter = require('./learningCenter');
 const Users = require('./user');
-const Regions = require('./regions');
+const Region = require('./regions');
 const Comments = require('./comment');
-const Branches = require('./branches');
+const Branch = require('./branches');
 const ResourceCategory = require('./resourceCategory');
 const CourseRegister = require('./courseRegister');
 const Resource = require('./resource');
@@ -21,23 +21,28 @@ Comments.belongsTo(Users, { foreignKey: 'userId' });
 LearningCenter.hasMany(Comments, { foreignKey: 'learningCenterId' });
 Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
-LearningCenter.belongsToMany(Branches, {
-  through: CourseRegister,
-  foreignKey: 'learningCenterId',
-});
-Branches.belongsToMany(LearningCenter, {
-  through: CourseRegister,
-  foreignKey: 'branchId',
-});
+LearningCenter.hasMany(Branch, { foreignKey: 'learningCenterId' });
+Branch.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
-Regions.hasMany(LearningCenter, { foreignKey: 'regionId' });
-LearningCenter.belongsTo(Regions, { foreignKey: 'regionId' });
+// LearningCenter.belongsToMany(Branch, {
+//   through: CourseRegister,
+//   foreignKey: 'learningCenterId',
+// });
+// Branch.belongsToMany(LearningCenter, {
+//   through: CourseRegister,
+//   foreignKey: 'branchId',
+// });
 
-Regions.hasMany(Branches, { foreignKey: 'regionId' });
-Branches.belongsTo(Regions, { foreignKey: 'regionId' });
+Region.hasMany(LearningCenter, { foreignKey: 'regionId' });
+LearningCenter.belongsTo(Region, { foreignKey: 'regionId' });
 
-LearningCenter.hasMany(Branches, { foreignKey: 'learningCenterId' });
-Branches.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
+Region.hasMany(Branch, { foreignKey: 'regionId' });
+Branch.belongsTo(Region, { foreignKey: 'regionId' });
+
+// LearningCenter.hasMany(Branch, {
+//   foreignKey: 'learningCenterId',
+// });
+// Branch.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
 ResourceCategory.hasMany(Resource, { foreignKey: 'resourceCategoryId' });
 Resource.belongsTo(ResourceCategory, { foreignKey: 'resourceCategoryId' });
@@ -45,17 +50,17 @@ Resource.belongsTo(ResourceCategory, { foreignKey: 'resourceCategoryId' });
 Users.hasMany(Like, { foreignKey: 'userId' });
 Like.belongsTo(Users, { foreignKey: 'userId' });
 
-LearningCenter.hasMany(Like, { foreignKey: 'learningCenterId' });
-Like.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
+// LearningCenter.hasMany(Like, { foreignKey: 'learningCenterId' });
+// Like.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
-LearningCenter.belongsToMany(Profession, {
-  through: Fields,
-  foreignKey: 'learningCenterId',
-});
-Profession.belongsToMany(LearningCenter, {
-  through: Fields,
-  foreignKey: 'professionId',
-});
+// LearningCenter.belongsToMany(Profession, {
+//   through: Fields,
+//   foreignKey: 'learningCenterId',
+// });
+// Profession.belongsToMany(LearningCenter, {
+//   through: Fields,
+//   foreignKey: 'professionId',
+// });
 
 Subject.belongsToMany(LearningCenter, {
   through: SubCenter,
@@ -69,7 +74,7 @@ LearningCenter.belongsToMany(Subject, {
 module.exports = {
   Users,
   Resource,
-  Regions,
+  Region,
   LearningCenter,
   Subject,
   SubCenter,
@@ -78,6 +83,6 @@ module.exports = {
   Fields,
   ResourceCategory,
   CourseRegister,
-  Branches,
+  Branch,
   Comments,
 };

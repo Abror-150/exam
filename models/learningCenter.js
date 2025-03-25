@@ -20,7 +20,7 @@ const LearningCenter = db.define('learningCenters', {
     allowNull: false,
   },
   regionId: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   address: {
@@ -28,7 +28,7 @@ const LearningCenter = db.define('learningCenters', {
     allowNull: false,
   },
   branchNumber: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   userId: {

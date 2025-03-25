@@ -8,8 +8,8 @@ async function connectedDb() {
   try {
     await db.authenticate();
     console.log('connected db');
-    await db.sync({ force: true });
-    console.log('ulandi ');
+    // await db.sync({ force: true });
+    // console.log('sync connected');
   } catch (error) {
     console.log(error);
   }
