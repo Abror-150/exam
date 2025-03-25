@@ -197,7 +197,6 @@ router.get("/", async (req, res) => {
   try {
     let { search, sortBy, order, page, limit } = req.query;
 
-    // Default values
     sortBy = sortBy || "createdAt";
     order = order || "DESC";
     page = parseInt(page) || 1;
@@ -206,7 +205,7 @@ router.get("/", async (req, res) => {
 
     let whereCondition = {};
     if (search) {
-      whereCondition.name = { [Op.like]: `%${search}%` }; // ✅ MySQL uchun LIKE
+      whereCondition.name = { [Op.like]: `%${search}%` }; 
     }
 
     const learningCenters = await LearningCenter.findAndCountAll({
