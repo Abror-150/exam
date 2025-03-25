@@ -3,7 +3,7 @@ const Like = require("../models/likes");
 const { Op } = require("sequelize");
 const route = Router();
 const roleAuthMiddleware = require("../middlewares/roleAuth");
-const LikeValidate = require("../validations/likes");
+const {likeSchema} = require("../validations/likes");
 
 /**
  * @swagger
@@ -35,7 +35,7 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
-    const { userId } = req.user.id;
+    const userId = req.userId;
     const { learningCenterId } = req.body;
 
     const one = await Like.create({ userId, learningCenterId });

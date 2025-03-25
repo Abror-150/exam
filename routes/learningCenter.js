@@ -1,46 +1,130 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const LearningCenter = require('../models/learningCenter');
-const roleAuthMiddleware = require('../middlewares/roleAuth');
-const learningCenterValidation = require('../validations/learningCenter');
+const LearningCenter = require("../models/learningCenter");
+const roleAuthMiddleware = require("../middlewares/roleAuth");
+const learningCenterValidation = require("../validations/learningCenter");
+const { Op } = require("sequelize");
+
 /**
  * @swagger
  * /learning-centers:
  *   post:
  *     summary: Create a new Learning Center
+ *     description: This endpoint allows ADMIN and CEO to create a new Learning Center.
  *     security:
  *       - BearerAuth: []
- *     tags: [Learning Centers]
+ *     tags:
+ *       - Learning Centers
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - phone
+ *               - regionId
+ *               - address
+ *               - branchNumber
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Best Learning Center"
  *               phone:
  *                 type: string
+ *                 example: "+998901234567"
  *               img:
  *                 type: string
+ *                 format: url
+ *                 example: "https://example.com/image.png"
  *               regionId:
  *                 type: integer
+ *                 example: 1
  *               address:
  *                 type: string
+ *                 example: "123 Main Street, Tashkent"
  *               branchNumber:
  *                 type: integer
- *
+ *                 example: 5
  *     responses:
  *       201:
- *         description: Learning Center created
+ *         description: Learning Center successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Learning Center created"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     name:
+ *                       type: string
+ *                       example: "Best Learning Center"
+ *                     phone:
+ *                       type: string
+ *                       example: "+998901234567"
+ *                     regionId:
+ *                       type: integer
+ *                       example: 1
+ *                     address:
+ *                       type: string
+ *                       example: "123 Main Street, Tashkent"
+ *                     branchNumber:
+ *                       type: integer
+ *                       example: 5
+ *       400:
+ *         description: Invalid request body
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Validation error: Name is required"
+ *       401:
+ *         description: Unauthorized - Token not provided or invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Token not provided"
+ *       403:
+ *         description: Forbidden - User does not have permission
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Not allowed"
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error creating Learning Center"
  */
-router.post(
-  '/',
 
-  roleAuthMiddleware(['ADMIN', 'CEO']),
+router.post(
+  "/",
+
+  roleAuthMiddleware(["ADMIN", "CEO"]),
   async (req, res) => {
     let { error } = learningCenterValidation.validate(req.body);
     if (error) {
@@ -60,35 +144,87 @@ router.post(
 
       res
         .status(201)
-        .send({ message: 'Learning Center created', data: learningCenter });
+        .send({ message: "Learning Center created", data: learningCenter });
     } catch (error) {
       res.status(500).send({
-        message: 'Error creating Learning Center',
+        message: "Error creating Learning Center",
         error: error.message,
       });
     }
   }
 );
-
 /**
  * @swagger
  * /learning-centers:
  *   get:
- *     summary: Get all Learning Centers
+ *     summary: Get all Learning Centers with filters, sorting, and pagination
  *     tags: [Learning Centers]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search learning centers by name
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, createdAt]
+ *         description: Column to sort by
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Sorting order (ascending or descending)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: List of Learning Centers
+ *         description: List of learning centers
  *       500:
  *         description: Server error
  */
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const learningCenters = await LearningCenter.findAll();
-    res.status(200).send({ data: learningCenters });
+    let { search, sortBy, order, page, limit } = req.query;
+
+    // Default values
+    sortBy = sortBy || "createdAt";
+    order = order || "DESC";
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    let offset = (page - 1) * limit;
+
+    let whereCondition = {};
+    if (search) {
+      whereCondition.name = { [Op.like]: `%${search}%` }; // ✅ MySQL uchun LIKE
+    }
+
+    const learningCenters = await LearningCenter.findAndCountAll({
+      where: whereCondition,
+      order: [[sortBy, order]],
+      limit,
+      offset,
+    });
+
+    res.status(200).send({
+      total: learningCenters.count,
+      page,
+      limit,
+      data: learningCenters.rows,
+    });
   } catch (error) {
     res.status(500).send({
-      message: 'Error fetching Learning Centers',
+      message: "Error fetching Learning Centers",
       error: error.message,
     });
   }
@@ -112,16 +248,16 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Learning Center not found
  */
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
     if (!learningCenter) {
-      return res.status(404).send({ message: 'Learning Center not found' });
+      return res.status(404).send({ message: "Learning Center not found" });
     }
-    res.status(200).send({ message: 'Learning center', data: learningCenter });
+    res.status(200).send({ message: "Learning center", data: learningCenter });
   } catch (error) {
     res.status(500).send({
-      message: 'Error fetching Learning Center',
+      message: "Error fetching Learning Center",
       error: error.message,
     });
   }
@@ -154,21 +290,21 @@ router.get('/:id', async (req, res) => {
  *         description: Learning Center not found
  */
 router.patch(
-  '/:id',
+  "/:id",
 
-  roleAuthMiddleware(['ADMIN', 'CEO', 'SUPER_ADMIN']),
+  roleAuthMiddleware(["ADMIN", "CEO", "SUPER_ADMIN"]),
   async (req, res) => {
     try {
       const learningCenter = await LearningCenter.findByPk(req.params.id);
       if (!learningCenter)
-        return res.status(404).send({ message: 'Learning Center not found' });
+        return res.status(404).send({ message: "Learning Center not found" });
       await learningCenter.update(req.body);
       res
         .status(200)
-        .send({ message: 'Learning Center updated', data: learningCenter });
+        .send({ message: "Learning Center updated", data: learningCenter });
     } catch (error) {
       res.status(500).send({
-        message: 'Error updating Learning Center',
+        message: "Error updating Learning Center",
         error: error.message,
       });
     }
@@ -196,18 +332,18 @@ router.patch(
  *         description: Learning Center not found
  */
 router.delete(
-  '/:id',
-  roleAuthMiddleware(['ADMIN', 'CEO']),
+  "/:id",
+  roleAuthMiddleware(["ADMIN", "CEO"]),
   async (req, res) => {
     try {
       const learningCenter = await LearningCenter.findByPk(req.params.id);
       if (!learningCenter)
-        return res.status(404).send({ message: 'Learning Center not found' });
+        return res.status(404).send({ message: "Learning Center not found" });
       await learningCenter.destroy();
-      res.status(200).send({ message: 'Learning Center deleted' });
+      res.status(200).send({ message: "Learning Center deleted" });
     } catch (error) {
       res.status(500).send({
-        message: 'Error deleting Learning Center',
+        message: "Error deleting Learning Center",
         error: error.message,
       });
     }

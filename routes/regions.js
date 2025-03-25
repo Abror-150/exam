@@ -80,11 +80,9 @@ route.get("/", async (req, res) => {
       include: [
         {
           model: LearningCenter,
-          as: "markazlar",
           include: [
             {
               model: Branches,
-              as: "branches",
             },
           ],
         },
@@ -121,13 +119,16 @@ route.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const region = await Region.findByPk(id, {
-      // include: [
-      //   {
-      //     model: LearningCenter,
-      //     through: { attributes: [] },
-      //     include: [{ model: Branches }],
-      //   },
-      // ],
+      include: [
+        {
+          model: LearningCenter,
+          include: [
+            {
+              model: Branches,
+            },
+          ],
+        },
+      ],
     });
     if (!region) {
       return res.status(404).json({ error: "viloyat topilmadi" });
@@ -160,16 +161,15 @@ route.get("/:id", async (req, res) => {
  *       400:
  *         description: Xato so‘rov
  */
-route.post("/", async (req, res) => {
+route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
-    
     const { error } = regionSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-    const userId = req.user.id;
-    const { name } = req.body;
-    const one = await Region.create({ userId, name });
+    // const userId = req.user.id;
+    // const { name } = req.body;
+    const one = await Region.create(req.body);
     res.status(201).json(one);
   } catch (error) {
     res.status(500).json({ error: "Server xatosi", details: error.message });

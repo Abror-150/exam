@@ -14,9 +14,9 @@ const userValidation = Joi.object({
   password: Joi.string()
     .min(6)
     .max(100)
-    // .pattern(
-    //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-    // )
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    )
     .required()
     .messages({
       'string.pattern.base':
