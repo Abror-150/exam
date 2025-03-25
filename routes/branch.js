@@ -58,17 +58,17 @@ route.get('/', async (req, res) => {
  *       404:
  *         description: Filial topilmadi
  */
-route.get('/:id', async (req, res) => {
-  try {
-    const branch = await Branch.findByPk(req.params.id, {
-      include: [{ model: Region }, { model: LearningCenter }],
-    });
-    if (!branch) return res.status(404).send({ message: 'Branch not found' });
-    res.send(branch);
-  } catch (error) {
-    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
-  }
-});
+// route.get('/:id', async (req, res) => {
+//   try {
+//     const branch = await Branch.findByPk(req.params.id, {
+//       include: [{ model: Region }, { model: LearningCenter }],
+//     });
+//     if (!branch) return res.status(404).send({ message: 'Branch not found' });
+//     res.send(branch);
+//   } catch (error) {
+//     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
+//   }
+// });
 
 /**
  * @swagger

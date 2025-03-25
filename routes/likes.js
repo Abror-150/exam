@@ -1,9 +1,9 @@
-const { Router } = require("express");
-const Like = require("../models/likes");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const Like = require('../models/likes');
+const { Op } = require('sequelize');
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const LikeValidate = require("../validations/likes");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const LikeValidate = require('../validations/likes');
 
 /**
  * @swagger
@@ -29,7 +29,7 @@ const LikeValidate = require("../validations/likes");
  *       400:
  *         description: Noto‘g‘ri ma‘lumot
  */
-route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { error } = likeSchema.validate(req.body);
     if (error) {
@@ -69,16 +69,16 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *       404:
  *         description: Like topilmadi
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Like.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "Like o‘chirildi" });
+      return res.send({ message: "Like o'chirildi" });
     }
-    res.status(404).send({ error: "Like bosmagan" });
+    res.status(404).send({ error: 'Like bosmagan' });
   } catch (error) {
-    res.status(500).send({ error: "Server xatosi", details: error.message });
+    res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
 

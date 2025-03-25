@@ -1,8 +1,12 @@
 const express = require('express');
-const router = express.Router();
+const route = express.Router();
 const LearningCenter = require('../models/learningCenter');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const learningCenterValidation = require('../validations/learningCenter');
+const Branch = require('../models/branches');
+const Profession = require('../models/professions');
+const Comments = require('../models/comment');
+const Region = require('../models/regions');
 /**
  * @swagger
  * /learning-centers:
@@ -17,6 +21,13 @@ const learningCenterValidation = require('../validations/learningCenter');
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - phone
+ *               - img
+ *               - regionId
+ *               - address
+ *               - branchNumber
  *             properties:
  *               name:
  *                 type: string
@@ -30,45 +41,94 @@ const learningCenterValidation = require('../validations/learningCenter');
  *                 type: string
  *               branchNumber:
  *                 type: integer
- *
  *     responses:
  *       201:
  *         description: Learning Center created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/LearningCenter'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized (token missing or invalid)
+ *       403:
+ *         description: Forbidden (role not allowed)
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
  */
-router.post(
-  '/',
-
-  roleAuthMiddleware(['ADMIN', 'CEO']),
-  async (req, res) => {
-    let { error } = learningCenterValidation.validate(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-    try {
-      const { name, phone, ...rest } = req.body;
-      const userId = req?.userId;
-      console.log(userId);
-
-      const learningCenter = await LearningCenter.create({
-        ...rest,
-        userId,
-        name,
-        phone,
-      });
-
-      res
-        .status(201)
-        .send({ message: 'Learning Center created', data: learningCenter });
-    } catch (error) {
-      res.status(500).send({
-        message: 'Error creating Learning Center',
-        error: error.message,
-      });
-    }
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     LearningCenter:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         phone:
+ *           type: string
+ *         img:
+ *           type: string
+ *         regionId:
+ *           type: integer
+ *         address:
+ *           type: string
+ *         branchNumber:
+ *           type: integer
+ *         userId:
+ *           type: integer
+ */
+route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+  let { error } = learningCenterValidation.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
   }
-);
+  try {
+    const { name, phone, ...rest } = req.body;
+
+    const userId = req?.userId;
+
+    const learningCenter = await LearningCenter.create({
+      ...rest,
+      userId,
+      name,
+      phone,
+    });
+
+    res
+      .status(201)
+      .send({ message: 'Learning Center created', data: learningCenter });
+  } catch (error) {
+    res.status(500).send({
+      message: 'Error creating Learning Center',
+      error: error.message,
+    });
+  }
+});
 
 /**
  * @swagger
@@ -82,9 +142,16 @@ router.post(
  *       500:
  *         description: Server error
  */
-router.get('/', async (req, res) => {
+route.get('/', async (req, res) => {
   try {
-    const learningCenters = await LearningCenter.findAll();
+    const learningCenters = await LearningCenter.findAll({
+      include: [
+        { model: Branch },
+        { model: Profession },
+        { model: Comments },
+        { model: Region },
+      ],
+    });
     res.status(200).send({ data: learningCenters });
   } catch (error) {
     res.status(500).send({
@@ -112,7 +179,7 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Learning Center not found
  */
-router.get('/:id', async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
     if (!learningCenter) {
@@ -153,7 +220,7 @@ router.get('/:id', async (req, res) => {
  *       404:
  *         description: Learning Center not found
  */
-router.patch(
+route.patch(
   '/:id',
 
   roleAuthMiddleware(['ADMIN', 'CEO', 'SUPER_ADMIN']),
@@ -195,23 +262,19 @@ router.patch(
  *       404:
  *         description: Learning Center not found
  */
-router.delete(
-  '/:id',
-  roleAuthMiddleware(['ADMIN', 'CEO']),
-  async (req, res) => {
-    try {
-      const learningCenter = await LearningCenter.findByPk(req.params.id);
-      if (!learningCenter)
-        return res.status(404).send({ message: 'Learning Center not found' });
-      await learningCenter.destroy();
-      res.status(200).send({ message: 'Learning Center deleted' });
-    } catch (error) {
-      res.status(500).send({
-        message: 'Error deleting Learning Center',
-        error: error.message,
-      });
-    }
+route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+  try {
+    const learningCenter = await LearningCenter.findByPk(req.params.id);
+    if (!learningCenter)
+      return res.status(404).send({ message: 'Learning Center not found' });
+    await learningCenter.destroy();
+    res.status(200).send({ message: 'Learning Center deleted' });
+  } catch (error) {
+    res.status(500).send({
+      message: 'Error deleting Learning Center',
+      error: error.message,
+    });
   }
-);
+});
 
-module.exports = router;
+module.exports = route;

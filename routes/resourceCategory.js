@@ -1,0 +1,296 @@
+const express = require('express');
+const route = express.Router();
+const ResourceCategory = require('../models/resourceCategory');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+
+/**
+ * @swagger
+ * /resource-categories:
+ *   post:
+ *     summary: Yangi ResourceCategory qo‘shish
+ *     tags: [ResourceCategories]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - img
+ *             properties:
+ *               name:
+ *                 type: string
+ *               img:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: ResourceCategory muvaffaqiyatli qo‘shildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/ResourceCategory'
+ *       401:
+ *         description: Token yo‘q yoki noto‘g‘ri
+ *       403:
+ *         description: Ruxsat yo‘q (ADMIN yoki CEO emas)
+ *       500:
+ *         description: Server xatosi
+ */
+route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+  try {
+    const { name, img } = req.body;
+
+    const resourceCategory = await ResourceCategory.create({
+      name,
+      img,
+    });
+
+    res.status(201).json({
+      message: 'ResourceCategory added',
+      data: resourceCategory,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "ResourceCategory qo'shishda xatolik",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /resource-categories:
+ *   get:
+ *     summary: Barcha ResourceCategory’larni olish
+ *     tags: [ResourceCategories]
+ *     responses:
+ *       200:
+ *         description: Barcha ResourceCategory ro‘yxati
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ResourceCategory'
+ *       500:
+ *         description: Server xatosi
+ */
+route.get('/', async (req, res) => {
+  try {
+    const resourceCategories = await ResourceCategory.findAll();
+    res.json({
+      message: 'Barcha ResourceCategorylar',
+      data: resourceCategories,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "ResourceCategory'larni olishda xatolik",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /resource-categories/{id}:
+ *   get:
+ *     summary: Bitta ResourceCategory’ni ID bo‘yicha olish
+ *     tags: [ResourceCategories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ResourceCategory ID
+ *     responses:
+ *       200:
+ *         description: ResourceCategory topildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/ResourceCategory'
+ *       404:
+ *         description: ResourceCategory topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+route.get('/:id', async (req, res) => {
+  try {
+    const resourceCategory = await ResourceCategory.findByPk(req.params.id);
+    if (!resourceCategory) {
+      return res.status(404).json({ message: 'ResourceCategory topilmadi' });
+    }
+    res.json({
+      message: 'ResourceCategory topildi',
+      data: resourceCategory,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'ResourceCategory olishda xatolik',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /resource-categories/{id}:
+ *   patch:
+ *     summary: ResourceCategory’ni yangilash
+ *     tags: [ResourceCategories]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ResourceCategory ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               img:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: ResourceCategory yangilandi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/ResourceCategory'
+ *       404:
+ *         description: ResourceCategory topilmadi
+ *       401:
+ *         description: Token yo‘q yoki noto‘g‘ri
+ *       403:
+ *         description: Ruxsat yo‘q (ADMIN yoki CEO emas)
+ *       500:
+ *         description: Server xatosi
+ */
+route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+  try {
+    const resourceCategory = await ResourceCategory.findByPk(req.params.id);
+    if (!resourceCategory) {
+      return res.status(404).json({ message: 'ResourceCategory topilmadi' });
+    }
+
+    await resourceCategory.update(req.body);
+
+    res.json({
+      message: 'ResourceCategory yangilandi',
+      data: resourceCategory,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'ResourceCategory yangilashda xatolik',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /resource-categories/{id}:
+ *   delete:
+ *     summary: ResourceCategory’ni o‘chirish
+ *     tags: [ResourceCategories]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ResourceCategory ID
+ *     responses:
+ *       200:
+ *         description: ResourceCategory o‘chirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: ResourceCategory topilmadi
+ *       401:
+ *         description: Token yo‘q yoki noto‘g‘ri
+ *       403:
+ *         description: Ruxsat yo‘q (ADMIN yoki CEO emas)
+ *       500:
+ *         description: Server xatosi
+ */
+route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+  try {
+    const resourceCategory = await ResourceCategory.findByPk(req.params.id);
+    if (!resourceCategory) {
+      return res.status(404).json({ message: 'ResourceCategory topilmadi' });
+    }
+
+    await resourceCategory.destroy();
+    res.json({ message: 'ResourceCategory deleted' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "ResourceCategory o'chirishda xatolik",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ResourceCategory:
+ *       type: object
+ *       required:
+ *         - name
+ *         - img
+ *       properties:
+ *         id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         img:
+ *           type: string
+ */
+
+module.exports = route;

@@ -9,6 +9,7 @@ const branchesValidation = Joi.object({
   address: Joi.string().min(5).max(500).required(),
   learningCenterId: Joi.number().integer().required(),
 });
+
 const validateBranchUpdate = (data) => {
   return branchesValidation
     .fork(Object.keys(data), (schema) => schema.optional())

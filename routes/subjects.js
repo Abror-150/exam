@@ -1,9 +1,9 @@
-const { Router } = require("express");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const { Op } = require('sequelize');
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const { subjectSchema } = require("../validations/subjects");
-const { Subject, LearningCenter } = require("../models/connections");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const { subjectSchema } = require('../validations/subjects');
+const { Subject, LearningCenter } = require('../models/connections');
 
 /**
  * @swagger
@@ -52,13 +52,13 @@ const { Subject, LearningCenter } = require("../models/connections");
  *       500:
  *         description: Server xatosi
  */
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       page = 1,
       limit = 10,
-      sortBy = "id",
-      order = "ASC",
+      sortBy = 'id',
+      order = 'ASC',
       name,
     } = req.query;
     page = parseInt(page);
@@ -77,14 +77,14 @@ route.get("/", async (req, res) => {
       include: [
         {
           model: LearningCenter,
-          as: "markazlar",
+          as: 'markazlar',
           through: { attributes: [] },
         },
       ],
     });
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -107,25 +107,25 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Fan topilmadi
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const oneId = await Subject.findByPk(id, {
       include: [
         {
           model: LearningCenter,
-          as: "markazlar",
+          as: 'markazlar',
           through: { attributes: [] },
         },
       ],
     });
     if (!oneId) {
-      return res.status(404).json({ error: "subject topilmadi" });
+      return res.status(404).json({ error: 'subject topilmadi' });
     }
 
     res.json(oneId);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -152,7 +152,7 @@ route.get("/:id", async (req, res) => {
  *       400:
  *         description: Xato ma'lumot kiritildi
  */
-route.post("/", async (req, res) => {
+route.post('/', async (req, res) => {
   try {
     const { error } = subjectSchema.validate(req.body);
     if (error) {
@@ -161,7 +161,7 @@ route.post("/", async (req, res) => {
     const one = await Subject.create(req.body);
     res.status(201).json(one);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 /**
@@ -198,8 +198,8 @@ route.post("/", async (req, res) => {
  */
 
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
       const { error } = subjectSchema.validate(req.body);
@@ -209,12 +209,12 @@ route.patch(
       const { id } = req.params;
       const one = await Subject.findByPk(id);
       if (!one) {
-        return res.status(404).send({ error: "subject topilmadi" });
+        return res.status(404).send({ error: 'subject topilmadi' });
       }
       await one.update(req.body);
       res.json(one);
     } catch (error) {
-      res.status(500).json({ error: "Server xatosi", details: error.message });
+      res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
 );
@@ -238,16 +238,16 @@ route.patch(
  *         description: Fan topilmadi
  */
 
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Subject.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "subject o‘chirildi" });
+      return res.send({ message: "subject o'chirildi" });
     }
-    res.status(404).send({ error: "subject topilmadi" });
+    res.status(404).send({ error: 'subject topilmadi' });
   } catch (error) {
-    res.status(500).send({ error: "Server xatosi", details: error.message });
+    res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
 

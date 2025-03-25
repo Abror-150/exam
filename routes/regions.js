@@ -1,11 +1,12 @@
-const { Router } = require("express");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const { Op } = require('sequelize');
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Region = require("../models/regions");
-const LearningCenter = require("../models/learningCenter");
-const Branches = require("../models/branches");
-const { regionSchema } = require("../validations/regions");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Region = require('../models/regions');
+const LearningCenter = require('../models/learningCenter');
+const Branches = require('../models/branches');
+const { regionSchema } = require('../validations/regions');
+const Branch = require('../models/branches');
 
 /**
  * @swagger
@@ -55,13 +56,13 @@ const { regionSchema } = require("../validations/regions");
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       page = 1,
       limit = 10,
-      sortBy = "id",
-      order = "ASC",
+      sortBy = 'id',
+      order = 'ASC',
       name,
     } = req.query;
     page = parseInt(page);
@@ -80,21 +81,15 @@ route.get("/", async (req, res) => {
       include: [
         {
           model: LearningCenter,
-          as: "markazlar",
-          include: [
-            {
-              model: Branches,
-              as: "branches",
-            },
-          ],
         },
+        { model: Branch },
       ],
     });
 
     res.status(200).json(data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -117,7 +112,7 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Viloyat topilmadi
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const region = await Region.findByPk(id, {
@@ -130,11 +125,11 @@ route.get("/:id", async (req, res) => {
       // ],
     });
     if (!region) {
-      return res.status(404).json({ error: "viloyat topilmadi" });
+      return res.status(404).json({ error: 'viloyat topilmadi' });
     }
     res.json(region);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -160,19 +155,17 @@ route.get("/:id", async (req, res) => {
  *       400:
  *         description: Xato so‘rov
  */
-route.post("/", async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
-    
     const { error } = regionSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-    const userId = req.user.id;
-    const { name } = req.body;
-    const one = await Region.create({ userId, name });
+
+    const one = await Region.create(req.body);
     res.status(201).json(one);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -208,8 +201,8 @@ route.post("/", async (req, res) => {
  *         description: Viloyat topilmadi
  */
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
       const { error } = regionSchema.validate(req.body);
@@ -219,12 +212,12 @@ route.patch(
       const { id } = req.params;
       const one = await Region.findByPk(id);
       if (!one) {
-        return res.status(404).send({ error: "viloyat topilmadi" });
+        return res.status(404).send({ error: 'viloyat topilmadi' });
       }
       await one.update(req.body);
       res.json(one);
     } catch (error) {
-      res.status(500).json({ error: "Server xatosi", details: error.message });
+      res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
 );
@@ -248,16 +241,16 @@ route.patch(
  *       404:
  *         description: Viloyat topilmadi
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Region.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "viloyat o‘chirildi" });
+      return res.send({ message: "viloyat o'chirildi" });
     }
-    res.status(404).send({ error: "viloyat topilmadi" });
+    res.status(404).send({ error: 'viloyat topilmadi' });
   } catch (error) {
-    res.status(500).send({ error: "Server xatosi", details: error.message });
+    res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
 

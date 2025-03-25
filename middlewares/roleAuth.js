@@ -1,18 +1,21 @@
 const jwt = require('jsonwebtoken');
-function roleAuthMiddleware(roles) {
+
+function roleAuthmiddleware(roles) {
   return (req, res, next) => {
     try {
-      const token = req.header('Authorization')?.split(' ')[1];
+      const token = req.header('Authorization');
+      console.log(req.header('Authorization'));
+
+      console.log(token);
       if (!token) {
         return res.status(401).send({ message: 'Token not provided' });
       }
 
       const data = jwt.verify(token, 'getToken');
+
       if (roles.includes(data?.role)) {
         req.userId = data?.id;
         req.userRole = data?.role;
-        console.log(data);
-
         next();
       } else {
         return res.status(402).send({ message: 'not allowed' });
@@ -24,4 +27,4 @@ function roleAuthMiddleware(roles) {
   };
 }
 
-module.exports = roleAuthMiddleware;
+module.exports = roleAuthmiddleware;

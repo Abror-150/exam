@@ -60,11 +60,11 @@ route.get('/', async (req, res) => {
     const comments = await Comments.findAll({
       include: [{ model: Users }, { model: LearningCenter }],
     });
-    if (!comments.length) return res.send('Comment not found');
+    if (!comments.length) return res.send({ message: 'Comment not found' });
 
     res.send(comments);
   } catch (error) {
-    res.status(500).send({message:`Xatolik yuz berdi: ${error.message}`});
+    res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
   }
 });
 
