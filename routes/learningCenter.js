@@ -1,13 +1,14 @@
-const express = require('express');
+const express = require("express");
 const route = express.Router();
-const LearningCenter = require('../models/learningCenter');
-const roleAuthMiddleware = require('../middlewares/roleAuth');
-const learningCenterValidation = require('../validations/learningCenter');
-const Branch = require('../models/branches');
-const Profession = require('../models/professions');
-const Comments = require('../models/comment');
-const Region = require('../models/regions');
-const { Op } = require('sequelize');
+const LearningCenter = require("../models/learningCenter");
+const roleAuthMiddleware = require("../middlewares/roleAuth");
+const learningCenterValidation = require("../validations/learningCenter");
+const Branch = require("../models/branches");
+const Profession = require("../models/professions");
+const Comments = require("../models/comment");
+const Region = require("../models/regions");
+const { Op } = require("sequelize");
+const Users = require("../models/user");
 
 /**
  * @swagger
@@ -74,7 +75,7 @@ const { Op } = require('sequelize');
  *       500:
  *         description: Server error
  */
-route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   let { error } = learningCenterValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -92,10 +93,10 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
 
     res
       .status(201)
-      .send({ message: 'Learning Center created', data: learningCenter });
+      .send({ message: "Learning Center created", data: learningCenter });
   } catch (error) {
     res.status(500).send({
-      message: 'Error creating Learning Center',
+      message: "Error creating Learning Center",
       error: error.message,
     });
   }
@@ -141,7 +142,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  *       500:
  *         description: Server error
  */
-route.get('/', async (req, res) => {
+route.get("/", async (req, res) => {
   try {
     let { search, sortBy, order, page, limit } = req.query;
 
@@ -153,7 +154,7 @@ route.get('/', async (req, res) => {
 
     let whereCondition = {};
     if (search) {
-      whereCondition.name = { [Op.like]: `%${search}%` }; 
+      whereCondition.name = { [Op.like]: `%${search}%` };
     }
 
     const learningCenters = await LearningCenter.findAndCountAll({
@@ -161,6 +162,12 @@ route.get('/', async (req, res) => {
       order: [[sortBy, order]],
       limit,
       offset,
+      include: [
+        { model: Branch },
+        { model: Region },
+        { model: Users },
+        { model: Comments },
+      ],
     });
 
     res.status(200).send({
@@ -171,7 +178,7 @@ route.get('/', async (req, res) => {
     });
   } catch (error) {
     res.status(500).send({
-      message: 'Error fetching Learning Centers',
+      message: "Error fetching Learning Centers",
       error: error.message,
     });
   }
@@ -196,16 +203,16 @@ route.get('/', async (req, res) => {
  *         description: Learning Center not found
  */
 
-route.get('/:id', async (req, res) => {
+route.get("/:id", async (req, res) => {
   try {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
     if (!learningCenter) {
-      return res.status(404).send({ message: 'Learning Center not found' });
+      return res.status(404).send({ message: "Learning Center not found" });
     }
-    res.status(200).send({ message: 'Learning center', data: learningCenter });
+    res.status(200).send({ message: "Learning center", data: learningCenter });
   } catch (error) {
     res.status(500).send({
-      message: 'Error fetching Learning Center',
+      message: "Error fetching Learning Center",
       error: error.message,
     });
   }
@@ -239,20 +246,20 @@ route.get('/:id', async (req, res) => {
  */
 
 route.patch(
-  '/:id',
-  roleAuthMiddleware(['ADMIN', 'CEO', 'SUPER_ADMIN']),
+  "/:id",
+  roleAuthMiddleware(["ADMIN", "CEO", "SUPER_ADMIN"]),
   async (req, res) => {
     try {
       const learningCenter = await LearningCenter.findByPk(req.params.id);
       if (!learningCenter)
-        return res.status(404).send({ message: 'Learning Center not found' });
+        return res.status(404).send({ message: "Learning Center not found" });
       await learningCenter.update(req.body);
       res
         .status(200)
-        .send({ message: 'Learning Center updated', data: learningCenter });
+        .send({ message: "Learning Center updated", data: learningCenter });
     } catch (error) {
       res.status(500).send({
-        message: 'Error updating Learning Center',
+        message: "Error updating Learning Center",
         error: error.message,
       });
     }
@@ -279,16 +286,16 @@ route.patch(
  *       404:
  *         description: Learning Center not found
  */
-route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
     if (!learningCenter)
-      return res.status(404).send({ message: 'Learning Center not found' });
+      return res.status(404).send({ message: "Learning Center not found" });
     await learningCenter.destroy();
-    res.status(200).send({ message: 'Learning Center deleted' });
+    res.status(200).send({ message: "Learning Center deleted" });
   } catch (error) {
     res.status(500).send({
-      message: 'Error deleting Learning Center',
+      message: "Error deleting Learning Center",
       error: error.message,
     });
   }

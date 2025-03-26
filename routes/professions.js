@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { Fields } = require('../models/connections');
+const { Fields, Subject } = require('../models/connections');
 const { Op } = require('sequelize');
 const route = Router();
 const roleAuthMiddleware = require('../middlewares/roleAuth');
@@ -70,9 +70,9 @@ route.get('/', async (req, res) => {
       offset: (page - 1) * limit,
       include: [
         {
-          model: LearningCenter,
-          as: 'markaz',
-          through: { attributes: [] },
+          model: Subject,
+          // as: 'markaz',
+          // through: { attributes: [] },
         },
       ],
     });

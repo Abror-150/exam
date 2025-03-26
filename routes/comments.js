@@ -185,7 +185,7 @@ route.get('/', async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
-      include: [{ model: Users }, { model: LearningCenter }],
+      include: [{ model: Users }],
       order,
       limit: parseInt(limit),
       offset,
