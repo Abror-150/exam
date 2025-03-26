@@ -8,15 +8,20 @@ const Profession = require('../models/professions');
 const Comments = require('../models/comment');
 const Region = require('../models/regions');
 const { Op } = require('sequelize');
+const Users = require('../models/user');
+const Subject = require('../models/subjects');
+const SubCenter = require('../models/subCenter');
+const Field = require('../models/fields');
+const Like = require('../models/likes');
+const { Sequelize } = require('sequelize');
 
 /**
  * @swagger
  * /learning-centers:
  *   post:
  *     summary: Create a new Learning Center
- *     description: This endpoint allows ADMIN and CEO to create a new Learning Center.
- *     security:
- *       - BearerAuth: []
+ *     description: Only users with 'ADMIN' or 'CEO' roles can create a learning center.
+ *
  *     tags:
  *       - Learning Centers
  *     requestBody:
@@ -29,60 +34,64 @@ const { Op } = require('sequelize');
  *               - name
  *               - phone
  *               - img
- *               - regionId
  *               - address
- *               - branchNumber
+ *               - regionId
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Best Learning Center"
+ *                 example: "Najot Ta'lim"
  *               phone:
  *                 type: string
  *                 example: "+998901234567"
  *               img:
  *                 type: string
- *                 format: url
  *                 example: "https://example.com/image.png"
- *               regionId:
- *                 type: integer
- *                 example: 1
  *               address:
  *                 type: string
- *                 example: "123 Main Street, Tashkent"
- *               branchNumber:
+ *                 example: "Toshkent, Chilonzor 9 kvartal"
+ *               regionId:
  *                 type: integer
- *                 example: 5
+ *                 example: 3
+ *
+ *               professionsId:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2]
+ *               subjectsId:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2]
  *     responses:
  *       201:
  *         description: Learning Center successfully created
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Learning Center created"
- *                 data:
- *                   $ref: '#/components/schemas/LearningCenter'
  *       400:
  *         description: Validation error
  *       401:
- *         description: Unauthorized (token missing or invalid)
+ *         description: Unauthorized (Token missing or invalid)
  *       403:
- *         description: Forbidden (role not allowed)
+ *         description: Forbidden (User does not have required role)
  *       500:
  *         description: Server error
  */
+
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   let { error } = learningCenterValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
-    const { name, phone, ...rest } = req.body;
+    const { professionsId, subjectsId, name, phone, ...rest } = req.body;
     const userId = req?.userId;
-
+    let exists = await LearningCenter.findOne({ where: { name } });
+    if (exists) {
+      return res.status(401).send({ message: 'name already exists' });
+    }
+    let PhoneExists = await LearningCenter.findOne({ where: { phone } });
+    if (PhoneExists) {
+      return res.status(401).send({ message: 'phone already exists' });
+    }
     const learningCenter = await LearningCenter.create({
       ...rest,
       userId,
@@ -90,14 +99,32 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       phone,
     });
 
-    res
-      .status(201)
-      .send({ message: 'Learning Center created', data: learningCenter });
+    if (professionsId && professionsId.length > 0) {
+      const professionData = professionsId.map((id) => ({
+        professionId: id,
+        learningCenterId: learningCenter.id,
+      }));
+      await Field.bulkCreate(professionData);
+    }
+
+    if (subjectsId && subjectsId.length > 0) {
+      const subjectData = subjectsId.map((id) => ({
+        subjectId: id,
+        learningCenterId: learningCenter.id,
+      }));
+      await SubCenter.bulkCreate(subjectData);
+    }
+
+    res.status(201).send({
+      message: 'Learning Center created',
+      data: learningCenter,
+    });
   } catch (error) {
     res.status(500).send({
       message: 'Error creating Learning Center',
       error: error.message,
     });
+    console.log(error);
   }
 });
 
@@ -157,14 +184,40 @@ route.get('/', async (req, res) => {
     }
 
     const learningCenters = await LearningCenter.findAndCountAll({
+      // attributes: [
+      //   'id',
+      //   'name',
+      //   'address',
+      //   [Sequelize.fn('COUNT', Sequelize.col('Likes.id')), 'numberOfLikes'],
+      // ],
+      include: [
+        {
+          model: Branch,
+
+          attributes: ['id', 'name', 'address'],
+        },
+        { model: Region, attributes: ['name'] },
+        {
+          model: Users,
+          as: 'users',
+          attributes: ['id', 'firstName', 'lastName'],
+        },
+        { model: Like, attributes: [] },
+        {
+          model: Subject,
+          through: { attributes: [] },
+        },
+        { model: Comments },
+      ],
       where: whereCondition,
       order: [[sortBy, order]],
       limit,
       offset,
+      // group: ['LearningCenter.id'],
     });
 
     res.status(200).send({
-      total: learningCenters.count,
+      total: learningCenters.count.length,
       page,
       limit,
       data: learningCenters.rows,
@@ -216,8 +269,8 @@ route.get('/:id', async (req, res) => {
  * /learning-centers/{id}:
  *   patch:
  *     summary: Update a Learning Center by ID
- *     security:
- *       - BearerAuth: []
+ *
+ *
  *     tags: [Learning Centers]
  *     parameters:
  *       - in: path
@@ -264,8 +317,8 @@ route.patch(
  * /learning-centers/{id}:
  *   delete:
  *     summary: Delete a Learning Center by ID
- *     security:
- *       - BearerAuth: []
+ *
+ *
  *     tags: [Learning Centers]
  *     parameters:
  *       - in: path

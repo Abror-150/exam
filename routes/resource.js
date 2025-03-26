@@ -2,6 +2,8 @@ const express = require('express');
 const route = express.Router();
 const Resource = require('../models/resource');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Users = require('../models/user');
+const ResourceCategory = require('../models/resourceCategory');
 
 /**
  * @swagger
@@ -9,8 +11,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
  *   post:
  *     summary: Yangi Resource qo‘shish
  *     tags: [Resources]
- *     security:
- *       - BearerAuth: []
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -58,8 +59,21 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
  */
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
-    const { name, file, img, describtion, link, categoryId } = req.body;
+    const { name, file, img, describtion, link, resourceCategoryId } = req.body;
     const userId = req.userId;
+
+    const existingResource = await Resource.findOne({
+      where: { name },
+    });
+
+    if (existingResource) {
+      return res.status(400).json({ message: 'This resource already exists' });
+    }
+
+    const category = await ResourceCategory.findByPk(resourceCategoryId);
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
 
     const resource = await Resource.create({
       name,
@@ -68,7 +82,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       describtion,
       link,
       userId,
-      categoryId,
+      resourceCategoryId,
     });
 
     res.status(201).json({
@@ -109,7 +123,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  */
 route.get('/', async (req, res) => {
   try {
-    const resources = await Resource.findAll();
+    const resources = await Resource.findAll({ include: [{ model: Users }] });
     res.json({
       message: 'All ressours',
       data: resources,
@@ -155,7 +169,9 @@ route.get('/', async (req, res) => {
  */
 route.get('/:id', async (req, res) => {
   try {
-    const resource = await Resource.findByPk(req.params.id);
+    const resource = await Resource.findByPk(req.params.id, {
+      include: [{ model: Users }],
+    });
     if (!resource) {
       return res.status(404).json({ message: 'Resource not found' });
     }
@@ -178,8 +194,7 @@ route.get('/:id', async (req, res) => {
  *   patch:
  *     summary: Resource’ni yangilash
  *     tags: [Resources]
- *     security:
- *       - BearerAuth: []
+ *
  *     parameters:
  *       - in: path
  *         name: id
@@ -255,8 +270,8 @@ route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  *   delete:
  *     summary: Resource’ni o‘chirish
  *     tags: [Resources]
- *     security:
- *       - BearerAuth: []
+ *
+ *
  *     parameters:
  *       - in: path
  *         name: id

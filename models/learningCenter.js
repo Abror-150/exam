@@ -29,7 +29,7 @@ const LearningCenter = db.define('markaz', {
   },
   branchNumber: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    defaultValue: 0,
   },
   userId: {
     type: DataTypes.INTEGER,

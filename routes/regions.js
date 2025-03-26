@@ -5,7 +5,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Region = require('../models/regions');
 const LearningCenter = require('../models/learningCenter');
 const Branches = require('../models/branches');
-const { regionSchema } = require('../validations/regions');
+const { regionSchema, message } = require('../validations/regions');
 const Branch = require('../models/branches');
 
 /**
@@ -165,13 +165,17 @@ route.get('/:id', async (req, res) => {
  */
 
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
+  const { error } = regionSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
   try {
-    const { error } = regionSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+    let { name } = req.body;
+    let existRegion = await Region.findOne({ where: { name } });
+    if (existRegion) {
+      return res.status(401).send({ message: 'region already exists' });
     }
-
-    const one = await Region.create(req.body);
+    const one = await Region.create({ name });
     res.status(201).json(one);
   } catch (error) {
     res.status(500).json({ error: 'Server xatosi', details: error.message });

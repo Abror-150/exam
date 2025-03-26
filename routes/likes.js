@@ -3,8 +3,8 @@ const Like = require('../models/likes');
 const { Op } = require('sequelize');
 const route = Router();
 
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const {likeSchema} = require("../validations/likes");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const { likeSchema } = require('../validations/likes');
 
 /**
  * @swagger
@@ -38,6 +38,15 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     }
     const userId = req.userId;
     const { learningCenterId } = req.body;
+    const existingLike = await Like.findOne({
+      where: { userId, learningCenterId },
+    });
+
+    if (existingLike) {
+      return res
+        .status(400)
+        .json({ message: 'User already liked this learning center' });
+    }
 
     const one = await Like.create({ userId, learningCenterId });
     res.status(201).send(one);

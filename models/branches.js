@@ -2,6 +2,8 @@ const { DataTypes } = require('sequelize');
 const { db } = require('../config/db');
 const Region = require('./regions');
 const LearningCenter = require('./learningCenter');
+const Profession = require('./professions');
+const ProfessionBranch = require('./professionBranch');
 
 const Branch = db.define('Branches', {
   id: {

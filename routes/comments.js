@@ -155,19 +155,33 @@ route.get('/', async (req, res) => {
     }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
+    console.log(learningCenterId);
+
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
-      include: [{ model: Users }, { model: LearningCenter }],
-      order,
-      limit: parseInt(limit),
-      offset,
+      attributes: ['id', 'star'],
+      include: [
+        {
+          model: Users,
+
+          attributes: ['id', 'firstName', 'lastName'],
+        },
+        {
+          model: LearningCenter,
+          attributes: ['id', 'name'],
+        },
+      ],
     });
 
+    const totalStars = rows.reduce((sum, comment) => sum + comment.star, 0);
+    const averageStar = rows.length ? totalStars / rows.length : 0;
+
     res.json({
-      total: count,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      data: rows,
+      offset,
+      limit,
+      totalCount: count,
+      averageStar: parseFloat(averageStar.toFixed(2)),
+      comments: rows,
     });
   } catch (error) {
     res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
@@ -217,8 +231,8 @@ route.get('/:id', async (req, res) => {
  *     description: Foydalanuvchi yangi izoh qoldiradi
  *     tags:
  *       - Comment
- *     security:
- *       - BearerAuth: []
+ *    
+ 
  *     requestBody:
  *       required: true
  *       content:
@@ -252,9 +266,7 @@ route.get('/:id', async (req, res) => {
  *                 id:
  *                   type: integer
  *                   example: 10
- *                 userId:
- *                   type: integer
- *                   example: 2
+ *                
  *                 learningCenterId:
  *                   type: integer
  *                   example: 1
@@ -301,7 +313,11 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
     const { learningCenterId, star, message } = req.body;
 
     const userId = req?.userId;
+    const learningExists = await LearningCenter.findByPk(learningCenterId);
 
+    if (!learningExists) {
+      return res.status(404).send({ message: 'edu center not found' });
+    }
     const newComment = await Comments.create({
       userId,
       learningCenterId,
@@ -311,6 +327,8 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
     res.send(newComment);
     console.log(newComment);
   } catch (error) {
+    console.log(error);
+
     res.status(500).send({ error: 'server error' });
   }
 });
@@ -321,8 +339,8 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
  *   patch:
  *     summary: Izohni yangilash
  *     tags: [Comment]
- *     security:
- *       - BearerAuth: []
+ *
+ *
  *     parameters:
  *       - in: path
  *         name: id
@@ -370,8 +388,8 @@ route.patch(
  *   delete:
  *     summary: Izohni o'chirish
  *     tags: [Comment]
- *     security:
- *       - BearerAuth: []
+ *
+ *
  *     parameters:
  *       - in: path
  *         name: id

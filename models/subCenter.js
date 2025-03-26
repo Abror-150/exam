@@ -1,7 +1,8 @@
-const { DataTypes } = require("sequelize");
-const { db } = require("../config/db");
-const LearningCenter = require("./learningCenter");
-const SubCenter = db.define("subjectcenters", {
+const { DataTypes } = require('sequelize');
+const { db } = require('../config/db');
+const LearningCenter = require('./learningCenter');
+const Profession = require('./professions');
+const SubCenter = db.define('subjectcenters', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -16,4 +17,5 @@ const SubCenter = db.define("subjectcenters", {
     allowNull: false,
   },
 });
+
 module.exports = SubCenter;

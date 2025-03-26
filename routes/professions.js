@@ -1,9 +1,8 @@
 const { Router } = require('express');
-const { Fields } = require('../models/connections');
 const { Op } = require('sequelize');
 const route = Router();
 const roleAuthMiddleware = require('../middlewares/roleAuth');
-const { professionSchema } = require('../validations/professions');
+const professionSchema = require('../validations/professions');
 const LearningCenter = require('../models/learningCenter');
 const Profession = require('../models/professions');
 const Field = require('../models/fields');
@@ -71,7 +70,7 @@ route.get('/', async (req, res) => {
       include: [
         {
           model: LearningCenter,
-          as: 'markaz',
+          as: 'userLearningCenter',
           through: { attributes: [] },
         },
       ],
@@ -130,8 +129,7 @@ route.get('/:id', async (req, res) => {
  *   post:
  *     summary: Yangi kasb qo‘shish
  *     tags: [Professions]
- *     security:
- *       - bearerAuth: []
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -152,12 +150,18 @@ route.get('/:id', async (req, res) => {
  *         description: Server xatosi
  */
 route.post('/', async (req, res) => {
+  const { error } = professionSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
   try {
-    console.log(req.body);
+    const { name } = req.body;
+    const exitingName = await Profession.findOne({
+      where: { name },
+    });
 
-    const { error } = professionSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+    if (exitingName) {
+      return res.status(400).json({ message: 'Profession already exists' });
     }
     const newProfession = await Profession.create(req.body);
     res.status(201).json(newProfession);
@@ -172,8 +176,7 @@ route.post('/', async (req, res) => {
  *   patch:
  *     summary: Kasb ma'lumotlarini yangilash
  *     tags: [Professions]
- *     security:
- *       - bearerAuth: []
+ *
  *     parameters:
  *       - in: path
  *         name: id
@@ -230,8 +233,7 @@ route.patch(
  *   delete:
  *     summary: Kasbni o‘chirish
  *     tags: [Professions]
- *     security:
- *       - bearerAuth: []
+ *
  *     parameters:
  *       - in: path
  *         name: id

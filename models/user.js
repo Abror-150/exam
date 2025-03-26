@@ -1,5 +1,9 @@
 const { DataTypes } = require('sequelize');
 const { db } = require('../config/db');
+const LearningCenter = require('./learningCenter');
+const CourseRegister = require('./courseRegister');
+const Comments = require('./comment');
+const Profession = require('./professions');
 
 const Users = db.define('users', {
   id: {

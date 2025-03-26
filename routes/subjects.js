@@ -3,8 +3,8 @@ const { Op } = require('sequelize');
 const route = Router();
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { subjectSchema } = require('../validations/subjects');
-const { Subject, LearningCenter } = require('../models/connections');
-
+const Subject = require('../models/subjects');
+const LearningCenter = require('../models/learningCenter');
 /**
  * @swagger
  * tags:
@@ -77,7 +77,7 @@ route.get('/', async (req, res) => {
       include: [
         {
           model: LearningCenter,
-          as: 'markazlar',
+
           through: { attributes: [] },
         },
       ],
@@ -153,17 +153,30 @@ route.get('/:id', async (req, res) => {
  *         description: Xato ma'lumot kiritildi
  */
 route.post('/', async (req, res) => {
+  const { error } = subjectSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
   try {
-    const { error } = subjectSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+    const { name, img } = req.body;
+    const existingSubject = await Subject.findOne({
+      where: { name },
+    });
+
+    if (existingSubject) {
+      return res.status(400).json({ message: 'This subject already exists' });
     }
-    const one = await Subject.create(req.body);
+
+    const one = await Subject.create({ name, img });
     res.status(201).json(one);
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
+
 /**
  * @swagger
  * /subjects/{id}:
@@ -202,14 +215,10 @@ route.patch(
   roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
-      const { error } = subjectSchema.validate(req.body);
-      if (error) {
-        return res.status(400).send({ error: error.details[0].message });
-      }
       const { id } = req.params;
       const one = await Subject.findByPk(id);
       if (!one) {
-        return res.status(404).send({ error: 'subject topilmadi' });
+        return res.status(404).send({ error: 'subject not found' });
       }
       await one.update(req.body);
       res.json(one);

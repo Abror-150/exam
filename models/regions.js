@@ -15,10 +15,4 @@ const Region = db.define('Region', {
   },
 });
 
-// Region.hasMany(LearningCenter, { foreignKey: 'regionId' });
-// LearningCenter.belongsTo(Region, { foreignKey: 'regionId' });
-
-// Region.hasMany(Branch, { foreignKey: 'regionId' });
-// Branch.belongsTo(Region, { foreignKey: 'regionId' });
-
 module.exports = Region;

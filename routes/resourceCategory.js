@@ -2,6 +2,7 @@ const express = require('express');
 const route = express.Router();
 const ResourceCategory = require('../models/resourceCategory');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Resource = require('../models/resource');
 
 /**
  * @swagger
@@ -9,8 +10,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
  *   post:
  *     summary: Yangi ResourceCategory qo‘shish
  *     tags: [ResourceCategories]
- *     security:
- *       - BearerAuth: []
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -47,6 +47,13 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
     const { name, img } = req.body;
+    const existingCategory = await ResourceCategory.findOne({
+      where: { name },
+    });
+
+    if (existingCategory) {
+      return res.status(400).json({ message: 'This category already exists' });
+    }
 
     const resourceCategory = await ResourceCategory.create({
       name,
@@ -91,7 +98,9 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  */
 route.get('/', async (req, res) => {
   try {
-    const resourceCategories = await ResourceCategory.findAll();
+    const resourceCategories = await ResourceCategory.findAll({
+      include: [{ model: Resource }],
+    });
     res.json({
       message: 'Barcha ResourceCategorylar',
       data: resourceCategories,
@@ -137,9 +146,11 @@ route.get('/', async (req, res) => {
  */
 route.get('/:id', async (req, res) => {
   try {
-    const resourceCategory = await ResourceCategory.findByPk(req.params.id);
+    const resourceCategory = await ResourceCategory.findByPk(req.params.id, {
+      include: [{ model: Resource }],
+    });
     if (!resourceCategory) {
-      return res.status(404).json({ message: 'ResourceCategory topilmadi' });
+      return res.status(404).json({ message: 'ResourceCategory not found' });
     }
     res.json({
       message: 'ResourceCategory topildi',
@@ -160,8 +171,7 @@ route.get('/:id', async (req, res) => {
  *   patch:
  *     summary: ResourceCategory’ni yangilash
  *     tags: [ResourceCategories]
- *     security:
- *       - BearerAuth: []
+ *
  *     parameters:
  *       - in: path
  *         name: id
@@ -229,8 +239,7 @@ route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  *   delete:
  *     summary: ResourceCategory’ni o‘chirish
  *     tags: [ResourceCategories]
- *     security:
- *       - BearerAuth: []
+ *
  *     parameters:
  *       - in: path
  *         name: id

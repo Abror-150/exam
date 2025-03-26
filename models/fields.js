@@ -1,9 +1,9 @@
-const { DataTypes } = require("sequelize");
-const { db } = require("../config/db");
-const Profession = require("./professions");
-const LearningCenter = require("./learningCenter");
+const { DataTypes } = require('sequelize');
+const { db } = require('../config/db');
+const Profession = require('./professions');
+const LearningCenter = require('./learningCenter');
 const Field = db.define(
-  "soxalar",
+  'soxalar',
   {
     id: {
       type: DataTypes.INTEGER,
@@ -19,7 +19,16 @@ const Field = db.define(
       allowNull: false,
     },
   },
-  { tableName: "soxalar" }
+  { tableName: 'soxalar' }
 );
+
+LearningCenter.belongsToMany(Profession, {
+  through: Field,
+  foreignKey: 'learningCenterId',
+});
+Profession.belongsToMany(LearningCenter, {
+  through: Field,
+  foreignKey: 'professionId',
+});
 
 module.exports = Field;

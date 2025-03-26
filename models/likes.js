@@ -1,6 +1,6 @@
-const { DataTypes } = require("sequelize");
-const { db } = require("../config/db");
-const Like = db.define("layklar", {
+const { DataTypes } = require('sequelize');
+const { db } = require('../config/db');
+const Like = db.define('layklar', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -15,4 +15,5 @@ const Like = db.define("layklar", {
     allowNull: false,
   },
 });
+
 module.exports = Like;

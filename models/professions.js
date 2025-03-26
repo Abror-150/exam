@@ -1,6 +1,6 @@
-const { DataTypes } = require("sequelize");
-const { db } = require("../config/db");
-const Profession = db.define("kasblar", {
+const { DataTypes } = require('sequelize');
+const { db } = require('../config/db');
+const Profession = db.define('kasblar', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,

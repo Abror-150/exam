@@ -8,6 +8,7 @@ async function connectedDb() {
   try {
     await db.authenticate();
     console.log('connected db');
+    require('../models/connections');
     // await db.sync({ force: true });
     // console.log('ulandi ');
   } catch (error) {

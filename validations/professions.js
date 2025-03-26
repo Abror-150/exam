@@ -5,4 +5,4 @@ const professionSchema = Joi.object({
   img: Joi.string().uri().required(),
 });
 
-module.exports = { professionSchema };
+module.exports = professionSchema;

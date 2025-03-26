@@ -8,6 +8,8 @@ const branchesValidation = Joi.object({
   regionId: Joi.number().integer().required(),
   address: Joi.string().min(5).max(500).required(),
   learningCenterId: Joi.number().integer().required(),
+  professionsId: Joi.array().items(Joi.number().integer()),
+  subjectsId: Joi.array().items(Joi.number().integer()),
 });
 
 const validateBranchUpdate = (data) => {

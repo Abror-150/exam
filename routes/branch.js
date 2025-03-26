@@ -1,6 +1,6 @@
 const express = require('express');
 const route = express.Router();
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 const Branch = require('../models/branches');
 const {
@@ -10,6 +10,10 @@ const {
 const LearningCenter = require('../models/learningCenter');
 const Region = require('../models/regions');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
+const SubBranch = require('../models/subBranch');
+const ProfessionBranch = require('../models/professionBranch');
+const Subject = require('../models/subjects');
+const Profession = require('../models/professions');
 /**
  * @swagger
  * tags:
@@ -112,7 +116,7 @@ route.get('/', async (req, res) => {
     } = req.query;
 
     let whereClause = {};
-    if (name) whereClause.name = { [Op.iLike]: `%${name}%` };
+    if (name) whereClause.name = { [Op.like]: `%${name}%` };
     if (regionId) whereClause.regionId = regionId;
     if (learningCenterId) whereClause.learningCenterId = learningCenterId;
 
@@ -131,7 +135,12 @@ route.get('/', async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const { count, rows } = await Branch.findAndCountAll({
       where: whereClause,
-      include: [{ model: LearningCenter }, { model: Region }],
+      include: [
+        { model: LearningCenter },
+        { model: Region },
+        { model: Subject },
+        { model: Profession },
+      ],
       order,
       limit: parseInt(limit),
       offset,
@@ -172,7 +181,12 @@ route.get('/', async (req, res) => {
 route.get('/:id', async (req, res) => {
   try {
     const branch = await Branch.findByPk(req.params.id, {
-      include: [{ model: Region }, { model: LearningCenter }],
+      include: [
+        { model: Region },
+        { model: LearningCenter },
+        { model: Subject },
+        { model: Profession },
+      ],
     });
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
     res.send(branch);
@@ -183,33 +197,68 @@ route.get('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /branches:
- *   post:
- *     summary: Yangi filial qo‘shish
- *     tags: [Branches]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               phone:
- *                 type: string
- *               img:
- *                 type: string
- *               regionId:
- *                 type: integer
- *               address:
- *                 type: string
- *               learningCenterId:
- *                 type: integer
- *     responses:
- *       201:
- *         description: Yangi filial yaratildi
+ * paths:
+ *   /branches:
+ *     post:
+ *       summary: "Yangi filial qo'shish"
+ *       description: "Yangi filial qo'shish va u bilan bog'liq kasblar va fanlarni kiritish"
+ *       tags:
+ *         - Branches
+ *
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                   example: "Namuna filiali"
+ *                 phone:
+ *                   type: string
+ *                   example: "+998901234567"
+ *                 img:
+ *                   type: string
+ *                   example: "https://example.com/image.jpg"
+ *                 regionId:
+ *                   type: integer
+ *                   example: 1
+ *                 address:
+ *                   type: string
+ *                   example: "Toshkent, Chilonzor 5"
+ *                 learningCenterId:
+ *                   type: integer
+ *                   example: 2
+ *                 professionsId:
+ *                   type: array
+ *                   items:
+ *                     type: integer
+ *                   example: [1, 2, 3]
+ *                 subjectsId:
+ *                   type: array
+ *                   items:
+ *                     type: integer
+ *                   example: [4, 5, 6]
+ *       responses:
+ *         201:
+ *           description: "Filial muvaffaqiyatli yaratildi"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   Branch:
+ *                     type: object
+ *                   branchNumber:
+ *                     type: integer
+ *                     example: 3
+ *         400:
+ *           description: "Validatsiya xatosi"
+ *         500:
+ *           description: "Server xatosi"
  */
+
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   let { error } = branchesValidation.validate(req.body);
   if (error) {
@@ -217,8 +266,39 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   }
 
   try {
-    const { name, phone, img, regionId, address, learningCenterId } = req.body;
-    const newBranch = await Branch.create({
+    const {
+      professionsId,
+      subjectsId,
+      name,
+      phone,
+      img,
+      regionId,
+      address,
+      learningCenterId,
+    } = req.body;
+
+    const learningCenter = await LearningCenter.findByPk(learningCenterId);
+    if (!learningCenter) {
+      return res.status(404).json({ error: 'Edu center not found' });
+    }
+    const region = await Region.findByPk(regionId);
+    if (!region) {
+      return res.status(404).json({ error: 'Region not found' });
+    }
+    const branchExists = await Branch.findOne({
+      where: { name },
+    });
+    if (branchExists) {
+      return res.status(409).json({ message: 'Branch already exists' });
+    }
+    const phoneExists = await Branch.findOne({
+      where: { phone },
+    });
+    if (phoneExists) {
+      return res.status(409).json({ message: 'Phone already exists' });
+    }
+
+    const branch = await Branch.create({
       name,
       phone,
       img,
@@ -226,7 +306,39 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       address,
       learningCenterId,
     });
-    res.status(201).send(newBranch);
+    const count = await Branch.count({ where: { learningCenterId } });
+    await LearningCenter.update(
+      { branchNumber: count },
+      { where: { id: learningCenterId } }
+    );
+    if (professionsId && professionsId.length > 0) {
+      const validProfessions = await Profession.findAll({
+        where: { id: professionsId },
+      });
+      if (validProfessions.length !== professionsId.length) {
+        return res.status(400).json({ message: 'Some job IDs are incorrect!' });
+      }
+      const professionData = professionsId.map((id) => ({
+        professionId: id,
+        branchId: branch.id,
+      }));
+      await ProfessionBranch.bulkCreate(professionData);
+    }
+
+    if (subjectsId && subjectsId.length > 0) {
+      const validSubjects = await Subject.findAll({
+        where: { id: subjectsId },
+      });
+      if (validSubjects.length !== subjectsId.length) {
+        return res.status(400).json({ message: 'Some job IDs are incorrect!' });
+      }
+      const subjectData = subjectsId.map((id) => ({
+        subjectId: id,
+        branchId: branch.id,
+      }));
+      await SubBranch.bulkCreate(subjectData);
+    }
+    res.status(201).send({ branch, branchNumber: count });
   } catch (error) {
     console.log('error', error);
 

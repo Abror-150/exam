@@ -15,14 +15,8 @@ const userValidation = Joi.object({
   password: Joi.string()
     .min(6)
     .max(100)
-    .pattern(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-    )
-    .required()
-    .messages({
-      'string.pattern.base':
-        'Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character',
-    }),
+
+    .required(),
   img: Joi.string().uri().optional(),
   role: Joi.string()
     .valid('ADMIN', 'USER', 'SUPER_ADMIN', 'CEO')

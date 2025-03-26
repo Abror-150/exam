@@ -1,7 +1,10 @@
 const { DataTypes } = require('sequelize');
 const { db } = require('../config/db');
-
-const CourseRegister = db.define('CourseRegisters', {
+const Users = require('./user');
+const LearningCenter = require('./learningCenter');
+const Profession = require('./professions');
+const Branch = require('./branches');
+const CourseRegister = db.define('courseRegisters', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -11,11 +14,10 @@ const CourseRegister = db.define('CourseRegisters', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  branchId: {
+  userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
- 
 });
 
 module.exports = CourseRegister;

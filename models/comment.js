@@ -27,10 +27,4 @@ const Comments = db.define('Comments', {
   },
 });
 
-Users.hasMany(Comments, { foreignKey: 'userId' });
-Comments.belongsTo(Users, { foreignKey: 'userId' });
-
-LearningCenter.hasMany(Comments, { foreignKey: 'learningCenterId' });
-Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
-
 module.exports = Comments;

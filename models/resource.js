@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { db } = require('../config/db');
+const Users = require('./user');
 
 const Resource = db.define('Resources', {
   id: {
@@ -37,4 +38,7 @@ const Resource = db.define('Resources', {
   },
 });
 
+Users.hasMany(Resource, { foreignKey: 'userId' });
+
+Resource.belongsTo(Users, { foreignKey: 'userId' });
 module.exports = Resource;
