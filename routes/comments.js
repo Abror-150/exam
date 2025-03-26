@@ -448,7 +448,6 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => 
       logger.warn(`DELETE /comments/${req.params.id} - Comment not found`);
       return res.status(404).send('Comment not found');
     }
-
     await comment.destroy();
     logger.info(`DELETE /comments/${req.params.id} - Deleted successfully`);
 
@@ -460,3 +459,4 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => 
 });
 
 module.exports = route;
+

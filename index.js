@@ -14,13 +14,8 @@ const SubjectRoute = require('./routes/subjects');
 const uploadRoute = require('./routes/upload');
 const CourseRegister = require('./routes/courseRegister');
 
-
 const app = express();
 app.use(express.json());
-
-
-
-  
 
 connectedDb();
 app.use('/likes', LikeRoutes);
@@ -37,4 +32,4 @@ app.use('/resources', ResourceRoute);
 app.use('/uploads', express.static('uploads'));
 app.use('/upload', uploadRoute);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.listen(3000, () => ('server started on port 3000'));
+app.listen(3000, () => console.log('server started on port 3000'));

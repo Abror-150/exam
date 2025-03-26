@@ -9,7 +9,6 @@ const { Op } = require('sequelize');
 const { getToken } = require('../functions/eskiz');
 const { refreshToken } = require('../functions/eskiz');
 const logger = require('../logger/logger');
-
 const {
   userValidation,
   loginValidation,
@@ -145,7 +144,148 @@ route.post('/register', async (req, res) => {
     console.log(error);
   }
 });
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     summary: "Foydalanuvchi profilini olish"
+ *     description: "Joriy foydalanuvchining profil ma'lumotlarini olish"
+ *     tags:
+ *       - Profile
+ *
+ *     responses:
+ *       200:
+ *         description: "Foydalanuvchi profili muvaffaqiyatli qaytarildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   description: "Foydalanuvchi ID si"
+ *                   example: 1
+ *                 firstName:
+ *                   type: string
+ *                   description: "Foydalanuvchi ismi"
+ *                   example: "Ali"
+ *                 lastName:
+ *                   type: string
+ *                   description: "Foydalanuvchi familiyasi"
+ *                   example: "Valiyev"
+ *                 email:
+ *                   type: string
+ *                   description: "Foydalanuvchi email manzili"
+ *                   example: "ali@example.com"
+ *                 img:
+ *                   type: string
+ *                   description: "Foydalanuvchi profil rasmi URL manzili"
+ *                   example: "https://example.com/profile.jpg"
+ *                 lastIp:
+ *                   type: string
+ *                   description: "Foydalanuvchining oxirgi kirgan IP manzili"
+ *                   example: "192.168.1.1"
+ *       401:
+ *         description: "Token yaroqsiz yoki mavjud emas"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: "Xato haqida ma'lumot"
+ *                   example: "Token yaroqsiz yoki mavjud emas"
+ *       404:
+ *         description: "Foydalanuvchi topilmadi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: "Foydalanuvchi topilmaganligi haqida xabar"
+ *                   example: "user not found"
+ *       500:
+ *         description: "Server xatosi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: "Server xatosi haqida ma'lumot"
+ *                   example: "Server xatosi"
+ *                 details:
+ *                   type: string
+ *                   description: "Xatolik tafsilotlari"
+ *                   example: "Xatolik tafsilotlari"
+ */
 
+route.get("/me", roleAuthMiddlewares(["USER", "ADMIN"]), async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const user = await Users.findByPk(userId, {
+      attributes: ["id", "firstName", "lastName", "email", "img", "lastIp"],
+    });
+    if (!user) return res.status(404).json({ error: "user not found" });
+
+    res.json(user);
+  } catch (error) {
+    console.error("Xatolik:", error);
+    res.status(500).json({ error: "Server xatosi", details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Foydalanuvchi ma'lumotlarini olish
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Foydalanuvchi ID si
+ *     responses:
+ *       200:
+ *         description: Foydalanuvchi ma'lumotlari
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 name:
+ *                   type: string
+ *                   example: "Ali Valiyev"
+ *                 email:
+ *                   type: string
+ *                   example: "ali@example.com"
+ *       404:
+ *         description: Foydalanuvchi topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+
+route.get("/:id", async (req, res) => {
+  try {
+    const one = await Users.findByPk(req.params.id);
+    if (!one) return res.status(404).send({ message: "user not found" });
+
+    res.send(one);
+  } catch (error) {
+    res.status(500).send({ error: "server error" });
+  }
+});
 /**
  * @swagger
  * /users/verify:
@@ -305,6 +445,85 @@ route.post('/refresh', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/me/password:
+ *   patch:
+ *     summary: "Foydalanuvchi parolini o'zgartirish"
+ *     description: "Foydalanuvchi eski parolini tekshirib, yangi parol bilan almashtiradi."
+ *     tags:
+ *       - Profile
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 example: "old_password123"
+ *               newPassword:
+ *                 type: string
+ *                 example: "new_secure_password123"
+ *     responses:
+ *       200:
+ *         description: "Parol muvaffaqiyatli o'zgartirildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Parol muvaffaqiyatli o'zgartirildi"
+ *       400:
+ *         description: "Eski parol noto'g'ri"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Eski parol noto'g'ri"
+ *       500:
+ *         description: "Server xatosi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Server xatosi"
+ *                 details:
+ *                   type: string
+ *                   example: "Error details..."
+ */
+
+route.patch(
+  "/me/password",
+  roleAuthMiddlewares(["ADMIN", "USER"]),
+  async (req, res) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      const user = await Users.findByPk(req.userId);
+
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch)
+        return res.status(400).json({ error: "Eski parol noto'g'ri" });
+
+      const hash = await bcrypt.hash(newPassword, 10);
+      await Users.update({ password: hash }, { where: { id: user.id } });
+
+      res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
+    } catch (error) {
+      res.status(500).json({ error: "Server xatosi", details: error.message });
+    }
+  }
+);
 /**
  * @swagger
  * /users:
@@ -549,11 +768,17 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  * @swagger
  * /users/me/password:
  *   patch:
- *     summary: "Foydalanuvchi parolini o'zgartirish"
- *     description: "Foydalanuvchi eski parolini tekshirib, yangi parol bilan almashtiradi."
- *     tags:
- *       - Profile
- *
+ *     summary: Foydalanuvchi ma'lumotlarini yangilash
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Foydalanuvchi ID si
  *     requestBody:
  *       required: true
  *       content:
@@ -561,15 +786,77 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               oldPassword:
+ *               firstName:
  *                 type: string
- *                 example: "old_password123"
- *               newPassword:
+ *                 example: "Ali"
+ *               lastName:
  *                 type: string
- *                 example: "new_secure_password123"
+ *                 example: "Valiyev"
+ *               email:
+ *                 type: string
+ *                 example: "ali@example.com"
+ *               phone:
+ *                 type: string
+ *                 example: "+998901234567"
+ *
  *     responses:
  *       200:
- *         description: "Parol muvaffaqiyatli o'zgartirildi"
+ *         description: Foydalanuvchi muvaffaqiyatli yangilandi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 name:
+ *                   type: string
+ *                   example: "Ali Valiyev"
+ *                 email:
+ *                   type: string
+ *                   example: "ali@example.com"
+ *       404:
+ *         description: Foydalanuvchi topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+route.patch(
+  "/:id",
+  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const one = await Users.findByPk(id);
+      if (!one) {
+        return res.status(404).send({ error: "user not found" });
+      }
+      await one.update(req.body);
+      res.json(one);
+    } catch (error) {
+      res.status(500).json({ error: "Server xatosi", details: error.message });
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Foydalanuvchini o‘chirish
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: O‘chiriladigan foydalanuvchi ID si
+ *     responses:
+ *       200:
+ *         description: Foydalanuvchi muvaffaqiyatli o‘chirildi
  *         content:
  *           application/json:
  *             schema:
@@ -577,30 +864,11 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Parol muvaffaqiyatli o'zgartirildi"
- *       400:
- *         description: "Eski parol noto'g'ri"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Eski parol noto'g'ri"
+ *                   example: "user o'chirildi"
+ *       404:
+ *         description: Foydalanuvchi topilmadi
  *       500:
- *         description: "Server xatosi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Server xatosi"
- *                 details:
- *                   type: string
- *                   example: "Error details..."
+ *         description: Server xatosi
  */
 
 route.patch(
@@ -630,8 +898,7 @@ route.patch(
         `Error changing password for user ID ${req.userId}: ${error.message}`
       );
       res.status(500).json({ error: 'Server xatosi', details: error.message });
-    }
   }
-);
+});
 
 module.exports = route;

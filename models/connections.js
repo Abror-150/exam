@@ -111,3 +111,4 @@ Users.hasMany(CourseRegister, {
 CourseRegister.belongsTo(Users, {
   foreignKey: 'userId',
 });
+

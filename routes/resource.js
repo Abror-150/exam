@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const route = express.Router();
 const Resource = require('../models/resource');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
@@ -58,7 +58,7 @@ const logger = require('../logger/logger');
  *       500:
  *         description: Server xatosi
  */
-route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const { name, file, img, describtion, link, categoryId } = req.body;
     const userId = req.userId;
@@ -89,7 +89,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     });
     logger.info(`Resource created: ${name}`);
     res.status(201).json({
-      message: 'Resource added',
+      message: "Resource added",
       data: resource,
     });
   } catch (error) {
@@ -106,8 +106,41 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  * @swagger
  * /resources:
  *   get:
- *     summary: Barcha resourclarni olish
+ *     summary: Barcha resourclarni olish (filter, sort, pagination bilan)
  *     tags: [Resources]
+ *     parameters:
+ *       - in: query
+ *         name: nameSearch
+ *         schema:
+ *           type: string
+ *         description: Resource nomi bo‘yicha qidirish
+ *       - in: query
+ *         name: descriptionSearch
+ *         schema:
+ *           type: string
+ *         description: Resource tavsifi (description) bo‘yicha qidirish
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, name]
+ *         description: Sort qilish maydoni (createdAt yoki name)
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Sort qilish tartibi (ASC yoki DESC)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Sahifa raqami (Pagination uchun)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Har bir sahifadagi elementlar soni (Pagination uchun)
  *     responses:
  *       200:
  *         description: Barcha resourclar ro‘yxati
@@ -118,6 +151,16 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "All resources"
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 total:
+ *                   type: integer
+ *                   example: 100
  *                 data:
  *                   type: array
  *                   items:
@@ -125,19 +168,22 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.get('/', async (req, res) => {
+route.get("/", async (req, res) => {
   try {
     const resources = await Resource.findAll({ include: [{ model: Users }] });
     logger.info('Fetched all resources');
     res.json({
-      message: 'All ressours',
-      data: resources,
+      message: "All resources",
+      page,
+      limit,
+      total: resources.count,
+      data: resources.rows,
     });
   } catch (error) {
     logger.error(`Error fetching resources: ${error.message}`);
     console.error(error);
     res.status(500).json({
-      message: 'Resourclarni olishda xatolik',
+      message: "Resourclarni olishda xatolik",
       error: error.message,
     });
   }
@@ -173,7 +219,7 @@ route.get('/', async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.get('/:id', async (req, res) => {
+route.get("/:id", async (req, res) => {
   try {
     const resource = await Resource.findByPk(req.params.id, {
       include: [{ model: Users }],
@@ -184,14 +230,14 @@ route.get('/:id', async (req, res) => {
     }
     logger.info(`Fetched resource: ID ${req.params.id}`);
     res.json({
-      message: 'Resource topildi',
+      message: "Resource topildi",
       data: resource,
     });
   } catch (error) {
     logger.error(`Error fetching resource: ${error.message}`);
     console.error(error);
     res.status(500).json({
-      message: 'Resource olishda xatolik',
+      message: "Resource olishda xatolik",
       error: error.message,
     });
   }
@@ -251,7 +297,7 @@ route.get('/:id', async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+route.patch("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const resource = await Resource.findByPk(req.params.id);
     if (!resource) {
@@ -262,14 +308,14 @@ route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     await resource.update(req.body);
     logger.info(`Resource updated: ID ${req.params.id}`);
     res.json({
-      message: 'Resource updated',
+      message: "Resource updated",
       data: resource,
     });
   } catch (error) {
     logger.error(`Error updating resource: ${error.message}`);
     console.error(error);
     res.status(500).json({
-      message: 'Resource yangilashda xatolik',
+      message: "Resource yangilashda xatolik",
       error: error.message,
     });
   }
@@ -309,7 +355,7 @@ route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const resource = await Resource.findByPk(req.params.id);
     if (!resource) {
