@@ -59,7 +59,7 @@ const ResourceCategory = require('../models/resourceCategory');
  */
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
-    const { name, file, img, describtion, link, resourceCategoryId } = req.body;
+    const { name, file, img, describtion, link, categoryId } = req.body;
     const userId = req.userId;
 
     const existingResource = await Resource.findOne({
@@ -70,7 +70,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       return res.status(400).json({ message: 'This resource already exists' });
     }
 
-    const category = await ResourceCategory.findByPk(resourceCategoryId);
+    const category = await ResourceCategory.findByPk(categoryId);
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
@@ -82,7 +82,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       describtion,
       link,
       userId,
-      resourceCategoryId,
+      categoryId,
     });
 
     res.status(201).json({

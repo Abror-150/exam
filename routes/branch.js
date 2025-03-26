@@ -14,6 +14,7 @@ const SubBranch = require('../models/subBranch');
 const ProfessionBranch = require('../models/professionBranch');
 const Subject = require('../models/subjects');
 const Profession = require('../models/professions');
+const Field = require('../models/fields');
 /**
  * @swagger
  * tags:
@@ -315,13 +316,18 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       const validProfessions = await Profession.findAll({
         where: { id: professionsId },
       });
+
       if (validProfessions.length !== professionsId.length) {
-        return res.status(400).json({ message: 'Some job IDs are incorrect!' });
+        return res
+          .status(404)
+          .json({ message: 'Some profession IDs are incorrect or not found!' });
       }
+
       const professionData = professionsId.map((id) => ({
         professionId: id,
         branchId: branch.id,
       }));
+
       await ProfessionBranch.bulkCreate(professionData);
     }
 
@@ -329,9 +335,13 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       const validSubjects = await Subject.findAll({
         where: { id: subjectsId },
       });
+
       if (validSubjects.length !== subjectsId.length) {
-        return res.status(400).json({ message: 'Some job IDs are incorrect!' });
+        return res
+          .status(404)
+          .json({ message: 'Some subject IDs are incorrect or not found!' });
       }
+
       const subjectData = subjectsId.map((id) => ({
         subjectId: id,
         branchId: branch.id,

@@ -380,8 +380,8 @@ route.get('/', async (req, res) => {
       lastName,
       email,
       phone,
-      sortBy = "id",
-      order = "ASC",
+      sortBy = 'id',
+      order = 'ASC',
       page = 1,
       limit = 10,
     } = req.query;
@@ -417,7 +417,6 @@ route.get('/', async (req, res) => {
       data: users.rows,
     });
   } catch (error) {
-<<<<<<< HEAD
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -597,13 +596,5 @@ route.patch(
     }
   }
 );
-=======
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
-  }
-});
-
->>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
 
 module.exports = route;

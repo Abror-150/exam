@@ -40,7 +40,6 @@ const { Op } = require('sequelize');
  *         message: "Juda zo'r markaz!"
  */
 
-
 /**
  * @swagger
  * /comments:
@@ -164,7 +163,7 @@ route.get('/', async (req, res) => {
           [Op.between]: [parseInt(minStar), parseInt(maxStar)],
         };
       } else if (minStar) {
-        whereClause.star = { [Op.gte]: parseInt(minStar) }; 
+        whereClause.star = { [Op.gte]: parseInt(minStar) };
       } else if (maxStar) {
         whereClause.star = { [Op.lte]: parseInt(maxStar) };
       }
@@ -187,7 +186,6 @@ route.get('/', async (req, res) => {
 
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
-<<<<<<< HEAD
       attributes: ['id', 'star'],
       include: [
         {
@@ -200,12 +198,6 @@ route.get('/', async (req, res) => {
           attributes: ['id', 'name'],
         },
       ],
-=======
-      include: [{ model: Users }],
-      order,
-      limit: parseInt(limit),
-      offset,
->>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
     });
 
     const totalStars = rows.reduce((sum, comment) => sum + comment.star, 0);
