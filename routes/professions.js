@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
@@ -9,17 +8,8 @@ const Profession = require('../models/professions');
 const Field = require('../models/fields');
 const Subject = require('../models/subjects');
 const Users = require('../models/user');
+const logger = require('../logger/logger');
 
-=======
-const { Router } = require("express");
-const { Op } = require("sequelize");
-const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const professionSchema = require("../validations/professions");
-const LearningCenter = require("../models/learningCenter");
-const Profession = require("../models/professions");
-const Field = require("../models/fields");
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a
 /**
  * @swagger
  * /professions:
@@ -88,9 +78,10 @@ route.get("/", async (req, res) => {
         // { model: Subject },
       ],
     });
-
+    logger.info(`Fetched professions - page: ${page}, limit: ${limit}`);
     res.status(200).json(data);
   } catch (error) {
+    logger.error(`Error fetching professions: ${error.message}`);
     console.error(error);
     res.status(500).json({ error: "Server xatosi", details: error.message });
   }
@@ -128,10 +119,12 @@ route.get("/:id", async (req, res) => {
       ],
     });
     if (!profession) {
+      logger.warn(`Profession with ID ${id} not found`);
       return res.status(404).json({ error: "Kasb topilmadi" });
     }
     res.json(profession);
   } catch (error) {
+    logger.error(`Error fetching profession ${id}: ${error.message}`);
     res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
@@ -165,6 +158,7 @@ route.get("/:id", async (req, res) => {
 route.post("/", async (req, res) => {
   const { error } = professionSchema.validate(req.body);
   if (error) {
+    logger.warn(`Validation error: ${error.details[0].message}`);
     return res.status(400).json({ error: error.details[0].message });
   }
   try {
@@ -174,11 +168,14 @@ route.post("/", async (req, res) => {
     });
 
     if (exitingName) {
+      logger.warn(`Profession '${name}' already exists`);
       return res.status(400).json({ message: "Profession already exists" });
     }
     const newProfession = await Profession.create(req.body);
+    logger.info(`New profession added: ${name}`);
     res.status(201).json(newProfession);
   } catch (error) {
+    logger.error(`Error creating profession: ${error.message}`);
     res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
@@ -225,16 +222,20 @@ route.patch(
     try {
       const { error } = professionSchema.validate(req.body);
       if (error) {
+        logger.warn(`Validation error: ${error.details[0].message}`);
         return res.status(400).send({ error: error.details[0].message });
       }
       const { id } = req.params;
       const one = await Profession.findByPk(id);
       if (!one) {
+        logger.warn(`Profession with ID ${id} not found`);
         return res.status(404).send({ error: "Kasb topilmadi" });
       }
       await one.update(req.body);
+      logger.info(`Profession with ID ${id} updated`);
       res.json(one);
     } catch (error) {
+      logger.error(`Error updating profession ${id}: ${error.message}`);
       res.status(500).json({ error: "Server xatosi", details: error.message });
     }
   }
@@ -267,10 +268,13 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     const { id } = req.params;
     const deleted = await Profession.destroy({ where: { id } });
     if (deleted) {
+      logger.info(`Profession with ID ${id} deleted`);
       return res.send({ message: "Kasb o'chirildi" });
     }
+    logger.warn(`Profession with ID ${id} not found`);
     res.status(404).send({ error: "Kasb topilmadi" });
   } catch (error) {
+    logger.error(`Error deleting profession ${id}: ${error.message}`);
     res.status(500).send({ error: "Server xatosi", details: error.message });
   }
 });

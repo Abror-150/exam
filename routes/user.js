@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const Users = require('../models/user');
 const { Router } = require('express');
 const route = Router();
@@ -9,6 +8,8 @@ const { sendSms, sendEmail } = require('../functions/eskiz');
 const { Op } = require('sequelize');
 const { getToken } = require('../functions/eskiz');
 const { refreshToken } = require('../functions/eskiz');
+const logger = require('../logger/logger');
+
 const {
   userValidation,
   loginValidation,
@@ -88,6 +89,7 @@ totp.options = { step: 120, digits: 4 };
 route.post('/register', async (req, res) => {
   const { error } = userValidation.validate(req.body);
   if (error) {
+    logger.warn(`Validation error: ${error.details[0].message}`);
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
@@ -96,12 +98,14 @@ route.post('/register', async (req, res) => {
       where: { firstName },
     });
     if (userExists) {
+      logger.warn(`Register attempt with existing firstName: ${firstName}`);
       return res.status(401).send({ message: 'first name already exists' });
     }
     let lastNameExists = await Users.findOne({
       where: { lastName },
     });
     if (lastNameExists) {
+      logger.warn(`Register attempt with existing lastName: ${lastName}`);
       return res.status(401).send({ message: 'last name already exists' });
     }
 
@@ -109,6 +113,7 @@ route.post('/register', async (req, res) => {
       where: { email },
     });
     if (emailExists) {
+      logger.warn(`Register attempt with existing email: ${email}`);
       return res.status(401).send({ message: 'Email already exists' });
     }
 
@@ -116,6 +121,7 @@ route.post('/register', async (req, res) => {
       where: { phone },
     });
     if (phoneExists) {
+      logger.warn(`Register attempt with existing phone: ${phone}`);
       return res.status(401).send({ message: 'Phone already exists' });
     }
     let hash = bcrypt.hashSync(password, 10);
@@ -130,8 +136,11 @@ route.post('/register', async (req, res) => {
     });
     let token = totp.generate(email + 'email');
     await sendEmail(email, token);
+    userLogger.log("info","register boldi")
+    logger.info(`User registered: ${email}`);
     res.send(newUser);
   } catch (error) {
+    logger.error(`Registration error: ${error.message}`);
     res.status(500).send({ message: 'Internal server error' });
     console.log(error);
   }
@@ -176,17 +185,21 @@ route.post('/verify', async (req, res) => {
   try {
     let user = await Users.findOne({ where: { email } });
     if (!user) {
+      logger.warn(`Verify failed: User with email ${email} not found`);
       res.status(404).send({ message: 'user not exists' });
       return;
     }
     let match = totp.verify({ token: otp, secret: email + 'email' });
     if (!match) {
+      logger.warn(`Verify failed: Invalid OTP for ${email}`);
       res.status(401).send({ message: 'otp not valid' });
       return;
     }
     await user.update({ status: 'ACTIVE' });
+    logger.info(`User ${email} verified successfully`);
     res.send(match);
   } catch (error) {
+    logger.error(`Verification error for ${email}: ${error.message}`)
     console.log(error);
   }
 });
@@ -220,6 +233,7 @@ route.post('/verify', async (req, res) => {
 route.post('/login', async (req, res) => {
   const { error } = loginValidation.validate(req.body);
   if (error) {
+    logger.warn(`Login validation error: ${error.details[0].message}`);
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
@@ -227,11 +241,13 @@ route.post('/login', async (req, res) => {
     let user = await Users.findOne({ where: { firstName } });
 
     if (!user) {
+      logger.warn(`Login failed: User not found - ${firstName}`);
       return res.status(404).json({ message: 'User not found' });
     }
 
     let match = bcrypt.compareSync(password, user.password);
     if (!match) {
+      logger.warn(`Login failed: Invalid password - ${firstName}`);
       return res.status(401).json({ message: 'Invalid password' });
     }
 
@@ -241,7 +257,7 @@ route.post('/login', async (req, res) => {
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
-
+    logger.info(`User logged in: ${firstName}`);
     res.json({ accesToken, refreToken });
   } catch (error) {
     console.log(error);
@@ -273,14 +289,17 @@ route.post('/login', async (req, res) => {
 route.post('/refresh', async (req, res) => {
   let { error } = refreshTokenValidation.validate(req.body);
   if (error) {
+    logger.warn(`Refresh token validation failed: ${error.details[0].message}`);
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
     let { refreshTok } = req.body;
     const user = jwt.verify(refreshTok, 'refresh');
     const newAccestoken = getToken(user.id);
+    logger.info(`Refresh token verified successfully for user ID ${user.id}`);
     res.send({ newAccestoken });
   } catch (error) {
+    logger.error(`Refresh token verification failed: ${error.message}`);
     res.status(500).send({ message: 'Internal server error' });
     console.log(error);
   }
@@ -403,7 +422,9 @@ route.get('/', async (req, res) => {
       if (email) whereCondition.email = { [Op.like]: `%${email}%` };
       if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
     }
-
+    logger.info(
+      `Fetching users with filters: ${JSON.stringify(req.query)}`
+    );
     const users = await Users.findAndCountAll({
       where: whereCondition,
       order: [[sortBy, order.toUpperCase()]],
@@ -411,6 +432,7 @@ route.get('/', async (req, res) => {
       offset: (page - 1) * limit,
     });
 
+    logger.info(`Fetched ${users.rows.length} users successfully`);
     res.status(200).json({
       total: users.count,
       page,
@@ -418,6 +440,7 @@ route.get('/', async (req, res) => {
       data: users.rows,
     });
   } catch (error) {
+    logger.error(`Error fetching users: ${error.message}`);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -509,10 +532,14 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
     const user = await Users.findByPk(userId, {
       attributes: ['id', 'firstName', 'lastName', 'email', 'img', 'lastIp'],
     });
-    if (!user) return res.status(404).json({ error: 'user not found' });
-
+    if (!user) {
+      logger.warn(`User profile not found: ${userId}`);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    logger.info(`User profile fetched: ${userId}`);
     res.json(user);
   } catch (error) {
+    logger.error(`Fetching user profile error: ${error.message}`);
     console.error('Xatolik:', error);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
@@ -585,619 +612,26 @@ route.patch(
       const user = await Users.findByPk(req.userId);
 
       const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch)
+      if (!isMatch) {
+        logger.warn(
+          `User ID ${user.id} failed password change due to incorrect old password`
+        );
         return res.status(400).json({ error: "Eski parol noto'g'ri" });
+      }
 
       const hash = await bcrypt.hash(newPassword, 10);
       await Users.update({ password: hash }, { where: { id: user.id } });
+      logger.info(`User ID ${user.id} successfully changed password`);
+
 
       res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
     } catch (error) {
+      logger.error(
+        `Error changing password for user ID ${req.userId}: ${error.message}`
+      );
       res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
 );
 
 module.exports = route;
-=======
-const Users = require("../models/user");
-const { Router } = require("express");
-const route = Router();
-const bcrypt = require("bcrypt");
-const { totp } = require("otplib");
-const jwt = require("jsonwebtoken");
-const { sendSms, sendEmail } = require("../functions/eskiz");
-const { Op } = require("sequelize");
-const { getToken } = require("../functions/eskiz");
-const { refreshToken } = require("../functions/eskiz");
-const {
-  userValidation,
-  loginValidation,
-  refreshTokenValidation,
-} = require("../validations/user");
-const roleAuthMiddlewares = require("../middlewares/roleAuth");
-/**
- * @swagger
- * tags:
- *   name: Users
- *   description: User management APIs
- */
-
-totp.options = { step: 120, digits: 4 };
-
-/**
- * @swagger
- * /users/register:
- *   post:
- *     summary: Register a new user
- *     description: Creates a new user account and sends OTP to email.
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - phone
- *               - email
- *               - password
- *               - role
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: John
- *               lastName:
- *                 type: string
- *                 example: Doe
- *               phone:
- *                 type: string
- *                 example: "+998901234567"
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "johndoe@example.com"
- *               password:
- *                 type: string
- *                 format: password
- *                 example: "SecureP@ssw0rd"
- *               img:
- *                 type: string
- *               role:
- *                 type: string
- *     responses:
- *       201:
- *         description: User successfully registered and OTP sent.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "User registered successfully. OTP sent to email."
- *       400:
- *         description: Validation error
- *       401:
- *         description: User with provided credentials already exists
- *       500:
- *         description: Internal server error
- */
-
-route.post("/register", async (req, res) => {
-  const { error } = userValidation.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  try {
-    let { firstName, phone, email, lastName, password, ...rest } = req.body;
-    let userExists = await Users.findOne({
-      where: { firstName },
-    });
-    if (userExists) {
-      return res.status(401).send({ message: "first name already exists" });
-    }
-    let lastNameExists = await Users.findOne({
-      where: { lastName },
-    });
-    if (lastNameExists) {
-      return res.status(401).send({ message: "last name already exists" });
-    }
-
-    let emailExists = await Users.findOne({
-      where: { email },
-    });
-    if (emailExists) {
-      return res.status(401).send({ message: "Email already exists" });
-    }
-
-    let phoneExists = await Users.findOne({
-      where: { phone },
-    });
-    if (phoneExists) {
-      return res.status(401).send({ message: "Phone already exists" });
-    }
-    let hash = bcrypt.hashSync(password, 10);
-    let newUser = await Users.create({
-      ...rest,
-      firstName,
-      email,
-      lastName,
-      phone,
-      password: hash,
-      status: "PENDING",
-    });
-    let token = totp.generate(email + "email");
-    await sendEmail(email, token);
-    res.send(newUser);
-  } catch (error) {
-    res.status(500).send({ message: "Internal server error" });
-    console.log(error);
-  }
-});
-
-/**
- * @swagger
- * /users/verify:
- *   post:
- *     summary: Email orqali OTP kodini tasdiqlash
- *     tags:
- *       - Users
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - otp
- *             properties:
- *               email:
- *                 type: string
- *                 example: johndoe@example.com
- *               otp:
- *                 type: string
- *                 example: "123456"
- *     responses:
- *       200:
- *         description: Tasdiqlash muvaffaqiyatli bo'ldi, foydalanuvchi `ACTIVE` holatiga o'tdi
- *       401:
- *         description: Noto'g'ri yoki eskirgan OTP
- *       404:
- *         description: Foydalanuvchi topilmadi
- *       500:
- *         description: Server xatosi
- */
-
-route.post("/verify", async (req, res) => {
-  let { email, otp } = req.body;
-  try {
-    let user = await Users.findOne({ where: { email } });
-    if (!user) {
-      res.status(404).send({ message: "user not exists" });
-      return;
-    }
-    let match = totp.verify({ token: otp, secret: email + "email" });
-    if (!match) {
-      res.status(401).send({ message: "otp not valid" });
-      return;
-    }
-    await user.update({ status: "ACTIVE" });
-    res.send(match);
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-/**
- * @swagger
- * /users/login:
- *   post:
- *     summary: User login
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Wrong password
- *       404:
- *         description: User not found
- */
-
-route.post("/login", async (req, res) => {
-  const { error } = loginValidation.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  try {
-    let { firstName, password } = req.body;
-    let user = await Users.findOne({ where: { firstName } });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    let match = bcrypt.compareSync(password, user.password);
-    if (!match) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
-
-    let userIp = req.ip;
-
-    await Users.update({ lastIp: userIp }, { where: { id: user.id } });
-
-    let accesToken = getToken(user.id, user.role);
-    let refreToken = refreshToken(user);
-
-    res.json({ accesToken, refreToken });
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-/**
- * @swagger
- * /users/refresh:
- *   post:
- *     summary: Refresh access token
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshTok:
- *                 type: string
- *     responses:
- *       200:
- *         description: New access token generated
- */
-
-route.post("/refresh", async (req, res) => {
-  let { error } = refreshTokenValidation.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  try {
-    let { refreshTok } = req.body;
-    const user = jwt.verify(refreshTok, "refresh");
-    const newAccestoken = getToken(user.id);
-    res.send({ newAccestoken });
-  } catch (error) {
-    res.status(500).send({ message: "Internal server error" });
-    console.log(error);
-  }
-});
-
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: "Barcha foydalanuvchilar ro‘yxatini olish"
- *     description: "Bazadagi barcha foydalanuvchilarni qaytaradi."
- *     tags: [Users]
- *     parameters:
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi ismi, familiyasi, email yoki telefon raqami bo‘yicha qidirish"
- *       - in: query
- *         name: firstName
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi ismi bo‘yicha qidirish"
- *       - in: query
- *         name: lastName
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi familiyasi bo‘yicha qidirish"
- *       - in: query
- *         name: email
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi emaili bo‘yicha qidirish"
- *       - in: query
- *         name: phone
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi telefon raqami bo‘yicha qidirish"
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *           default: "id"
- *         description: "Qaysi ustun bo‘yicha tartiblash"
- *       - in: query
- *         name: order
- *         schema:
- *           type: string
- *           enum: [ASC, DESC]
- *           default: "ASC"
- *         description: "Tartiblash tartibi (ASC - o‘sish, DESC - kamayish)"
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: "Qaysi sahifani olish"
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: "Har bir sahifada nechta natija chiqarish"
- *     responses:
- *       200:
- *         description: "Foydalanuvchilar ro‘yxati"
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     example: 1
- *                   firstName:
- *                     type: string
- *                     example: "John"
- *                   lastName:
- *                     type: string
- *                     example: "Doe"
- *                   email:
- *                     type: string
- *                     example: "johndoe@example.com"
- *                   phone:
- *                     type: string
- *                     example: "+998901234567"
- *       500:
- *         description: "Server xatosi"
- */
-
-route.get("/", async (req, res) => {
-  try {
-    let {
-      search,
-      firstName,
-      lastName,
-      email,
-      phone,
-      sortBy = "id",
-      order = "ASC",
-      page = 1,
-      limit = 10,
-    } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
-
-    let whereCondition = {};
-    if (search) {
-      whereCondition[Op.or] = [
-        { firstName: { [Op.like]: `%${search}%` } },
-        { lastName: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-        { phone: { [Op.like]: `%${search}%` } },
-      ];
-    } else {
-      if (firstName) whereCondition.firstName = { [Op.like]: `%${firstName}%` };
-      if (lastName) whereCondition.lastName = { [Op.like]: `%${lastName}%` };
-      if (email) whereCondition.email = { [Op.like]: `%${email}%` };
-      if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
-    }
-
-    const users = await Users.findAndCountAll({
-      where: whereCondition,
-      order: [[sortBy, order.toUpperCase()]],
-      limit,
-      offset: (page - 1) * limit,
-    });
-
-    res.status(200).json({
-      total: users.count,
-      page,
-      limit,
-      data: users.rows,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-/**
- * @swagger
- * /users/me:
- *   get:
- *     summary: "Foydalanuvchi profilini olish"
- *     description: "Joriy foydalanuvchining profil ma'lumotlarini olish"
- *     tags:
- *       - Profile
- *
- *     responses:
- *       200:
- *         description: "Foydalanuvchi profili muvaffaqiyatli qaytarildi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                   description: "Foydalanuvchi ID si"
- *                   example: 1
- *                 firstName:
- *                   type: string
- *                   description: "Foydalanuvchi ismi"
- *                   example: "Ali"
- *                 lastName:
- *                   type: string
- *                   description: "Foydalanuvchi familiyasi"
- *                   example: "Valiyev"
- *                 email:
- *                   type: string
- *                   description: "Foydalanuvchi email manzili"
- *                   example: "ali@example.com"
- *                 img:
- *                   type: string
- *                   description: "Foydalanuvchi profil rasmi URL manzili"
- *                   example: "https://example.com/profile.jpg"
- *                 lastIp:
- *                   type: string
- *                   description: "Foydalanuvchining oxirgi kirgan IP manzili"
- *                   example: "192.168.1.1"
- *       401:
- *         description: "Token yaroqsiz yoki mavjud emas"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: "Xato haqida ma'lumot"
- *                   example: "Token yaroqsiz yoki mavjud emas"
- *       404:
- *         description: "Foydalanuvchi topilmadi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: "Foydalanuvchi topilmaganligi haqida xabar"
- *                   example: "user not found"
- *       500:
- *         description: "Server xatosi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: "Server xatosi haqida ma'lumot"
- *                   example: "Server xatosi"
- *                 details:
- *                   type: string
- *                   description: "Xatolik tafsilotlari"
- *                   example: "Xatolik tafsilotlari"
- */
-
-route.get("/me", roleAuthMiddlewares(["USER", "ADMIN"]), async (req, res) => {
-  try {
-    const userId = req.userId;
-
-    const user = await Users.findByPk(userId, {
-      attributes: ["id", "firstName", "lastName", "email", "img", "lastIp"],
-    });
-    if (!user) return res.status(404).json({ error: "user not found" });
-
-    res.json(user);
-  } catch (error) {
-    console.error("Xatolik:", error);
-    res.status(500).json({ error: "Server xatosi", details: error.message });
-  }
-});
-
-/**
- * @swagger
- * /users/me/password:
- *   patch:
- *     summary: "Foydalanuvchi parolini o'zgartirish"
- *     description: "Foydalanuvchi eski parolini tekshirib, yangi parol bilan almashtiradi."
- *     tags:
- *       - Profile
- *
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               oldPassword:
- *                 type: string
- *                 example: "old_password123"
- *               newPassword:
- *                 type: string
- *                 example: "new_secure_password123"
- *     responses:
- *       200:
- *         description: "Parol muvaffaqiyatli o'zgartirildi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Parol muvaffaqiyatli o'zgartirildi"
- *       400:
- *         description: "Eski parol noto'g'ri"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Eski parol noto'g'ri"
- *       500:
- *         description: "Server xatosi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Server xatosi"
- *                 details:
- *                   type: string
- *                   example: "Error details..."
- */
-
-route.patch(
-  "/me/password",
-  roleAuthMiddlewares(["ADMIN", "USER"]),
-  async (req, res) => {
-    try {
-      const { oldPassword, newPassword } = req.body;
-      const user = await Users.findByPk(req.userId);
-
-      const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch)
-        return res.status(400).json({ error: "Eski parol noto'g'ri" });
-
-      const hash = await bcrypt.hash(newPassword, 10);
-      await Users.update({ password: hash }, { where: { id: user.id } });
-
-      res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
-    } catch (error) {
-      res.status(500).json({ error: "Server xatosi", details: error.message });
-    }
-  }
-);
-
-module.exports = route;
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a

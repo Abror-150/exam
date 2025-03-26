@@ -6,6 +6,8 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { subjectSchema } = require('../validations/subjects');
 const Subject = require('../models/subjects');
 const LearningCenter = require('../models/learningCenter');
+const logger = require('../logger/logger');
+
 /**
  * @swagger
  * tags:
@@ -83,8 +85,10 @@ route.get('/', async (req, res) => {
         },
       ],
     });
+    logger.info(`GET /subjects - page: ${page}, limit: ${limit}, sortBy: ${sortBy}, order: ${order}`);
     res.status(200).json(data);
   } catch (error) {
+    logger.error(`GET /subjects error: ${error.message}`);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -121,11 +125,13 @@ route.get('/:id', async (req, res) => {
       ],
     });
     if (!oneId) {
+      logger.warn(`GET /subjects/${id} - subject topilmadi`);
       return res.status(404).json({ error: 'subject topilmadi' });
     }
-
+    logger.info(`GET /subjects/${id} - subject topildi`);
     res.json(oneId);
   } catch (error) {
+    logger.error(`GET /subjects/${id} error: ${error.message}`);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -156,6 +162,7 @@ route.get('/:id', async (req, res) => {
 route.post('/', async (req, res) => {
   const { error } = subjectSchema.validate(req.body);
   if (error) {
+    logger.warn(`POST /subjects - validation error: ${error.details[0].message}`);
     return res.status(400).json({ error: error.details[0].message });
   }
 
@@ -166,12 +173,15 @@ route.post('/', async (req, res) => {
     });
 
     if (existingSubject) {
+      logger.warn(`POST /subjects - This subject already exists: ${name}`);
       return res.status(400).json({ message: 'This subject already exists' });
     }
 
     const one = await Subject.create({ name, img });
+    logger.info(`POST /subjects - subject created: ${name}`);
     res.status(201).json(one);
   } catch (error) {
+    logger.error(`POST /subjects error: ${error.message}`);
     console.log(error);
 
     res.status(500).json({ error: 'Server xatosi', details: error.message });
@@ -219,11 +229,14 @@ route.patch(
       const { id } = req.params;
       const one = await Subject.findByPk(id);
       if (!one) {
+        logger.warn(`PATCH /subjects/${id} - subject not found`);
         return res.status(404).send({ error: 'subject not found' });
       }
       await one.update(req.body);
+      logger.info(`PATCH /subjects/${id} - subject updated`);
       res.json(one);
     } catch (error) {
+      logger.error(`PATCH /subjects/${id} error: ${error.message}`);
       res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
@@ -253,10 +266,13 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     const deleted = await Subject.destroy({ where: { id } });
     if (deleted) {
+      logger.info(`DELETE /subjects/${id} - subject o'chirildi`);
       return res.send({ message: "subject o'chirildi" });
     }
+    logger.warn(`DELETE /subjects/${id} - subject topilmadi`);
     res.status(404).send({ error: 'subject topilmadi' });
   } catch (error) {
+    logger.error(`DELETE /subjects/${id} error: ${error.message}`);
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });

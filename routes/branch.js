@@ -1,7 +1,7 @@
 const express = require('express');
 const route = express.Router();
 const { Op, where } = require('sequelize');
-
+const logger = require('../logger/logger');
 const Branch = require('../models/branches');
 const {
   branchesValidation,
@@ -106,15 +106,8 @@ const Field = require('../models/fields');
 
 route.get('/', async (req, res) => {
   try {
-    const {
-      name,
-      regionId,
-      learningCenterId,
-      orderBy,
-      orderDirection,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    logger.info('GET /branches called', { query: req.query });
+    const { name, regionId, learningCenterId, orderBy, orderDirection, page = 1, limit = 10 } = req.query;
 
     let whereClause = {};
     if (name) whereClause.name = { [Op.like]: `%${name}%` };
@@ -123,41 +116,26 @@ route.get('/', async (req, res) => {
 
     let order = [['createdAt', 'DESC']];
     if (orderBy) {
-      order = [
-        [
-          orderBy,
-          orderDirection && orderDirection.toUpperCase() === 'ASC'
-            ? 'ASC'
-            : 'DESC',
-        ],
-      ];
+      order = [[orderBy, orderDirection && orderDirection.toUpperCase() === 'ASC' ? 'ASC' : 'DESC']];
     }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const { count, rows } = await Branch.findAndCountAll({
       where: whereClause,
-      include: [
-        { model: LearningCenter },
-        { model: Region },
-        { model: Subject },
-        { model: Profession },
-      ],
+      include: [{ model: LearningCenter }, { model: Region }, { model: Subject }, { model: Profession }],
       order,
       limit: parseInt(limit),
       offset,
     });
 
-    res.json({
-      total: count,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      data: rows,
-    });
+    res.json({ total: count, page: parseInt(page), limit: parseInt(limit), data: rows });
   } catch (error) {
     console.error('error', error);
+    logger.error('Error in GET /branches', { error });
     res.status(500).json({ error: 'Serverda xatolik yuz berdi' });
   }
 });
+
 
 /**
  * @swagger
@@ -181,17 +159,14 @@ route.get('/', async (req, res) => {
 
 route.get('/:id', async (req, res) => {
   try {
+    logger.info(`GET /branches/${req.params.id} called`);
     const branch = await Branch.findByPk(req.params.id, {
-      include: [
-        { model: Region },
-        { model: LearningCenter },
-        { model: Subject },
-        { model: Profession },
-      ],
+      include: [{ model: Region }, { model: LearningCenter }, { model: Subject }, { model: Profession }],
     });
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
     res.send(branch);
   } catch (error) {
+    logger.error('Error in GET /branches/:id', { error });
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
@@ -263,10 +238,12 @@ route.get('/:id', async (req, res) => {
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   let { error } = branchesValidation.validate(req.body);
   if (error) {
+    logger.warn('Validation error in POST /branches', { error: error.details[0].message });
     return res.status(400).json({ message: error.details[0].message });
   }
 
   try {
+    logger.info('POST /branches called', { body: req.body });
     const {
       professionsId,
       subjectsId,
@@ -351,6 +328,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     res.status(201).send({ branch, branchNumber: count });
   } catch (error) {
     console.log('error', error);
+    logger.error('Error in POST /branches', { error });
 
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
@@ -397,15 +375,18 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
 route.patch('/:id', async (req, res) => {
   const { error } = validateBranchUpdate.validateBranchUpdate(req.body);
   if (error) {
+    logger.warn('Validation error in PATCH /branches/:id', { error: error.details[0].message });
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
+    logger.info(`PATCH /branches/${req.params.id} called`);
     const branch = await Branch.findByPk(req.params.id);
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.update(req.body);
     res.send(branch);
   } catch (error) {
+    logger.error('Error in PATCH /branches/:id', { error });
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
@@ -431,12 +412,14 @@ route.patch('/:id', async (req, res) => {
  */
 route.delete('/:id', async (req, res) => {
   try {
+    logger.info(`DELETE /branches/${req.params.id} called`);
     const branch = await Branch.findByPk(req.params.id);
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.destroy();
     res.send({ message: "Filial o'chirildi" });
   } catch (error) {
+    logger.error('Error in DELETE /branches/:id', { error });
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });

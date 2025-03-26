@@ -5,6 +5,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 const LearningCenter = require('../models/learningCenter');
 const CourseRegistervalidation = require('../validations/courseRegister');
 const route = express.Router();
+const logger = require('../logger/logger');
 
 /**
  * @swagger
@@ -34,8 +35,10 @@ const route = express.Router();
  *         description: Server xatosi
  */
 route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
+  logger.info('POST /course-register', { body: req.body });
   let { error } = CourseRegistervalidation.validate(req.body);
   if (error) {
+    logger.warn('Validation error', { error: error.details[0].message });
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
@@ -46,9 +49,11 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
     const learningCenter = await LearningCenter.findByPk(learningCenterId);
 
     if (!user) {
+      logger.warn('User not found', { userId });
       return res.status(404).json({ message: 'User  not found' });
     }
     if (!learningCenter) {
+      logger.warn('Learning center not found', { learningCenterId });
       return res.status(404).json({ message: 'edu center  not found' });
     }
 
@@ -57,6 +62,7 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
     });
 
     if (existingRegistration) {
+      logger.warn('User already registered', { userId, learningCenterId });
       return res.status(400).json({
         message: 'User is already registered in this learning center',
       });
@@ -66,8 +72,10 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
       userId,
       learningCenterId,
     });
+    logger.info('User registered successfully', { userId, learningCenterId });
     res.status(201).json(registration);
   } catch (error) {
+    logger.error('Server error', { error: error.message });
     console.error('Xatolik:', error);
     res.status(500).json({ message: 'Server xatosi', error: error.message });
   }
@@ -87,12 +95,11 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
  */
 route.get('/', async (req, res) => {
   try {
-    const registrations = await CourseRegister.findAll({
-      include: [{ model: Users }],
-    });
+    const registrations = await CourseRegister.findAll({ include: [{ model: Users }] });
+    logger.info('GET /course-register', { count: registrations.length });
     res.status(200).json(registrations);
   } catch (error) {
-    console.error(error);
+    logger.error('Server error', { error: error.message });
     res.status(500).json({ message: 'Server xatosi' });
   }
 });
@@ -138,12 +145,15 @@ route.patch(
 
       const registration = await CourseRegister.findByPk(id);
       if (!registration) {
+        logger.warn('Registration not found', { id });
         return res.status(404).json({ message: 'Register not found' });
       }
 
       await registration.update({ userId, learningCenterId });
+      logger.info('Registration updated', { id, userId, learningCenterId });
       res.status(200).json(registration);
     } catch (error) {
+      logger.error('Server error', { error: error.message });
       console.error(error);
       res.status(500).json({ message: 'Server xatosi' });
     }
@@ -180,12 +190,15 @@ route.delete(
       const registration = await CourseRegister.findByPk(id);
 
       if (!registration) {
+        logger.warn('Registration not found', { id });
         return res.status(404).json({ message: 'Register not found' });
       }
 
       await registration.destroy();
+      logger.info('Registration deleted', { id });
       res.status(200).json({ message: "Ro'yxatdan o'tish o'chirildi" });
     } catch (error) {
+      logger.error('Server error', { error: error.message });
       console.error(error);
       res.status(500).json({ message: 'Server xatosi' });
     }

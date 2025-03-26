@@ -1,21 +1,14 @@
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
-<<<<<<< HEAD
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Region = require('../models/regions');
 const LearningCenter = require('../models/learningCenter');
 const Branches = require('../models/branches');
 const { regionSchema, message } = require('../validations/regions');
 const Branch = require('../models/branches');
-=======
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Region = require("../models/regions");
-const LearningCenter = require("../models/learningCenter");
-const Branches = require("../models/branches");
-const { regionSchema, message } = require("../validations/regions");
-const Branch = require("../models/branches");
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a
+const logger = require('../logger/logger');
+
 
 /**
  * @swagger
@@ -94,9 +87,10 @@ route.get('/', async (req, res) => {
         { model: Branch },
       ],
     });
-
+    logger(`GET /regions - Success`);
     res.status(200).json(data);
   } catch (error) {
+    logger(`GET /regions - Error: ${error.message}`);
     console.error(error);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
@@ -137,10 +131,13 @@ route.get('/:id', async (req, res) => {
       ],
     });
     if (!region) {
+      logger(`GET /regions/${id} - Not Found`);
       return res.status(404).json({ error: 'viloyat topilmadi' });
     }
+    logger(`GET /regions/${id} - Success`);
     res.json(region);
   } catch (error) {
+    logger(`GET /regions/${id} - Error: ${error.message}`);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -168,11 +165,8 @@ route.get('/:id', async (req, res) => {
  *         description: Xato so‘rov
  */
 
-<<<<<<< HEAD
+
 route.post('/', roleAuthMiddleware(['USER']), async (req, res) => {
-=======
-route.post("/", roleAuthMiddleware(["USER"]), async (req, res) => {
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a
   try {
     const { error } = regionSchema.validate(req.body);
     if (error) {
@@ -181,11 +175,14 @@ route.post("/", roleAuthMiddleware(["USER"]), async (req, res) => {
     let { name } = req.body;
     let existRegion = await Region.findOne({ where: { name } });
     if (existRegion) {
+      logger(`POST /regions - Region already exists`);
       return res.status(401).send({ message: "region already exists" });
     }
     const one = await Region.create({ name });
+    logger(`POST /regions - Created region ${name}`);
     res.status(201).json(one);
   } catch (error) {
+    logger(`POST /regions - Error: ${error.message}`);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -230,11 +227,14 @@ route.patch('/:id', roleAuthMiddleware(['USER']), async (req, res) => {
     const { id } = req.params;
     const one = await Region.findByPk(id);
     if (!one) {
+      logger(`PATCH /regions/${id} - Not Found`);
       return res.status(404).send({ error: 'viloyat topilmadi' });
     }
     await one.update(req.body);
+    logger(`PATCH /regions/${id} - Updated`);
     res.json(one);
   } catch (error) {
+    logger(`PATCH /regions/${id} - Error: ${error.message}`);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -263,10 +263,13 @@ route.delete('/:id', roleAuthMiddleware(['USER']), async (req, res) => {
     const { id } = req.params;
     const deleted = await Region.destroy({ where: { id } });
     if (deleted) {
+      logger(`DELETE /regions/${id} - Deleted`);
       return res.send({ message: "viloyat o'chirildi" });
     }
+    logger(`DELETE /regions/${id} - Not Found`);
     res.status(404).send({ error: 'viloyat topilmadi' });
   } catch (error) {
+    logger(`DELETE /regions/${id} - Error: ${error.message}`);
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
