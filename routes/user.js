@@ -822,8 +822,7 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  *         description: Server xatosi
  */
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
+  "/:id",roleAuthMiddlewares(["ADMIN", "SUPER_ADMIN"]),
   async (req, res) => {
     try {
       const { id } = req.params;
