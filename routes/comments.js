@@ -40,6 +40,7 @@ const { Op } = require('sequelize');
  *         message: "Juda zo'r markaz!"
  */
 
+
 /**
  * @swagger
  * /comments:
@@ -58,16 +59,26 @@ const { Op } = require('sequelize');
  *           type: integer
  *         description: O‘quv markazi ID bo‘yicha filtr
  *       - in: query
- *         name: rating
+ *         name: star
  *         schema:
  *           type: integer
- *         description: Reyting bo‘yicha filtr
+ *         description: Star bo‘yicha filtr (aniq qiymat yoki kamida shu stardan katta bo'lganlar)
+ *       - in: query
+ *         name: minStar
+ *         schema:
+ *           type: integer
+ *         description: Eng kam star (shu stardan yuqori bo‘lgan izohlar)
+ *       - in: query
+ *         name: maxStar
+ *         schema:
+ *           type: integer
+ *         description: Eng yuqori star (shu stardan past bo‘lgan izohlar)
  *       - in: query
  *         name: orderBy
  *         schema:
  *           type: string
- *           enum: [createdAt, rating]
- *         description: Saralash (createdAt, rating)
+ *           enum: [createdAt, star]
+ *         description: Saralash (createdAt, star)
  *       - in: query
  *         name: orderDirection
  *         schema:
@@ -115,7 +126,7 @@ const { Op } = require('sequelize');
  *                       learningCenterId:
  *                         type: integer
  *                         example: 3
- *                       rating:
+ *                       star:
  *                         type: integer
  *                         example: 4
  *                       comment:
@@ -130,7 +141,9 @@ route.get('/', async (req, res) => {
     const {
       userId,
       learningCenterId,
-      rating,
+      star,
+      minStar,
+      maxStar,
       orderBy,
       orderDirection,
       page = 1,
@@ -138,9 +151,24 @@ route.get('/', async (req, res) => {
     } = req.query;
 
     let whereClause = {};
-    if (userId) whereClause.userId = userId;
-    if (learningCenterId) whereClause.learningCenterId = learningCenterId;
-    if (rating) whereClause.rating = rating;
+
+    if (userId) whereClause.userId = parseInt(userId);
+    if (learningCenterId)
+      whereClause.learningCenterId = parseInt(learningCenterId);
+
+    if (star) {
+      whereClause.star = parseInt(star);
+    } else {
+      if (minStar && maxStar) {
+        whereClause.star = {
+          [Op.between]: [parseInt(minStar), parseInt(maxStar)],
+        };
+      } else if (minStar) {
+        whereClause.star = { [Op.gte]: parseInt(minStar) }; 
+      } else if (maxStar) {
+        whereClause.star = { [Op.lte]: parseInt(maxStar) };
+      }
+    }
 
     let order = [['createdAt', 'DESC']];
     if (orderBy) {
@@ -159,6 +187,7 @@ route.get('/', async (req, res) => {
 
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
+<<<<<<< HEAD
       attributes: ['id', 'star'],
       include: [
         {
@@ -171,6 +200,12 @@ route.get('/', async (req, res) => {
           attributes: ['id', 'name'],
         },
       ],
+=======
+      include: [{ model: Users }],
+      order,
+      limit: parseInt(limit),
+      offset,
+>>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
     });
 
     const totalStars = rows.reduce((sum, comment) => sum + comment.star, 0);

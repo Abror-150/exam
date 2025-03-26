@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
+const Profession=require("../models/professions")
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { subjectSchema } = require('../validations/subjects');
 const Subject = require('../models/subjects');

@@ -1,4 +1,8 @@
 const { Router } = require('express');
+<<<<<<< HEAD
+=======
+const { Fields, Subject } = require('../models/connections');
+>>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
 const { Op } = require('sequelize');
 const route = Router();
 const roleAuthMiddleware = require('../middlewares/roleAuth');
@@ -69,9 +73,15 @@ route.get('/', async (req, res) => {
       offset: (page - 1) * limit,
       include: [
         {
+<<<<<<< HEAD
           model: LearningCenter,
           as: 'userLearningCenter',
           through: { attributes: [] },
+=======
+          model: Subject,
+          // as: 'markaz',
+          // through: { attributes: [] },
+>>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
         },
       ],
     });

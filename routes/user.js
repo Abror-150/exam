@@ -292,6 +292,57 @@ route.post('/refresh', async (req, res) => {
  *     summary: "Barcha foydalanuvchilar ro‘yxatini olish"
  *     description: "Bazadagi barcha foydalanuvchilarni qaytaradi."
  *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi ismi, familiyasi, email yoki telefon raqami bo‘yicha qidirish"
+ *       - in: query
+ *         name: firstName
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi ismi bo‘yicha qidirish"
+ *       - in: query
+ *         name: lastName
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi familiyasi bo‘yicha qidirish"
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi emaili bo‘yicha qidirish"
+ *       - in: query
+ *         name: phone
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi telefon raqami bo‘yicha qidirish"
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: "id"
+ *         description: "Qaysi ustun bo‘yicha tartiblash"
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: "ASC"
+ *         description: "Tartiblash tartibi (ASC - o‘sish, DESC - kamayish)"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: "Qaysi sahifani olish"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: "Har bir sahifada nechta natija chiqarish"
  *     responses:
  *       200:
  *         description: "Foydalanuvchilar ro‘yxati"
@@ -305,21 +356,68 @@ route.post('/refresh', async (req, res) => {
  *                   id:
  *                     type: integer
  *                     example: 1
- *                   username:
+ *                   firstName:
  *                     type: string
- *                     example: "johndoe"
+ *                     example: "John"
+ *                   lastName:
+ *                     type: string
+ *                     example: "Doe"
  *                   email:
  *                     type: string
  *                     example: "johndoe@example.com"
+ *                   phone:
+ *                     type: string
+ *                     example: "+998901234567"
  *       500:
  *         description: "Server xatosi"
  */
 
 route.get('/', async (req, res) => {
   try {
-    let data = await Users.findAll();
-    res.status(200).json(data);
+    let {
+      search,
+      firstName,
+      lastName,
+      email,
+      phone,
+      sortBy = "id",
+      order = "ASC",
+      page = 1,
+      limit = 10,
+    } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    let whereCondition = {};
+    if (search) {
+      whereCondition[Op.or] = [
+        { firstName: { [Op.like]: `%${search}%` } },
+        { lastName: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { phone: { [Op.like]: `%${search}%` } },
+      ];
+    } else {
+      if (firstName) whereCondition.firstName = { [Op.like]: `%${firstName}%` };
+      if (lastName) whereCondition.lastName = { [Op.like]: `%${lastName}%` };
+      if (email) whereCondition.email = { [Op.like]: `%${email}%` };
+      if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
+    }
+
+    const users = await Users.findAndCountAll({
+      where: whereCondition,
+      order: [[sortBy, order.toUpperCase()]],
+      limit,
+      offset: (page - 1) * limit,
+    });
+
+    res.status(200).json({
+      total: users.count,
+      page,
+      limit,
+      data: users.rows,
+    });
   } catch (error) {
+<<<<<<< HEAD
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -499,5 +597,13 @@ route.patch(
     }
   }
 );
+=======
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+});
+
+>>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
 
 module.exports = route;
