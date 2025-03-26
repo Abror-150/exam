@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
@@ -10,16 +9,6 @@ const Field = require('../models/fields');
 const Subject = require('../models/subjects');
 const Users = require('../models/user');
 
-=======
-const { Router } = require("express");
-const { Op } = require("sequelize");
-const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const professionSchema = require("../validations/professions");
-const LearningCenter = require("../models/learningCenter");
-const Profession = require("../models/professions");
-const Field = require("../models/fields");
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a
 /**
  * @swagger
  * /professions:
