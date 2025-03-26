@@ -1,19 +1,19 @@
-const Users = require('../models/user');
-const { Router } = require('express');
+const Users = require("../models/user");
+const { Router } = require("express");
 const route = Router();
-const bcrypt = require('bcrypt');
-const { totp } = require('otplib');
-const jwt = require('jsonwebtoken');
-const { sendSms, sendEmail } = require('../functions/eskiz');
-const { Op } = require('sequelize');
-const { getToken } = require('../functions/eskiz');
-const { refreshToken } = require('../functions/eskiz');
+const bcrypt = require("bcrypt");
+const { totp } = require("otplib");
+const jwt = require("jsonwebtoken");
+const { sendSms, sendEmail } = require("../functions/eskiz");
+const { Op } = require("sequelize");
+const { getToken } = require("../functions/eskiz");
+const { refreshToken } = require("../functions/eskiz");
 const {
   userValidation,
   loginValidation,
   refreshTokenValidation,
-} = require('../validations/user');
-const roleAuthMiddlewares = require('../middlewares/roleAuth');
+} = require("../validations/user");
+const roleAuthMiddlewares = require("../middlewares/roleAuth");
 /**
  * @swagger
  * tags:
@@ -84,7 +84,7 @@ totp.options = { step: 120, digits: 4 };
  *         description: Internal server error
  */
 
-route.post('/register', async (req, res) => {
+route.post("/register", async (req, res) => {
   const { error } = userValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -95,27 +95,27 @@ route.post('/register', async (req, res) => {
       where: { firstName },
     });
     if (userExists) {
-      return res.status(401).send({ message: 'first name already exists' });
+      return res.status(401).send({ message: "first name already exists" });
     }
     let lastNameExists = await Users.findOne({
       where: { lastName },
     });
     if (lastNameExists) {
-      return res.status(401).send({ message: 'last name already exists' });
+      return res.status(401).send({ message: "last name already exists" });
     }
 
     let emailExists = await Users.findOne({
       where: { email },
     });
     if (emailExists) {
-      return res.status(401).send({ message: 'Email already exists' });
+      return res.status(401).send({ message: "Email already exists" });
     }
 
     let phoneExists = await Users.findOne({
       where: { phone },
     });
     if (phoneExists) {
-      return res.status(401).send({ message: 'Phone already exists' });
+      return res.status(401).send({ message: "Phone already exists" });
     }
     let hash = bcrypt.hashSync(password, 10);
     let newUser = await Users.create({
@@ -125,13 +125,13 @@ route.post('/register', async (req, res) => {
       lastName,
       phone,
       password: hash,
-      status: 'PENDING',
+      status: "PENDING",
     });
-    let token = totp.generate(email + 'email');
+    let token = totp.generate(email + "email");
     await sendEmail(email, token);
     res.send(newUser);
   } catch (error) {
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: "Internal server error" });
     console.log(error);
   }
 });
@@ -170,20 +170,20 @@ route.post('/register', async (req, res) => {
  *         description: Server xatosi
  */
 
-route.post('/verify', async (req, res) => {
+route.post("/verify", async (req, res) => {
   let { email, otp } = req.body;
   try {
     let user = await Users.findOne({ where: { email } });
     if (!user) {
-      res.status(404).send({ message: 'user not exists' });
+      res.status(404).send({ message: "user not exists" });
       return;
     }
-    let match = totp.verify({ token: otp, secret: email + 'email' });
+    let match = totp.verify({ token: otp, secret: email + "email" });
     if (!match) {
-      res.status(401).send({ message: 'otp not valid' });
+      res.status(401).send({ message: "otp not valid" });
       return;
     }
-    await user.update({ status: 'ACTIVE' });
+    await user.update({ status: "ACTIVE" });
     res.send(match);
   } catch (error) {
     console.log(error);
@@ -216,7 +216,7 @@ route.post('/verify', async (req, res) => {
  *         description: User not found
  */
 
-route.post('/login', async (req, res) => {
+route.post("/login", async (req, res) => {
   const { error } = loginValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -226,12 +226,12 @@ route.post('/login', async (req, res) => {
     let user = await Users.findOne({ where: { firstName } });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     let match = bcrypt.compareSync(password, user.password);
     if (!match) {
-      return res.status(401).json({ message: 'Invalid password' });
+      return res.status(401).json({ message: "Invalid password" });
     }
 
     let userIp = req.ip;
@@ -245,7 +245,7 @@ route.post('/login', async (req, res) => {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -269,18 +269,18 @@ route.post('/login', async (req, res) => {
  *         description: New access token generated
  */
 
-route.post('/refresh', async (req, res) => {
+route.post("/refresh", async (req, res) => {
   let { error } = refreshTokenValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
     let { refreshTok } = req.body;
-    const user = jwt.verify(refreshTok, 'refresh');
+    const user = jwt.verify(refreshTok, "refresh");
     const newAccestoken = getToken(user.id);
     res.send({ newAccestoken });
   } catch (error) {
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: "Internal server error" });
     console.log(error);
   }
 });
@@ -372,7 +372,7 @@ route.post('/refresh', async (req, res) => {
  *         description: "Server xatosi"
  */
 
-route.get('/', async (req, res) => {
+route.get("/", async (req, res) => {
   try {
     let {
       search,
@@ -417,8 +417,7 @@ route.get('/', async (req, res) => {
       data: users.rows,
     });
   } catch (error) {
-<<<<<<< HEAD
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -502,19 +501,19 @@ route.get('/', async (req, res) => {
  *                   example: "Xatolik tafsilotlari"
  */
 
-route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
+route.get("/me", roleAuthMiddlewares(["USER", "ADMIN"]), async (req, res) => {
   try {
     const userId = req.userId;
 
     const user = await Users.findByPk(userId, {
-      attributes: ['id', 'firstName', 'lastName', 'email', 'img', 'lastIp'],
+      attributes: ["id", "firstName", "lastName", "email", "img", "lastIp"],
     });
-    if (!user) return res.status(404).json({ error: 'user not found' });
+    if (!user) return res.status(404).json({ error: "user not found" });
 
     res.json(user);
   } catch (error) {
-    console.error('Xatolik:', error);
-    res.status(500).json({ error: 'Server xatosi', details: error.message });
+    console.error("Xatolik:", error);
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
 
@@ -577,8 +576,8 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  */
 
 route.patch(
-  '/me/password',
-  roleAuthMiddlewares(['ADMIN', 'USER']),
+  "/me/password",
+  roleAuthMiddlewares(["ADMIN", "USER"]),
   async (req, res) => {
     try {
       const { oldPassword, newPassword } = req.body;
@@ -593,17 +592,9 @@ route.patch(
 
       res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
     } catch (error) {
-      res.status(500).json({ error: 'Server xatosi', details: error.message });
+      res.status(500).json({ error: "Server xatosi", details: error.message });
     }
   }
 );
-=======
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
-  }
-});
-
->>>>>>> 46400bdd2d6dde03b75818d4bc3f3166d64603ac
 
 module.exports = route;
