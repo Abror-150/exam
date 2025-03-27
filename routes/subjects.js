@@ -1,11 +1,14 @@
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
-const Profession=require("../models/professions")
+const Profession = require('../models/professions');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { subjectSchema } = require('../validations/subjects');
 const Subject = require('../models/subjects');
 const LearningCenter = require('../models/learningCenter');
+const { message } = require('../validations/professions');
+const SubCenter = require('../models/subCenter');
+const Branch = require('../models/branches');
 /**
  * @swagger
  * tags:
@@ -78,9 +81,9 @@ route.get('/', async (req, res) => {
       include: [
         {
           model: LearningCenter,
-
-          through: { attributes: [] },
+          as: 'markazs',
         },
+        { model: Branch },
       ],
     });
     res.status(200).json(data);
@@ -111,13 +114,14 @@ route.get('/', async (req, res) => {
 route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
     const oneId = await Subject.findByPk(id, {
       include: [
         {
           model: LearningCenter,
-          as: 'markazlar',
-          through: { attributes: [] },
+          as: 'markazs',
         },
+        { model: Branch },
       ],
     });
     if (!oneId) {
@@ -153,7 +157,7 @@ route.get('/:id', async (req, res) => {
  *       400:
  *         description: Xato ma'lumot kiritildi
  */
-route.post('/', async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   const { error } = subjectSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });

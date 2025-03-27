@@ -4,6 +4,7 @@ const Resource = require('../models/resource');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Users = require('../models/user');
 const ResourceCategory = require('../models/resourceCategory');
+const ResourceValidation = require('../validations/resource');
 
 /**
  * @swagger
@@ -58,8 +59,16 @@ const ResourceCategory = require('../models/resourceCategory');
  *         description: Server xatosi
  */
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
+  const { error } = ResourceValidation.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
   try {
     const { name, file, img, describtion, link, categoryId } = req.body;
+    const categoryExists = await ResourceCategory.findByPk(categoryId);
+    if (!categoryExists) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
     const userId = req.userId;
 
     const existingResource = await Resource.findOne({

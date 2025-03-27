@@ -4,6 +4,7 @@ const Users = require('../models/user');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const LearningCenter = require('../models/learningCenter');
 const CourseRegistervalidation = require('../validations/courseRegister');
+const Branch = require('../models/branches');
 const route = express.Router();
 
 /**
@@ -25,6 +26,9 @@ const route = express.Router();
  *               learningCenterId:
  *                 type: integer
  *                 example: 1
+ *               branchId:
+ *                 type: integer
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Ro'yxatdan o'tish muvaffaqiyatli yaratildi
@@ -39,21 +43,25 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
-    const { learningCenterId } = req.body;
+    const { learningCenterId, branchId } = req.body;
     const userId = req.userId;
 
     const user = await Users.findByPk(userId);
     const learningCenter = await LearningCenter.findByPk(learningCenterId);
+    const branch = await Branch.findByPk(branchId);
 
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
+    }
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found' });
     }
     if (!learningCenter) {
       return res.status(404).json({ message: 'edu center  not found' });
     }
 
     const existingRegistration = await CourseRegister.findOne({
-      where: { userId, learningCenterId },
+      where: { userId, learningCenterId, branchId },
     });
 
     if (existingRegistration) {
@@ -65,6 +73,7 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
     const registration = await CourseRegister.create({
       userId,
       learningCenterId,
+      branchId,
     });
     res.status(201).json(registration);
   } catch (error) {

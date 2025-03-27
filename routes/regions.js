@@ -1,21 +1,12 @@
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
-<<<<<<< HEAD
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Region = require('../models/regions');
 const LearningCenter = require('../models/learningCenter');
 const Branches = require('../models/branches');
 const { regionSchema, message } = require('../validations/regions');
 const Branch = require('../models/branches');
-=======
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Region = require("../models/regions");
-const LearningCenter = require("../models/learningCenter");
-const Branches = require("../models/branches");
-const { regionSchema, message } = require("../validations/regions");
-const Branch = require("../models/branches");
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a
 
 /**
  * @swagger
@@ -168,20 +159,12 @@ route.get('/:id', async (req, res) => {
  *         description: Xato so‘rov
  */
 
-<<<<<<< HEAD
 route.post('/', roleAuthMiddleware(['USER']), async (req, res) => {
-=======
-route.post("/", roleAuthMiddleware(["USER"]), async (req, res) => {
->>>>>>> daf8f6ad3187f9a3f63efdeddd6eb4052036758a
   try {
-    const { error } = regionSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
-    }
     let { name } = req.body;
     let existRegion = await Region.findOne({ where: { name } });
     if (existRegion) {
-      return res.status(401).send({ message: "region already exists" });
+      return res.status(401).send({ message: 'region already exists' });
     }
     const one = await Region.create({ name });
     res.status(201).json(one);
@@ -270,5 +253,4 @@ route.delete('/:id', roleAuthMiddleware(['USER']), async (req, res) => {
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
-
 module.exports = route;

@@ -38,7 +38,5 @@ const Resource = db.define('Resources', {
   },
 });
 
-Users.hasMany(Resource, { foreignKey: 'userId' });
 
-Resource.belongsTo(Users, { foreignKey: 'userId' });
 module.exports = Resource;

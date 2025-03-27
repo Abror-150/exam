@@ -18,13 +18,5 @@ const SubBranch = db.define('subjectBranches', {
     allowNull: false,
   },
 });
-Subject.belongsToMany(Branch, {
-  through: SubBranch,
-  foreignKey: 'subjectId',
-});
-Branch.belongsToMany(Subject, {
-  through: SubBranch,
-  foreignKey: 'branchId',
-});
 
 module.exports = SubBranch;

@@ -137,7 +137,7 @@ route.get('/', async (req, res) => {
     const { count, rows } = await Branch.findAndCountAll({
       where: whereClause,
       include: [
-        { model: LearningCenter },
+        // { model: LearningCenter },
         { model: Region },
         { model: Subject },
         { model: Profession },
@@ -265,7 +265,6 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
-
   try {
     const {
       professionsId,

@@ -17,13 +17,6 @@ const Subject = db.define('fanlar', {
     allowNull: false,
   },
 });
-Subject.belongsToMany(LearningCenter, {
-  through: SubCenter,
-  foreignKey: 'subjectId',
-});
-LearningCenter.belongsToMany(Subject, {
-  through: SubCenter,
-  foreignKey: 'learningCenterId',
-});
+
 
 module.exports = Subject;

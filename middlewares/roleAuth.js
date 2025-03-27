@@ -3,7 +3,6 @@ function roleAuthMiddleware(roles) {
   return (req, res, next) => {
     try {
       const token = req.header('Authorization')?.split(' ')[1];
-      console.log(token);
 
       if (!token) {
         return res.status(401).send({ message: 'Token not provided' });
@@ -13,7 +12,6 @@ function roleAuthMiddleware(roles) {
       if (roles.includes(data?.role)) {
         req.userId = data?.id;
         req.userRole = data?.role;
-        console.log(data);
 
         next();
       } else {
