@@ -1,7 +1,6 @@
-const { Router } = require("express");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const { Op } = require('sequelize');
 const route = Router();
-<<<<<<< HEAD
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const professionSchema = require('../validations/professions');
 const LearningCenter = require('../models/learningCenter');
@@ -10,17 +9,6 @@ const Field = require('../models/fields');
 const Subject = require('../models/subjects');
 const Users = require('../models/user');
 const Branch = require('../models/branches');
-=======
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const professionSchema = require("../validations/professions");
-const LearningCenter = require("../models/learningCenter");
-const Profession = require("../models/professions");
-const Field = require("../models/fields");
-const Subject = require("../models/subjects");
-const Users = require("../models/user");
-const logger = require("../logger/logger");
-const Branch = require("../models/branches");
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
 
 /**
  * @swagger
@@ -60,13 +48,13 @@ const Branch = require("../models/branches");
  *       200:
  *         description: Kasblar ro‘yxati
  */
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       page = 1,
       limit = 10,
-      sortBy = "id",
-      order = "ASC",
+      sortBy = 'id',
+      order = 'ASC',
       name,
     } = req.query;
     page = parseInt(page);
@@ -92,7 +80,7 @@ route.get("/", async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -115,33 +103,23 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Kasb topilmadi
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const profession = await Profession.findByPk(id, {
       include: [
         {
           model: LearningCenter,
-<<<<<<< HEAD
           // as: 'markazs',
-=======
-          as: "markaz",
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
-          through: { attributes: [] },
         },
       ],
     });
     if (!profession) {
-      return res.status(404).json({ error: "Kasb topilmadi" });
+      return res.status(404).json({ error: 'Kasb topilmadi' });
     }
     res.json(profession);
   } catch (error) {
-<<<<<<< HEAD
     res.status(500).json({ error: 'Server xatosi', details: error.message });
-=======
-    res.status(500).json({ error: "Server xatosi", details: error.message });
-    logger.warn(`Profession with ID ${id} not found`);
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
   }
 });
 
@@ -171,7 +149,7 @@ route.get("/:id", async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.post("/", async (req, res) => {
+route.post('/', async (req, res) => {
   const { error } = professionSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
@@ -183,22 +161,12 @@ route.post("/", async (req, res) => {
     });
 
     if (exitingName) {
-<<<<<<< HEAD
       return res.status(400).json({ message: 'Profession already exists' });
-=======
-      logger.warn(`Profession '${name}' already exists`);
-      return res.status(400).json({ message: "Profession already exists" });
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
     }
     const newProfession = await Profession.create(req.body);
     res.status(201).json(newProfession);
   } catch (error) {
-<<<<<<< HEAD
     res.status(500).json({ error: 'Server xatosi', details: error.message });
-=======
-    res.status(500).json({ error: "Server xatosi", details: error.message });
-    logger.error(`Error creating profession: ${error.message}`);
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
   }
 });
 
@@ -238,8 +206,8 @@ route.post("/", async (req, res) => {
  *         description: Server xatosi
  */
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
       const { error } = professionSchema.validate(req.body);
@@ -249,22 +217,12 @@ route.patch(
       const { id } = req.params;
       const one = await Profession.findByPk(id);
       if (!one) {
-<<<<<<< HEAD
         return res.status(404).send({ error: 'Kasb not found' });
-=======
-        logger.warn(`Profession with ID ${id} not found`);
-        return res.status(404).send({ error: "Kasb not found" });
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
       }
       await one.update(req.body);
       res.json(one);
     } catch (error) {
-<<<<<<< HEAD
       res.status(500).json({ error: 'Server xatosi', details: error.message });
-=======
-      res.status(500).json({ error: "Server xatosi", details: error.message });
-      logger.error(`Error updating profession ${id}: ${error.message}`);
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
     }
   }
 );
@@ -291,7 +249,7 @@ route.patch(
  *       500:
  *         description: Server xatosi
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Profession.destroy({ where: { id } });
@@ -299,17 +257,9 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       return res.send(deleted);
     }
 
-<<<<<<< HEAD
     res.status(404).send({ error: 'Kasb topilmadi' });
   } catch (error) {
     res.status(500).send({ error: 'Server xatosi', details: error.message });
-=======
-    logger.warn(`Profession with ID ${id} not found`);
-    res.status(404).send({ error: "Kasb topilmadi" });
-  } catch (error) {
-    logger.error(`Error deleting profession ${id}: ${error.message}`);
-    res.status(500).send({ error: "Server xatosi", details: error.message });
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
   }
 });
 

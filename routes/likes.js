@@ -3,15 +3,8 @@ const Like = require('../models/likes');
 const { Op } = require('sequelize');
 const route = Router();
 
-<<<<<<< HEAD
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { likeSchema } = require('../validations/likes');
-=======
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const { likeSchema } = require("../validations/likes");
-
-const logger = require("../logger/logger");
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
 
 /**
  * @swagger
@@ -55,12 +48,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     }
 
     const one = await Like.create({ userId, learningCenterId });
-<<<<<<< HEAD
-=======
-    logger.info(
-      `Like added by User ID: ${userId} for Learning Center ID: ${learningCenterId}`
-    );
->>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
+
     res.status(201).send(one);
   } catch (error) {
     res
