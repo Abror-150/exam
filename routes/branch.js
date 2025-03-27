@@ -1,12 +1,14 @@
 const express = require('express');
 const route = express.Router();
 const { Op, where } = require('sequelize');
-
+const { getRouteLogger } = require('../logger/logger');
 const Branch = require('../models/branches');
 const {
   branchesValidation,
   validateBranchUpdate,
 } = require('../validations/branches');
+const branchLogger = getRouteLogger(__filename);
+
 const LearningCenter = require('../models/learningCenter');
 const Region = require('../models/regions');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
@@ -137,16 +139,15 @@ route.get('/', async (req, res) => {
     const { count, rows } = await Branch.findAndCountAll({
       where: whereClause,
       include: [
-        // { model: LearningCenter },
+        { model: LearningCenter },
         { model: Region },
-        { model: Subject },
         { model: Profession },
       ],
       order,
       limit: parseInt(limit),
       offset,
     });
-
+    branchLogger.log('info', 'get ishladi');
     res.json({
       total: count,
       page: parseInt(page),
@@ -185,11 +186,12 @@ route.get('/:id', async (req, res) => {
       include: [
         { model: Region },
         { model: LearningCenter },
-        { model: Subject },
         { model: Profession },
       ],
     });
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
+    branchLogger.log('info', 'get id boyicha ishladi');
+
     res.send(branch);
   } catch (error) {
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
@@ -295,6 +297,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       where: { phone },
     });
     if (phoneExists) {
+      branchLogger.log('info', 'phone already');
       return res.status(409).json({ message: 'Phone already exists' });
     }
 
@@ -306,6 +309,8 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       address,
       learningCenterId,
     });
+    branchLogger.log('info', 'post qilindi');
+
     const count = await Branch.count({ where: { learningCenterId } });
     await LearningCenter.update(
       { branchNumber: count },
@@ -394,7 +399,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *         description: Filial topilmadi
  */
 route.patch('/:id', async (req, res) => {
-  const { error } = validateBranchUpdate.validateBranchUpdate(req.body);
+  const { error } = validateBranchUpdate(req.body);
   if (error) {
     return res.status(400).send({ error: error.details[0].message });
   }
@@ -403,6 +408,8 @@ route.patch('/:id', async (req, res) => {
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.update(req.body);
+    branchLogger.log('info', 'patch ishladi');
+
     res.send(branch);
   } catch (error) {
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
@@ -434,7 +441,9 @@ route.delete('/:id', async (req, res) => {
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.destroy();
-    res.send({ message: "Filial o'chirildi" });
+    branchLogger.log('info', 'delete ishladi');
+
+    res.send(branch);
   } catch (error) {
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }

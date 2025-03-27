@@ -44,16 +44,16 @@ route.post('/reset-password', async (req, res) => {
   try {
     const user = await Users.findOne({ where: { email } });
     if (!user) {
-      return res.status(404).json({ message: 'Foydalanuvchi topilmadi' });
+      return res.status(404).json({ message: 'user not found' });
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     myCache.set(resetToken, email, 3600);
 
-    const resetLink = `http://yourdomain.com/update-password?token=${resetToken}`;
-    await sendEmail(email, resetLink);
+    const reseToken = `${resetToken}`;
+    await sendEmail(email, reseToken);
 
-    return res.json({ message: 'Parolni tiklash uchun link yuborildi' });
+    return res.json({ resetLink });
   } catch (error) {
     console.error('Error resetting password:', error);
     return res.status(500).json({ message: 'Serverda xato yuz berdi' });

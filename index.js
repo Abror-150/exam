@@ -14,6 +14,8 @@ const SubjectRoute = require('./routes/subjects');
 const CourseRegisterRoute = require('./routes/courseRegister');
 const uploadRoute = require('./routes/upload');
 const ResetPassword = require('./routes/resetPassword');
+const CourseRegister = require('./routes/courseRegister');
+const myInfoRoute = require('./routes/myInfo');
 const app = express();
 app.use(express.json());
 
@@ -29,7 +31,9 @@ app.use('/comments', CommentsRoute);
 app.use('/branches', BranchesRoute);
 app.use('/resource-categories', ResourceCategories);
 app.use('/course-register', CourseRegisterRoute);
+app.use('/course-register', CourseRegister);
 app.use('/resources', ResourceRoute);
+app.use('/', myInfoRoute);
 app.use('/', ResetPassword);
 app.use('/uploads', express.static('uploads'));
 app.use('/upload', uploadRoute);

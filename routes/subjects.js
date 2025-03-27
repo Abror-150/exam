@@ -1,14 +1,14 @@
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
-const Profession = require('../models/professions');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { subjectSchema } = require('../validations/subjects');
 const Subject = require('../models/subjects');
 const LearningCenter = require('../models/learningCenter');
-const { message } = require('../validations/professions');
-const SubCenter = require('../models/subCenter');
 const Branch = require('../models/branches');
+const { getRouteLogger } = require('../logger/logger');
+
+const subjectLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * tags:
@@ -78,14 +78,9 @@ route.get('/', async (req, res) => {
       order: [[sortBy, order.toUpperCase()]],
       limit,
       offset: (page - 1) * limit,
-      include: [
-        {
-          model: LearningCenter,
-          as: 'markazs',
-        },
-        { model: Branch },
-      ],
+      include: [{ model: Branch }],
     });
+    subjectLogger.log('info', 'get qilindi');
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ error: 'Server xatosi', details: error.message });
@@ -127,6 +122,7 @@ route.get('/:id', async (req, res) => {
     if (!oneId) {
       return res.status(404).json({ error: 'subject topilmadi' });
     }
+    subjectLogger.log('info', 'get id boyicha qilindi');
 
     res.json(oneId);
   } catch (error) {
@@ -174,6 +170,8 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     }
 
     const one = await Subject.create({ name, img });
+    subjectLogger.log('info', 'post qilindi');
+
     res.status(201).json(one);
   } catch (error) {
     console.log(error);
@@ -226,6 +224,8 @@ route.patch(
         return res.status(404).send({ error: 'subject not found' });
       }
       await one.update(req.body);
+      subjectLogger.log('info', 'patch qilindi');
+
       res.json(one);
     } catch (error) {
       res.status(500).json({ error: 'Server xatosi', details: error.message });
@@ -257,9 +257,11 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     const deleted = await Subject.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "subject o'chirildi" });
+      subjectLogger.log('info', 'delete qilindi');
+
+      return res.send(deleted);
     }
-    res.status(404).send({ error: 'subject topilmadi' });
+    res.status(404).send({ error: 'subject not found' });
   } catch (error) {
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }

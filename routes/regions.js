@@ -85,7 +85,6 @@ route.get('/', async (req, res) => {
         { model: Branch },
       ],
     });
-
     res.status(200).json(data);
   } catch (error) {
     console.error(error);

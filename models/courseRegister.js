@@ -14,6 +14,10 @@ const CourseRegister = db.define('courseRegisters', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  branchId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,

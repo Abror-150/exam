@@ -10,7 +10,97 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 
 const route = Router();
 
-route.get('/myInfo', roleAuthMiddleware(['USER']), async (req, res) => {
+/**
+ * @swagger
+ * /myInfo:
+ *   get:
+ *     summary: Foydalanuvchining shaxsiy ma'lumotlarini olish
+ *     description: Foydalanuvchining profili, resurslari, izohlari, yoqtirgan markazlari va kurs ro‘yxati olinadi.
+ *     tags:
+ *       - User
+ *
+ *     responses:
+ *       200:
+ *         description: Foydalanuvchi ma'lumotlari muvaffaqiyatli olindi.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phoneNumber:
+ *                       type: string
+ *                     resources:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                           img:
+ *                             type: string
+ *                           media:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                     comments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           comment:
+ *                             type: string
+ *                           star:
+ *                             type: integer
+ *                           learningCenterId:
+ *                             type: integer
+ *                     likes:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           learningCenterId:
+ *                             type: integer
+ *                     courseRegister:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           learningCenterId:
+ *                             type: integer
+ *                           branchId:
+ *                             type: integer
+ *                           branch:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: integer
+ *                               name:
+ *                                 type: string
+ *                           learningCenter:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: integer
+ *                               name:
+ *                                 type: string
+ *       404:
+ *         description: Foydalanuvchi topilmadi.
+ *       500:
+ *         description: Server xatosi.
+ */
+
+route.get('/myInfo', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const userId = req.userId;
 

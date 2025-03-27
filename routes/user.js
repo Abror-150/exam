@@ -7,18 +7,16 @@ const jwt = require('jsonwebtoken');
 const { sendSms, sendEmail } = require('../functions/eskiz');
 const { Op } = require('sequelize');
 const { getToken } = require('../functions/eskiz');
-const LearningCenter = require('../models/learningCenter');
-const CourseRegister = require('../models/courseRegister');
-const Comments = require('../models/comment');
 const { refreshToken } = require('../functions/eskiz');
+const { getRouteLogger } = require('../logger/logger');
+
+const userLogger = getRouteLogger(__filename);
 const {
   userValidation,
   loginValidation,
   refreshTokenValidation,
 } = require('../validations/user');
 const roleAuthMiddlewares = require('../middlewares/roleAuth');
-const Resource = require('../models/resource');
-const Like = require('../models/likes');
 /**
  * @swagger
  * tags:
@@ -134,13 +132,61 @@ route.post('/register', async (req, res) => {
     });
     let token = totp.generate(email + 'email');
     await sendEmail(email, token);
+    userLogger.log('info', 'register boldi');
     res.send(newUser);
   } catch (error) {
+    logger.error(`Registration error: ${error.message}`);
     res.status(500).send({ message: 'Internal server error' });
     console.log(error);
   }
 });
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Foydalanuvchi ma'lumotlarini olish
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Foydalanuvchi ID si
+ *     responses:
+ *       200:
+ *         description: Foydalanuvchi ma'lumotlari
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 name:
+ *                   type: string
+ *                   example: "Ali Valiyev"
+ *                 email:
+ *                   type: string
+ *                   example: "ali@example.com"
+ *       404:
+ *         description: Foydalanuvchi topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+
+route.get('/:id', async (req, res) => {
+  try {
+    const one = await Users.findByPk(req.params.id);
+    if (!one) return res.status(404).send({ message: 'user not found' });
+    userLogger.log('info', 'id boyicha qilindi');
+    res.send(one);
+  } catch (error) {
+    res.status(500).send({ error: 'server error' });
+  }
+});
 /**
  * @swagger
  * /users/verify:
@@ -189,8 +235,10 @@ route.post('/verify', async (req, res) => {
       return;
     }
     await user.update({ status: 'ACTIVE' });
+    userLogger.log('info', 'post qilindi');
     res.send(match);
   } catch (error) {
+    logger.error(`Verification error for ${email}: ${error.message}`);
     console.log(error);
   }
 });
@@ -245,7 +293,7 @@ route.post('/login', async (req, res) => {
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
-
+    userLogger.log('info', 'user logged');
     res.json({ accesToken, refreToken });
   } catch (error) {
     console.log(error);
@@ -283,6 +331,7 @@ route.post('/refresh', async (req, res) => {
     let { refreshTok } = req.body;
     const user = jwt.verify(refreshTok, 'refresh');
     const newAccestoken = getToken(user.id);
+    userLogger.log('info', 'token yangilandi');
     res.send({ newAccestoken });
   } catch (error) {
     res.status(500).send({ message: 'Internal server error' });
@@ -290,6 +339,85 @@ route.post('/refresh', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/me/password:
+ *   patch:
+ *     summary: "Foydalanuvchi parolini o'zgartirish"
+ *     description: "Foydalanuvchi eski parolini tekshirib, yangi parol bilan almashtiradi."
+ *     tags:
+ *       - Profile
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 example: "old_password123"
+ *               newPassword:
+ *                 type: string
+ *                 example: "new_secure_password123"
+ *     responses:
+ *       200:
+ *         description: "Parol muvaffaqiyatli o'zgartirildi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Parol muvaffaqiyatli o'zgartirildi"
+ *       400:
+ *         description: "Eski parol noto'g'ri"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Eski parol noto'g'ri"
+ *       500:
+ *         description: "Server xatosi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Server xatosi"
+ *                 details:
+ *                   type: string
+ *                   example: "Error details..."
+ */
+
+route.patch(
+  '/me/password',
+  roleAuthMiddlewares(['ADMIN', 'USER']),
+  async (req, res) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      const user = await Users.findByPk(req.userId);
+
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch)
+        return res.status(400).json({ error: "Eski parol noto'g'ri" });
+
+      const hash = await bcrypt.hash(newPassword, 10);
+      await Users.update({ password: hash }, { where: { id: user.id } });
+
+      res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
+    } catch (error) {
+      res.status(500).json({ error: 'Server xatosi', details: error.message });
+    }
+  }
+);
 /**
  * @swagger
  * /users:
@@ -377,59 +505,56 @@ route.post('/refresh', async (req, res) => {
  *         description: "Server xatosi"
  */
 
-route.get(
-  '/',
-  roleAuthMiddlewares(['ADMIN', 'SUPER_ADMIN']),
-  async (req, res) => {
-    try {
-      let {
-        search,
-        firstName,
-        lastName,
-        email,
-        phone,
-        sortBy = 'id',
-        order = 'ASC',
-        page = 1,
-        limit = 10,
-      } = req.query;
-      page = parseInt(page);
-      limit = parseInt(limit);
+route.get('/', async (req, res) => {
+  try {
+    let {
+      search,
+      firstName,
+      lastName,
+      email,
+      phone,
+      sortBy = 'id',
+      order = 'ASC',
+      page = 1,
+      limit = 10,
+    } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
 
-      let whereCondition = {};
-      if (search) {
-        whereCondition[Op.or] = [
-          { firstName: { [Op.like]: `%${search}%` } },
-          { lastName: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-          { phone: { [Op.like]: `%${search}%` } },
-        ];
-      } else {
-        if (firstName)
-          whereCondition.firstName = { [Op.like]: `%${firstName}%` };
-        if (lastName) whereCondition.lastName = { [Op.like]: `%${lastName}%` };
-        if (email) whereCondition.email = { [Op.like]: `%${email}%` };
-        if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
-      }
-
-      const users = await Users.findAndCountAll({
-        where: whereCondition,
-        order: [[sortBy, order.toUpperCase()]],
-        limit,
-        offset: (page - 1) * limit,
-      });
-
-      res.status(200).json({
-        total: users.count,
-        page,
-        limit,
-        data: users.rows,
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Internal server error' });
+    let whereCondition = {};
+    if (search) {
+      whereCondition[Op.or] = [
+        { firstName: { [Op.like]: `%${search}%` } },
+        { lastName: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { phone: { [Op.like]: `%${search}%` } },
+      ];
+    } else {
+      if (firstName) whereCondition.firstName = { [Op.like]: `%${firstName}%` };
+      if (lastName) whereCondition.lastName = { [Op.like]: `%${lastName}%` };
+      if (email) whereCondition.email = { [Op.like]: `%${email}%` };
+      if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
     }
+    logger.info(`Fetching users with filters: ${JSON.stringify(req.query)}`);
+    const users = await Users.findAndCountAll({
+      where: whereCondition,
+      order: [[sortBy, order.toUpperCase()]],
+      limit,
+      offset: (page - 1) * limit,
+    });
+
+    logger.info(`Fetched ${users.rows.length} users successfully`);
+    res.status(200).json({
+      total: users.count,
+      page,
+      limit,
+      data: users.rows,
+    });
+  } catch (error) {
+    logger.error(`Error fetching users: ${error.message}`);
+    res.status(500).json({ message: 'Internal server error' });
   }
-);
+});
 
 /**
  * @swagger
@@ -518,10 +643,14 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
     const user = await Users.findByPk(userId, {
       attributes: ['id', 'firstName', 'lastName', 'email', 'img', 'lastIp'],
     });
-    if (!user) return res.status(404).json({ error: 'user not found' });
-
+    if (!user) {
+      logger.warn(`User profile not found: ${userId}`);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    logger.info(`User profile fetched: ${userId}`);
     res.json(user);
   } catch (error) {
+    logger.error(`Fetching user profile error: ${error.message}`);
     console.error('Xatolik:', error);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
@@ -531,11 +660,16 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  * @swagger
  * /users/me/password:
  *   patch:
- *     summary: "Foydalanuvchi parolini o'zgartirish"
- *     description: "Foydalanuvchi eski parolini tekshirib, yangi parol bilan almashtiradi."
- *     tags:
- *       - Profile
+ *     summary: Foydalanuvchi ma'lumotlarini yangilash
+ *     tags: [Users]
  *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Foydalanuvchi ID si
  *     requestBody:
  *       required: true
  *       content:
@@ -543,15 +677,76 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               oldPassword:
+ *               firstName:
  *                 type: string
- *                 example: "old_password123"
- *               newPassword:
+ *                 example: "Ali"
+ *               lastName:
  *                 type: string
- *                 example: "new_secure_password123"
+ *                 example: "Valiyev"
+ *               email:
+ *                 type: string
+ *                 example: "ali@example.com"
+ *               phone:
+ *                 type: string
+ *                 example: "+998901234567"
+ *
  *     responses:
  *       200:
- *         description: "Parol muvaffaqiyatli o'zgartirildi"
+ *         description: Foydalanuvchi muvaffaqiyatli yangilandi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 name:
+ *                   type: string
+ *                   example: "Ali Valiyev"
+ *                 email:
+ *                   type: string
+ *                   example: "ali@example.com"
+ *       404:
+ *         description: Foydalanuvchi topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+route.patch(
+  '/:id',
+  roleAuthMiddlewares(['ADMIN', 'SUPER_ADMIN']),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const one = await Users.findByPk(id);
+      if (!one) {
+        return res.status(404).send({ error: 'user not found' });
+      }
+      await one.update(req.body);
+      res.json(one);
+    } catch (error) {
+      res.status(500).json({ error: 'Server xatosi', details: error.message });
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Foydalanuvchini o‘chirish
+ *     tags: [Users]
+ *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: O‘chiriladigan foydalanuvchi ID si
+ *     responses:
+ *       200:
+ *         description: Foydalanuvchi muvaffaqiyatli o‘chirildi
  *         content:
  *           application/json:
  *             schema:
@@ -559,102 +754,11 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Parol muvaffaqiyatli o'zgartirildi"
- *       400:
- *         description: "Eski parol noto'g'ri"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Eski parol noto'g'ri"
- *       500:
- *         description: "Server xatosi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Server xatosi"
- *                 details:
- *                   type: string
- *                   example: "Error details..."
- */
-
-route.patch(
-  '/me/password',
-  roleAuthMiddlewares(['ADMIN', 'USER']),
-  async (req, res) => {
-    try {
-      const { oldPassword, newPassword } = req.body;
-      const user = await Users.findByPk(req.userId);
-
-      const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch)
-        return res.status(400).json({ error: "Eski parol noto'g'ri" });
-
-      const hash = await bcrypt.hash(newPassword, 10);
-      await Users.update({ password: hash }, { where: { id: user.id } });
-
-      res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
-    } catch (error) {
-      res.status(500).json({ error: 'Server xatosi', details: error.message });
-    }
-  }
-);
-/**
- * @swagger
- * /users/all-ceo:
- *   get:
- *     summary: Get all CEO users with their created items
- *     description: Get a list of all CEO users, including their Learning Centers, Course Registers, Comments, Resources, and Likes.
- *     responses:
- *       200:
- *         description: List of CEO users with their created items.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Users'
+ *                   example: "user o'chirildi"
  *       404:
- *         description: No CEO users found.
+ *         description: Foydalanuvchi topilmadi
  *       500:
- *         description: Internal server error.
+ *         description: Server xatosi
  */
-route.get('/all-ceo', async (req, res) => {
-  try {
-    const ceoUsers = await Users.findAll({
-      where: {
-        role: 'CEO',
-      },
-      include: [
-        {
-          model: LearningCenter,
-          as: 'learningcenters',
-        },
-        // {
-        //   model: CourseRegister,
-        // },
-        { model: Comments },
-        { model: Resource },
-        { model: Like },
-      ],
-    });
-
-    if (!ceoUsers.length) {
-      return res.status(404).json({ message: 'No CEO users found' });
-    }
-
-    return res.json(ceoUsers);
-  } catch (error) {
-    console.error('Error fetching CEO users and their created items:', error);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
 
 module.exports = route;

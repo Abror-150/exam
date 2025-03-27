@@ -182,7 +182,6 @@ route.get('/', async (req, res) => {
     }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
-    console.log(learningCenterId);
 
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
@@ -242,7 +241,10 @@ route.get('/:id', async (req, res) => {
     const comment = await Comments.findByPk(req.params.id, {
       include: [{ model: LearningCenter }, { model: Users }],
     });
-    if (!comment) return res.status(404).send({ message: 'comment not found' });
+
+    if (!comment) {
+      return res.status(404).send({ message: 'comment not found' });
+    }
 
     res.send(comment);
   } catch (error) {
@@ -345,17 +347,16 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
     if (!learningExists) {
       return res.status(404).send({ message: 'edu center not found' });
     }
+
     const newComment = await Comments.create({
       userId,
       learningCenterId,
       star,
       message,
     });
-    res.send(newComment);
-    console.log(newComment);
-  } catch (error) {
-    console.log(error);
 
+    res.send(newComment);
+  } catch (error) {
     res.status(500).send({ error: 'server error' });
   }
 });
@@ -392,6 +393,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
  *       200:
  *         description: Izoh yangilandi
  */
+
 route.patch(
   '/:id',
   roleAuthMiddleware(['ADMIN', 'USER', 'SUPER_ADMIN']),
@@ -399,9 +401,13 @@ route.patch(
     try {
       const { learningCenterId, message, star } = req.body;
       const comment = await Comments.findByPk(req.params.id);
-      if (!comment) return res.status(404).send('Comment not found');
+
+      if (!comment) {
+        return res.status(404).send('Comment not found');
+      }
 
       await comment.update({ learningCenterId, message, star });
+
       res.send(comment);
     } catch (error) {
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);
@@ -428,15 +434,18 @@ route.patch(
  *       200:
  *         description: Izoh o'chirildi
  */
+
 route.delete(
   '/:id',
   roleAuthMiddleware(['ADMIN', 'USER']),
   async (req, res) => {
     try {
       const comment = await Comments.findByPk(req.params.id);
-      if (!comment) return res.status(404).send('Comment not found');
-
+      if (!comment) {
+        return res.status(404).send('Comment not found');
+      }
       await comment.destroy();
+
       res.send(comment);
     } catch (error) {
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);

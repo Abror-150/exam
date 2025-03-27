@@ -61,7 +61,7 @@ route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
     }
 
     const existingRegistration = await CourseRegister.findOne({
-      where: { userId, learningCenterId, branchId },
+      where: { userId, learningCenterId },
     });
 
     if (existingRegistration) {
@@ -101,7 +101,6 @@ route.get('/', async (req, res) => {
     });
     res.status(200).json(registrations);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Server xatosi' });
   }
 });
