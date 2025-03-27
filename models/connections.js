@@ -76,17 +76,17 @@ Users.belongsToMany(LearningCenter, {
 Subject.belongsToMany(LearningCenter, {
   through: SubCenter,
   foreignKey: 'subjectId',
-  //   as: 'centers',
+  as: 'centers',
 });
 LearningCenter.belongsToMany(Subject, {
   through: SubCenter,
   foreignKey: 'learningCenterId',
-  //   as: 'subjects',
+  as: 'subjects',
 });
 
 SubCenter.belongsTo(Subject, { foreignKey: 'subjectId', as: 'subject' });
 SubCenter.belongsTo(LearningCenter, {
-  foreignKey: 'centerId',
+  foreignKey: 'learningCenterId',
   as: 'markazs',
 });
 

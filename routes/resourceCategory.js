@@ -3,7 +3,6 @@ const route = express.Router();
 const ResourceCategory = require('../models/resourceCategory');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Resource = require('../models/resource');
-const logger = require('../logger/logger');
 
 /**
  * @swagger
@@ -53,7 +52,6 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     });
 
     if (existingCategory) {
-      logger.warn(`Category already exists: ${name}`);
       return res.status(400).json({ message: 'This category already exists' });
     }
 
@@ -61,13 +59,11 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       name,
       img,
     });
-    logger.info(`New category added: ${name}`);
     res.status(201).json({
       message: 'ResourceCategory added',
       data: resourceCategory,
     });
   } catch (error) {
-    logger.error(`Error adding category: ${error.message}`);
     console.error(error);
     res.status(500).json({
       message: "ResourceCategory qo'shishda xatolik",
@@ -141,7 +137,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
 route.get('/', async (req, res) => {
   try {
     let {
-      name, // search alohida qilib olindi
+      name,
       sortBy = 'createdAt',
       order = 'DESC',
       page = 1,
@@ -164,7 +160,6 @@ route.get('/', async (req, res) => {
       limit,
       offset,
     });
-    logger.info('Fetched all categories');
     res.json({
       message: 'Barcha ResourceCategorylar',
       page,
@@ -173,7 +168,6 @@ route.get('/', async (req, res) => {
       data: resourceCategories.rows,
     });
   } catch (error) {
-    logger.error(`Error fetching categories: ${error.message}`);
     console.error(error);
     res.status(500).json({
       message: "ResourceCategory'larni olishda xatolik",
@@ -262,9 +256,6 @@ route.get('/', async (req, res) => {
       limit,
       offset,
     });
-    logger.info(
-      `GET /resource-categories - page: ${page}, limit: ${limit}, sort: ${sort}, order: ${order}`
-    );
 
     res.json({
       message: 'Barcha ResourceCategorylar',
@@ -272,7 +263,6 @@ route.get('/', async (req, res) => {
       total: resourceCategories.count,
     });
   } catch (error) {
-    logger.error(`Error fetching resource categories: ${error.message}`);
     console.error(error);
     res.status(500).json({
       message: "ResourceCategory'larni olishda xatolik",
@@ -336,13 +326,11 @@ route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     }
 
     await resourceCategory.update(req.body);
-    logger.info(`Category updated: ID ${req.params.id}`);
     res.json({
       message: 'ResourceCategory yangilandi',
       data: resourceCategory,
     });
   } catch (error) {
-    logger.error(`Error updating category: ${error.message}`);
     console.error(error);
     res.status(500).json({
       message: 'ResourceCategory yangilashda xatolik',
@@ -388,15 +376,12 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
     const resourceCategory = await ResourceCategory.findByPk(req.params.id);
     if (!resourceCategory) {
-      logger.warn(`Category not found for deletion: ID ${req.params.id}`);
       return res.status(404).json({ message: 'ResourceCategory topilmadi' });
     }
 
     await resourceCategory.destroy();
-    logger.info(`Category deleted: ID ${req.params.id}`);
     res.json({ message: 'ResourceCategory deleted' });
   } catch (error) {
-    logger.error(`Error deleting category: ${error.message}`);
     console.error(error);
     res.status(500).json({
       message: "ResourceCategory o'chirishda xatolik",

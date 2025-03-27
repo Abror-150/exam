@@ -190,6 +190,7 @@ route.get('/:id', async (req, res) => {
       ],
     });
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
+
     branchLogger.log('info', 'get id boyicha ishladi');
 
     res.send(branch);
@@ -237,12 +238,12 @@ route.get('/:id', async (req, res) => {
  *                   type: array
  *                   items:
  *                     type: integer
- *                   example: [1, 2, 3]
+ *                   example: [1, 2]
  *                 subjectsId:
  *                   type: array
  *                   items:
  *                     type: integer
- *                   example: [4, 5, 6]
+ *                   example: [4, 5]
  *       responses:
  *         201:
  *           description: "Filial muvaffaqiyatli yaratildi"
@@ -285,12 +286,15 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     }
     const region = await Region.findByPk(regionId);
     if (!region) {
+      branchLogger.log('warn', 'region not found');
       return res.status(404).json({ error: 'Region not found' });
     }
     const branchExists = await Branch.findOne({
       where: { name },
     });
     if (branchExists) {
+      branchLogger.log('info', 'Branch already exists');
+
       return res.status(409).json({ message: 'Branch already exists' });
     }
     const phoneExists = await Branch.findOne({
