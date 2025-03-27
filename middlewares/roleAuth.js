@@ -7,14 +7,12 @@ function roleAuthMiddleware(roles) {
       if (!token) {
         return res.status(401).send({ message: "Token not provided" });
       }
-
       const data = jwt.verify(token, "getToken");
       if (roles.includes(data?.role)) {
         req.userId = data?.id;
         req.userRole = data?.role;
         req.user = data;
         console.log(req.user);
-
         next();
       } else {
         return res.status(402).send({ message: "not allowed" });

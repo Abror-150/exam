@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const logger = require('../logger/logger');
 
 const router = express.Router();
 
@@ -50,9 +51,10 @@ const upload = multer({ storage });
  */
 router.post("/", upload.single("file"), (req, res) => {
   if (!req.file) {
+    logger.warn("POST /upload - Fayl yuklanmadi");
     return res.status(400).json({ error: "Fayl yuklanmadi" });
   }
-
+  logger.info(`POST /upload - Fayl yuklandi: ${req.file.filename}`);
   res.json({
     message: "Fayl muvaffaqiyatli yuklandi",
     url: `http://localhost:3000/uploads/${req.file.filename}`,
@@ -83,9 +85,10 @@ router.get("/:filename", (req, res) => {
   const filePath = path.join(__dirname, "../uploads", req.params.filename);
 
   if (!fs.existsSync(filePath)) {
+    logger.warn(`GET /uploads/${req.params.filename} - Fayl topilmadi`);
     return res.status(404).json({ error: "Fayl topilmadi" });
   }
-
+  logger.info(`GET /uploads/${req.params.filename} - Fayl yuborildi`);
   res.sendFile(filePath);
 });
 

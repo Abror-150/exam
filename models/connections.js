@@ -26,10 +26,21 @@ Comments.belongsTo(Users, { foreignKey: "userId" });
 LearningCenter.hasMany(Comments, { foreignKey: "learningCenterId" });
 Comments.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
 
-Users.belongsTo(LearningCenter, {
-  foreignKey: "learningCenterId",
-  as: "learningcenters",
-});
+// LearningCenter.hasMany(Users, { foreignKey: "learningCenterId", as: "users" });
+// Users.belongsTo(LearningCenter, {
+//   foreignKey: "learningCenterId",
+//   as: "learningcenters",
+// });
+
+SubCenter.belongsTo(Subject, { foreignKey: "subjectId" });
+SubCenter.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
+
+Users.hasMany(Comments, { foreignKey: "userId" });
+Comments.belongsTo(Users, { foreignKey: "userId" });
+
+LearningCenter.hasMany(Comments, { foreignKey: "learningCenterId" });
+Comments.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
+
 LearningCenter.hasMany(Branch, { foreignKey: "learningCenterId" });
 Branch.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
 
@@ -77,10 +88,18 @@ Users.belongsToMany(LearningCenter, {
 Subject.belongsToMany(LearningCenter, {
   through: SubCenter,
   foreignKey: "subjectId",
+  //   as: 'centers',
 });
 LearningCenter.belongsToMany(Subject, {
   through: SubCenter,
   foreignKey: "learningCenterId",
+  //   as: 'subjects',
+});
+
+SubCenter.belongsTo(Subject, { foreignKey: "subjectId", as: "subject" });
+SubCenter.belongsTo(LearningCenter, {
+  foreignKey: "centerId",
+  as: "markazs",
 });
 
 Subject.belongsToMany(Branch, {
@@ -114,4 +133,13 @@ Users.hasMany(CourseRegister, {
 
 CourseRegister.belongsTo(Users, {
   foreignKey: "userId",
+});
+
+CourseRegister.belongsTo(Branch, { foreignKey: "branchId", as: "branch" });
+CourseRegister.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
+
+LearningCenter.hasMany(Subject, { foreignKey: "learningCenterId" });
+Subject.belongsTo(LearningCenter, {
+  foreignKey: "learningCenterId",
+  as: "markazlar",
 });

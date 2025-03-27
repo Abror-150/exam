@@ -22,13 +22,6 @@ const Field = db.define(
   { tableName: 'soxalar' }
 );
 
-LearningCenter.belongsToMany(Profession, {
-  through: Field,
-  foreignKey: 'learningCenterId',
-});
-Profession.belongsToMany(LearningCenter, {
-  through: Field,
-  foreignKey: 'professionId',
-});
+
 
 module.exports = Field;

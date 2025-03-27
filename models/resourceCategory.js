@@ -18,7 +18,6 @@ const ResourceCategory = db.define('ResourceCategorys', {
   },
 });
 
-ResourceCategory.hasMany(Resource, { foreignKey: 'resourceCategoryId' });
-Resource.belongsTo(ResourceCategory, { foreignKey: 'resourceCategoryId' });
+
 
 module.exports = ResourceCategory;

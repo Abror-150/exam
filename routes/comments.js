@@ -1,11 +1,11 @@
-const express = require("express");
+const express = require('express');
 const route = express.Router();
-const Comments = require("../models/comment");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Users = require("../models/user");
-const LearningCenter = require("../models/learningCenter");
-const { message } = require("../validations/regions");
-const { Op } = require("sequelize");
+const Comments = require('../models/comment');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Users = require('../models/user');
+const LearningCenter = require('../models/learningCenter');
+const { message } = require('../validations/regions');
+const { Op } = require('sequelize');
 
 /**
  * @swagger
@@ -135,7 +135,7 @@ const { Op } = require("sequelize");
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     const {
       userId,
@@ -169,33 +169,32 @@ route.get("/", async (req, res) => {
       }
     }
 
-    let order = [["createdAt", "DESC"]];
+    let order = [['createdAt', 'DESC']];
     if (orderBy) {
       order = [
         [
           orderBy,
-          orderDirection && orderDirection.toUpperCase() === "ASC"
-            ? "ASC"
-            : "DESC",
+          orderDirection && orderDirection.toUpperCase() === 'ASC'
+            ? 'ASC'
+            : 'DESC',
         ],
       ];
     }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
-    console.log(learningCenterId);
 
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
-      attributes: ["id", "star"],
+      attributes: ['id', 'star'],
       include: [
         {
           model: Users,
 
-          attributes: ["id", "firstName", "lastName"],
+          attributes: ['id', 'firstName', 'lastName'],
         },
         {
           model: LearningCenter,
-          attributes: ["id", "name"],
+          attributes: ['id', 'name'],
         },
       ],
     });
@@ -212,7 +211,7 @@ route.get("/", async (req, res) => {
     });
   } catch (error) {
     res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
-    console.error("Xatolik yuz berdi:", error);
+    console.error('Xatolik yuz berdi:', error);
   }
 });
 
@@ -237,16 +236,19 @@ route.get("/", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Comment'
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const comment = await Comments.findByPk(req.params.id, {
       include: [{ model: LearningCenter }, { model: Users }],
     });
-    if (!comment) return res.status(404).send({ message: "comment not found" });
+
+    if (!comment) {
+      return res.status(404).send({ message: 'comment not found' });
+    }
 
     res.send(comment);
   } catch (error) {
-    res.status(500).send({ error: "server error" });
+    res.status(500).send({ error: 'server error' });
   }
 });
 
@@ -335,7 +337,7 @@ route.get("/:id", async (req, res) => {
  *                   example: "Server error"
  */
 
-route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
   try {
     const { learningCenterId, star, message } = req.body;
 
@@ -343,20 +345,19 @@ route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
     const learningExists = await LearningCenter.findByPk(learningCenterId);
 
     if (!learningExists) {
-      return res.status(404).send({ message: "edu center not found" });
+      return res.status(404).send({ message: 'edu center not found' });
     }
+
     const newComment = await Comments.create({
       userId,
       learningCenterId,
       star,
       message,
     });
-    res.send(newComment);
-    console.log(newComment);
-  } catch (error) {
-    console.log(error);
 
-    res.status(500).send({ error: "server error" });
+    res.send(newComment);
+  } catch (error) {
+    res.status(500).send({ error: 'server error' });
   }
 });
 
@@ -392,16 +393,21 @@ route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
  *       200:
  *         description: Izoh yangilandi
  */
+
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "USER", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
       const { learningCenterId, message, star } = req.body;
       const comment = await Comments.findByPk(req.params.id);
-      if (!comment) return res.status(404).send("Comment not found");
+
+      if (!comment) {
+        return res.status(404).send('Comment not found');
+      }
 
       await comment.update({ learningCenterId, message, star });
+
       res.send(comment);
     } catch (error) {
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);
@@ -428,15 +434,18 @@ route.patch(
  *       200:
  *         description: Izoh o'chirildi
  */
+
 route.delete(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "USER"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER']),
   async (req, res) => {
     try {
       const comment = await Comments.findByPk(req.params.id);
-      if (!comment) return res.status(404).send("Comment not found");
-
+      if (!comment) {
+        return res.status(404).send('Comment not found');
+      }
       await comment.destroy();
+
       res.send(comment);
     } catch (error) {
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);

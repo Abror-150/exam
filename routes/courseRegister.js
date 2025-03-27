@@ -22,7 +22,6 @@ const route = express.Router();
  *             type: object
  *             required:
  *               - learningCenterId
- *               - branchId
  *             properties:
  *               learningCenterId:
  *                 type: integer
@@ -48,21 +47,21 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
     const userId = req.userId;
 
     const user = await Users.findByPk(userId);
+    const learningCenter = await LearningCenter.findByPk(learningCenterId);
+    const branch = await Branch.findByPk(branchId);
+
     if (!user) {
       return res.status(404).json({ message: "User  not found" });
     }
-    const learningCenter = await LearningCenter.findByPk(learningCenterId);
+    if (!branch) {
+      return res.status(404).json({ message: "Branch not found" });
+    }
     if (!learningCenter) {
       return res.status(404).json({ message: "edu center  not found" });
     }
-    const branch = await Branch.findByPk(branchId);
-
-    if (!branch) {
-      return res.status(404).json({ message: "branch not found" });
-    }
 
     const existingRegistration = await CourseRegister.findOne({
-      where: { userId, learningCenterId},
+      where: { userId, learningCenterId },
     });
 
     if (existingRegistration) {
@@ -82,6 +81,82 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
     res.status(500).json({ message: "Server xatosi", error: error.message });
   }
 });
+
+/**
+ * @swagger
+ * /course-register:
+ *   get:
+ *     summary: Barcha ro'yxatdan o'tganlarni olish
+ *     tags: [Course Register]
+ *     responses:
+ *       200:
+ *         description: Ro'yxatdan o'tganlar ro'yxati
+ *       500:
+ *         description: Server xatosi
+ */
+route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+  try {
+    const registrations = await CourseRegister.findAll({
+      include: [{ model: Users }],
+    });
+    res.status(200).json(registrations);
+  } catch (error) {
+    res.status(500).json({ message: "Server xatosi" });
+  }
+});
+
+/**
+ * @swagger
+ * /course-register/{id}:
+ *   patch:
+ *     summary: Ro'yxatdan o'tishni yangilash
+ *     tags: [Course Register]
+ *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               learningCenterId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Ro'yxatdan o'tish muvaffaqiyatli yangilandi
+ *       404:
+ *         description: Register topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+route.patch(
+  "/:id",
+  roleAuthMiddleware(["USER", "ADMIN", "SUPER_ADMIN"]),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const { learningCenterId } = req.body;
+
+      const registration = await CourseRegister.findByPk(id);
+      if (!registration) {
+        return res.status(404).json({ message: "Register not found" });
+      }
+
+      await registration.update({ userId, learningCenterId });
+      res.status(200).json(registration);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server xatosi" });
+    }
+  }
+);
 
 /**
  * @swagger
@@ -117,9 +192,7 @@ route.delete(
       }
 
       await registration.destroy();
-      res
-        .status(200)
-        .json({ message: "Ro'yxatdan o'tish o'chirildi", registration });
+      res.status(200).json({ message: "Ro'yxatdan o'tish o'chirildi" });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Server xatosi" });

@@ -54,7 +54,7 @@ const Users = db.define('users', {
   learningCenterId: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'markaz', 
+      model: 'markazs', 
       key: 'id',
     },
   }

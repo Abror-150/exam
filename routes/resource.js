@@ -4,7 +4,7 @@ const Resource = require("../models/resource");
 const roleAuthMiddleware = require("../middlewares/roleAuth");
 const Users = require("../models/user");
 const ResourceCategory = require("../models/resourceCategory");
-const { Op } = require("sequelize");
+const logger = require("../logger/logger");
 
 /**
  * @swagger
@@ -58,9 +58,14 @@ const { Op } = require("sequelize");
  *       500:
  *         description: Server xatosi
  */
+
 route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const { name, file, img, describtion, link, categoryId } = req.body;
+    const categoryExists = await ResourceCategory.findByPk(categoryId);
+    if (!categoryExists) {
+      return res.status(404).json({ message: "Category not found" });
+    }
     const userId = req.userId;
 
     const existingResource = await Resource.findOne({
@@ -85,7 +90,6 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
       userId,
       categoryId,
     });
-
     res.status(201).json({
       message: "Resource added",
       data: resource,
@@ -167,32 +171,13 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
  */
 route.get("/", async (req, res) => {
   try {
-    let {
-      nameSearch,
-      descriptionSearch,
-      sortBy = "createdAt",
-      order = "DESC",
-      page = 1,
-      limit = 10,
-    } = req.query;
-
-    page = parseInt(page);
-    limit = parseInt(limit);
-    const offset = (page - 1) * limit;
-
-    const whereCondition = {};
-
-    if (nameSearch) {
-      whereCondition.name = { [Op.iLike]: `%${nameSearch}%` };
-    }
-    if (descriptionSearch) {
-      whereCondition.description = { [Op.iLike]: `%${descriptionSearch}%` };
-    }
+    let { page, limit } = req.query;
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    let offset = (page - 1) * limit;
 
     const resources = await Resource.findAndCountAll({
-      where: whereCondition,
       include: [{ model: Users }],
-      order: [[sortBy, order]],
       limit,
       offset,
     });
@@ -326,7 +311,6 @@ route.patch("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     }
 
     await resource.update(req.body);
-
     res.json({
       message: "Resource updated",
       data: resource,
@@ -378,11 +362,12 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const resource = await Resource.findByPk(req.params.id);
     if (!resource) {
+      logger.warn(`Resource not found for deletion: ID ${req.params.id}`);
       return res.status(404).json({ message: "Resource topilmadi" });
     }
 
     await resource.destroy();
-    res.json({ message: "Resource deleted", resource });
+    res.json({ message: "Resource deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({

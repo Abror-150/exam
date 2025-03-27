@@ -85,7 +85,6 @@ route.get("/", async (req, res) => {
         { model: Branch },
       ],
     });
-
     res.status(200).json(data);
   } catch (error) {
     console.error(error);
@@ -161,10 +160,6 @@ route.get("/:id", async (req, res) => {
 
 route.post("/", async (req, res) => {
   try {
-    const { error } = regionSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
-    }
     let { name } = req.body;
     let existRegion = await Region.findOne({ where: { name } });
     if (existRegion) {
@@ -257,5 +252,4 @@ route.delete("/:id", async (req, res) => {
     res.status(500).send({ error: "Server xatosi", details: error.message });
   }
 });
-
 module.exports = route;

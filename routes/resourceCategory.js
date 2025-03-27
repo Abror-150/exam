@@ -3,6 +3,7 @@ const route = express.Router();
 const ResourceCategory = require("../models/resourceCategory");
 const roleAuthMiddleware = require("../middlewares/roleAuth");
 const Resource = require("../models/resource");
+const logger = require("../logger/logger");
 
 /**
  * @swagger
@@ -59,7 +60,6 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
       name,
       img,
     });
-
     res.status(201).json({
       message: "ResourceCategory added",
       data: resourceCategory,
@@ -138,7 +138,7 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
 route.get("/", async (req, res) => {
   try {
     let {
-      name, // search alohida qilib olindi
+      name,
       sortBy = "createdAt",
       order = "DESC",
       page = 1,
@@ -161,7 +161,6 @@ route.get("/", async (req, res) => {
       limit,
       offset,
     });
-
     res.json({
       message: "Barcha ResourceCategorylar",
       page,
@@ -180,20 +179,41 @@ route.get("/", async (req, res) => {
 
 /**
  * @swagger
- * /resource-categories/{id}:
+ * /resource-categories:
  *   get:
- *     summary: Bitta ResourceCategory’ni ID bo‘yicha olish
+ *     summary: Barcha ResourceCategory’larni olish (filtrlash, saralash, sahifalash qo‘shilgan)
  *     tags: [ResourceCategories]
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Kategoriya nomi bo‘yicha filtr
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [name, createdAt]
+ *         description: Saralash mezoni (name yoki createdAt)
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Saralash tartibi (asc yoki desc)
+ *       - in: query
+ *         name: page
  *         schema:
  *           type: integer
- *         description: ResourceCategory ID
+ *         description: Sahifa raqami
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Har bir sahifadagi elementlar soni
  *     responses:
  *       200:
- *         description: ResourceCategory topildi
+ *         description: Barcha ResourceCategory ro‘yxati
  *         content:
  *           application/json:
  *             schema:
@@ -202,28 +222,51 @@ route.get("/", async (req, res) => {
  *                 message:
  *                   type: string
  *                 data:
- *                   $ref: '#/components/schemas/ResourceCategory'
- *       404:
- *         description: ResourceCategory topilmadi
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ResourceCategory'
+ *                 total:
+ *                   type: integer
+ *                   description: Umumiy kategoriya soni
  *       500:
  *         description: Server xatosi
  */
-route.get("/:id", async (req, res) => {
+
+route.get("/", async (req, res) => {
   try {
-    const resourceCategory = await ResourceCategory.findByPk(req.params.id, {
-      include: [{ model: Resource }],
-    });
-    if (!resourceCategory) {
-      return res.status(404).json({ message: "ResourceCategory not found" });
+    let {
+      name,
+      sort = "createdAt",
+      order = "desc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+    const offset = (page - 1) * limit;
+
+    const whereClause = {};
+    if (name) {
+      whereClause.name = { $like: `%${name}%` };
     }
+
+    const resourceCategories = await ResourceCategory.findAndCountAll({
+      where: whereClause,
+      include: [{ model: Resource }],
+      order: [[sort, order]],
+      limit,
+      offset,
+    });
+
     res.json({
-      message: "ResourceCategory topildi",
-      data: resourceCategory,
+      message: "Barcha ResourceCategorylar",
+      data: resourceCategories.rows,
+      total: resourceCategories.count,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "ResourceCategory olishda xatolik",
+      message: "ResourceCategory'larni olishda xatolik",
       error: error.message,
     });
   }
@@ -283,7 +326,6 @@ route.patch("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     }
 
     await resourceCategory.update(req.body);
-
     res.json({
       message: "ResourceCategory yangilandi",
       data: resourceCategory,
@@ -338,7 +380,7 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     }
 
     await resourceCategory.destroy();
-    res.json({ message: "ResourceCategory deleted", resourceCategory });
+    res.json({ message: "ResourceCategory deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({
