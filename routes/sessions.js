@@ -79,7 +79,13 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
 
   try {
     const userId = req.userId;
+    const userIp = req.ip || req.connection.remoteAddress; // IP-ni olish
+
     const { data } = req.body;
+    if (!data) {
+      data = "{}"; // NULL bo‘lsa, bo‘sh object saqlanadi
+    }
+
     const session = await Sessions.findOne({
       where: {
         userId,
@@ -90,7 +96,7 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     if (session) {
       return res.status(400).json({ message: "This session already exists" });
     }
-    const one = await Sessions.create({ userId, data });
+    const one = await Sessions.create({ userId, data, userIp });
     res.status(201).json(one);
   } catch (error) {
     console.log(error);

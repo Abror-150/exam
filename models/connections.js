@@ -21,7 +21,7 @@ Users.belongsTo(LearningCenter, {
 });
 
 Users.hasMany(Comments, { foreignKey: "userId" });
-Comments.belongsTo(Users, { foreignKey: "userId" });
+Comments.belongsTo(Users, { foreignKey: "userId", as: "user" });
 
 LearningCenter.hasMany(Comments, { foreignKey: "learningCenterId" });
 Comments.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
@@ -31,12 +31,12 @@ Comments.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
 //   foreignKey: "learningCenterId",
 //   as: "learningcenters",
 // });
-
+Comments.belongsTo(Branch, { foreignKey: "branchId" });
 SubCenter.belongsTo(Subject, { foreignKey: "subjectId" });
 SubCenter.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });
 
-Users.hasMany(Comments, { foreignKey: "userId" });
-Comments.belongsTo(Users, { foreignKey: "userId" });
+// Users.hasMany(Comments, { foreignKey: "userId" });
+// Comments.belongsTo(Users, { foreignKey: "userId" });
 
 LearningCenter.hasMany(Comments, { foreignKey: "learningCenterId" });
 Comments.belongsTo(LearningCenter, { foreignKey: "learningCenterId" });

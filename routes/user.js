@@ -134,10 +134,8 @@ route.post("/register", async (req, res) => {
     });
     let token = totp.generate(email + "email");
     await sendEmail(email, token);
-    userLogger.log("info", "register boldi");
     res.send(newUser);
   } catch (error) {
-    logger.error(`Registration error: ${error.message}`);
     res.status(500).send({ message: "Internal server error" });
     console.log(error);
   }
@@ -183,7 +181,6 @@ route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     const one = await Users.findByPk(req.params.id);
     if (!one) return res.status(404).send({ message: "user not found" });
-    userLogger.log("info", "id boyicha qilindi");
     res.send(one);
   } catch (error) {
     res.status(500).send({ error: "server error" });
@@ -237,10 +234,8 @@ route.post("/verify", async (req, res) => {
       return;
     }
     await user.update({ status: "ACTIVE" });
-    userLogger.log("info", "post qilindi");
     res.send(match);
   } catch (error) {
-    logger.error(`Verification error for ${email}: ${error.message}`);
     console.log(error);
   }
 });
@@ -300,7 +295,6 @@ route.post("/login", async (req, res) => {
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
-    userLogger.log("info", "user logged");
     res.json({ accesToken, refreToken });
   } catch (error) {
     console.log(error);
@@ -338,7 +332,6 @@ route.post("/refresh", async (req, res) => {
     let { refreshTok } = req.body;
     const user = jwt.verify(refreshTok, "refresh");
     const newAccestoken = getToken(user.id);
-    userLogger.log("info", "token yangilandi");
     res.send({ newAccestoken });
   } catch (error) {
     res.status(500).send({ message: "Internal server error" });
@@ -542,7 +535,6 @@ route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       if (email) whereCondition.email = { [Op.like]: `%${email}%` };
       if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
     }
-    logger.info(`Fetching users with filters: ${JSON.stringify(req.query)}`);
     const users = await Users.findAndCountAll({
       where: whereCondition,
       order: [[sortBy, order.toUpperCase()]],
@@ -550,7 +542,6 @@ route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       offset: (page - 1) * limit,
     });
 
-    logger.info(`Fetched ${users.rows.length} users successfully`);
     res.status(200).json({
       total: users.count,
       page,
@@ -558,7 +549,6 @@ route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       data: users.rows,
     });
   } catch (error) {
-    logger.error(`Error fetching users: ${error.message}`);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -651,13 +641,10 @@ route.get("/me", roleAuthMiddlewares(["USER", "ADMIN"]), async (req, res) => {
       attributes: ["id", "firstName", "lastName", "email", "img", "lastIp"],
     });
     if (!user) {
-      logger.warn(`User profile not found: ${userId}`);
       return res.status(404).json({ error: "User not found" });
     }
-    logger.info(`User profile fetched: ${userId}`);
     res.json(user);
   } catch (error) {
-    logger.error(`Fetching user profile error: ${error.message}`);
     console.error("Xatolik:", error);
     res.status(500).json({ error: "Server xatosi", details: error.message });
   }

@@ -11,9 +11,13 @@ const Sessions = db.define("sessions", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  data: {
-    type: DataTypes.JSON,
+  userIp: {
+    type: DataTypes.STRING,
     allowNull: false,
+  },
+  data: {
+    type: DataTypes.TEXT,
+    allowNull: true,
   },
 });
 

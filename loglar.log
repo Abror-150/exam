@@ -8,3 +8,8 @@
 {"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T11:29:42.312Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T11:29:58.841Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T11:49:32.537Z"}
+{"level":"info","message":"register boldi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-27T13:00:24.995Z"}
+{"level":"info","message":"user logged","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-27T13:16:17.486Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T13:33:05.653Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T13:33:26.414Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T18:41:54.593Z"}
