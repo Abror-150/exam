@@ -1,11 +1,11 @@
-const { Router } = require('express');
-const { Op } = require('sequelize');
+const { Router } = require("express");
+const { Op } = require("sequelize");
 const route = Router();
-const Profession=require("../models/professions")
-const roleAuthMiddleware = require('../middlewares/roleAuth');
-const { subjectSchema } = require('../validations/subjects');
-const Subject = require('../models/subjects');
-const LearningCenter = require('../models/learningCenter');
+const Profession = require("../models/professions");
+const roleAuthMiddleware = require("../middlewares/roleAuth");
+const { subjectSchema } = require("../validations/subjects");
+const Subject = require("../models/subjects");
+const LearningCenter = require("../models/learningCenter");
 /**
  * @swagger
  * tags:
@@ -53,13 +53,13 @@ const LearningCenter = require('../models/learningCenter');
  *       500:
  *         description: Server xatosi
  */
-route.get('/', async (req, res) => {
+route.get("/", async (req, res) => {
   try {
     let {
       page = 1,
       limit = 10,
-      sortBy = 'id',
-      order = 'ASC',
+      sortBy = "id",
+      order = "ASC",
       name,
     } = req.query;
     page = parseInt(page);
@@ -85,7 +85,7 @@ route.get('/', async (req, res) => {
     });
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Server xatosi', details: error.message });
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
 
@@ -108,25 +108,25 @@ route.get('/', async (req, res) => {
  *       404:
  *         description: Fan topilmadi
  */
-route.get('/:id', async (req, res) => {
+route.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const oneId = await Subject.findByPk(id, {
       include: [
         {
           model: LearningCenter,
-          as: 'markazlar',
+          as: "markazlar",
           through: { attributes: [] },
         },
       ],
     });
     if (!oneId) {
-      return res.status(404).json({ error: 'subject topilmadi' });
+      return res.status(404).json({ error: "subject topilmadi" });
     }
 
     res.json(oneId);
   } catch (error) {
-    res.status(500).json({ error: 'Server xatosi', details: error.message });
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
 
@@ -153,7 +153,7 @@ route.get('/:id', async (req, res) => {
  *       400:
  *         description: Xato ma'lumot kiritildi
  */
-route.post('/', async (req, res) => {
+route.post("/", async (req, res) => {
   const { error } = subjectSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
@@ -166,7 +166,7 @@ route.post('/', async (req, res) => {
     });
 
     if (existingSubject) {
-      return res.status(400).json({ message: 'This subject already exists' });
+      return res.status(400).json({ message: "This subject already exists" });
     }
 
     const one = await Subject.create({ name, img });
@@ -174,7 +174,7 @@ route.post('/', async (req, res) => {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ error: 'Server xatosi', details: error.message });
+    res.status(500).json({ error: "Server xatosi", details: error.message });
   }
 });
 
@@ -212,19 +212,19 @@ route.post('/', async (req, res) => {
  */
 
 route.patch(
-  '/:id',
-  roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
+  "/:id",
+  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
   async (req, res) => {
     try {
       const { id } = req.params;
       const one = await Subject.findByPk(id);
       if (!one) {
-        return res.status(404).send({ error: 'subject not found' });
+        return res.status(404).send({ error: "subject not found" });
       }
       await one.update(req.body);
       res.json(one);
     } catch (error) {
-      res.status(500).json({ error: 'Server xatosi', details: error.message });
+      res.status(500).json({ error: "Server xatosi", details: error.message });
     }
   }
 );
@@ -248,16 +248,16 @@ route.patch(
  *         description: Fan topilmadi
  */
 
-route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
+route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Subject.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "subject o'chirildi" });
+      return res.send({ message: "subject o'chirildi", deleted });
     }
-    res.status(404).send({ error: 'subject topilmadi' });
+    res.status(404).send({ error: "subject topilmadi" });
   } catch (error) {
-    res.status(500).send({ error: 'Server xatosi', details: error.message });
+    res.status(500).send({ error: "Server xatosi", details: error.message });
   }
 });
 

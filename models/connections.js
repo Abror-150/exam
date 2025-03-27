@@ -15,6 +15,10 @@ const Subject = require("./subjects");
 const Users = require("./user");
 
 LearningCenter.hasMany(Users, { foreignKey: "learningCenterId", as: "users" });
+Users.belongsTo(LearningCenter, {
+  foreignKey: "learningCenterId",
+  as: "markaz",
+});
 
 Users.hasMany(Comments, { foreignKey: "userId" });
 Comments.belongsTo(Users, { foreignKey: "userId" });

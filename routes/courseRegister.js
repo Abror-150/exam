@@ -48,21 +48,21 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
     const userId = req.userId;
 
     const user = await Users.findByPk(userId);
-    const learningCenter = await LearningCenter.findByPk(learningCenterId);
-    const branch = await Branch.findByPk(branchId);
-    if (!branch) {
-      return res.status(404).json({ message: "branch not found" });
-    }
-    if (!learningCenter) {
-      return res.status(404).json({ message: "edu center  not found" });
-    }
-
     if (!user) {
       return res.status(404).json({ message: "User  not found" });
     }
+    const learningCenter = await LearningCenter.findByPk(learningCenterId);
+    if (!learningCenter) {
+      return res.status(404).json({ message: "edu center  not found" });
+    }
+    const branch = await Branch.findByPk(branchId);
+
+    if (!branch) {
+      return res.status(404).json({ message: "branch not found" });
+    }
 
     const existingRegistration = await CourseRegister.findOne({
-      where: { userId, learningCenterId, branchId },
+      where: { userId, learningCenterId},
     });
 
     if (existingRegistration) {
@@ -117,7 +117,9 @@ route.delete(
       }
 
       await registration.destroy();
-      res.status(200).json({ message: "Ro'yxatdan o'tish o'chirildi" });
+      res
+        .status(200)
+        .json({ message: "Ro'yxatdan o'tish o'chirildi", registration });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Server xatosi" });

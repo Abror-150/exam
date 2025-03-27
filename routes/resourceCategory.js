@@ -338,7 +338,7 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     }
 
     await resourceCategory.destroy();
-    res.json({ message: "ResourceCategory deleted" });
+    res.json({ message: "ResourceCategory deleted", resourceCategory });
   } catch (error) {
     console.error(error);
     res.status(500).json({

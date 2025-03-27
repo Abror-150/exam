@@ -37,7 +37,7 @@ const { Op } = require("sequelize");
  *                 type: string
  *               link:
  *                 type: string
- *               categoryId:
+ *               resourceCategoryId:
  *                 type: integer
  *     responses:
  *       201:
@@ -382,7 +382,7 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     }
 
     await resource.destroy();
-    res.json({ message: "Resource deleted" });
+    res.json({ message: "Resource deleted", resource });
   } catch (error) {
     console.error(error);
     res.status(500).json({

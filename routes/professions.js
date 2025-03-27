@@ -1,13 +1,13 @@
-const { Router } = require('express');
-const { Op } = require('sequelize');
+const { Router } = require("express");
+const { Op } = require("sequelize");
 const route = Router();
-const roleAuthMiddleware = require('../middlewares/roleAuth');
-const professionSchema = require('../validations/professions');
-const LearningCenter = require('../models/learningCenter');
-const Profession = require('../models/professions');
-const Field = require('../models/fields');
-const Subject = require('../models/subjects');
-const Users = require('../models/user');
+const roleAuthMiddleware = require("../middlewares/roleAuth");
+const professionSchema = require("../validations/professions");
+const LearningCenter = require("../models/learningCenter");
+const Profession = require("../models/professions");
+const Field = require("../models/fields");
+const Subject = require("../models/subjects");
+const Users = require("../models/user");
 
 /**
  * @swagger
@@ -256,7 +256,7 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     const { id } = req.params;
     const deleted = await Profession.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "Kasb o'chirildi" });
+      return res.send({ message: "Kasb o'chirildi", deleted });
     }
     res.status(404).send({ error: "Kasb topilmadi" });
   } catch (error) {

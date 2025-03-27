@@ -168,72 +168,68 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
  *       500:
  *         description: Server error
  */
-route.get(
-  "/",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
-  async (req, res) => {
-    try {
-      let { search, sortBy, order, page, limit } = req.query;
+route.get("/", async (req, res) => {
+  try {
+    let { search, sortBy, order, page, limit } = req.query;
 
-      sortBy = sortBy || "createdAt";
-      order = order || "DESC";
-      page = parseInt(page) || 1;
-      limit = parseInt(limit) || 10;
-      let offset = (page - 1) * limit;
-      let whereCondition = {};
-      if (search) {
-        whereCondition.name = { [Op.like]: `%${search}%` };
-      }
-
-      const learningCenters = await LearningCenter.findAndCountAll({
-        // attributes: [
-        //   'id',
-        //   'name',
-        //   'address',
-        //   [Sequelize.fn('COUNT', Sequelize.col('Likes.id')), 'numberOfLikes'],
-        // ],
-        include: [
-          {
-            model: Branch,
-
-            attributes: ["id", "name", "address"],
-          },
-          { model: Region, attributes: ["name"] },
-          {
-            model: Users,
-            as: "users",
-            attributes: ["id", "firstName", "lastName"],
-          },
-          { model: Like, attributes: [] },
-          {
-            model: Subject,
-
-            through: { attributes: [] },
-          },
-          { model: Comments },
-          { model: Profession },
-        ],
-        where: whereCondition,
-        order: [[sortBy, order]],
-        limit,
-        offset,
-        // group: ['LearningCenter.id'],
-      });
-
-      res.status(200).send({
-        total: learningCenters.count.length,
-        page,
-        limit,
-        data: learningCenters.rows,
-      });
-    } catch (error) {
-      res.status(500).send({
-        message: "Error fetching Learning Centers",
-        error: error.message,
-      });
+    sortBy = sortBy || "createdAt";
+    order = order || "DESC";
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    let offset = (page - 1) * limit;
+    let whereCondition = {};
+    if (search) {
+      whereCondition.name = { [Op.like]: `%${search}%` };
     }
+
+    const learningCenters = await LearningCenter.findAndCountAll({
+      // attributes: [
+      //   'id',
+      //   'name',
+      //   'address',
+      //   [Sequelize.fn('COUNT', Sequelize.col('Likes.id')), 'numberOfLikes'],
+      // ],
+      include: [
+        {
+          model: Branch,
+
+          attributes: ["id", "name", "address"],
+        },
+        { model: Region, attributes: ["name"] },
+        {
+          model: Users,
+          as: "users",
+          attributes: ["id", "firstName", "lastName"],
+        },
+        { model: Like, attributes: ["id", "userId"] },
+        {
+          model: Subject,
+
+          through: { attributes: [] },
+        },
+        { model: Comments },
+        { model: Profession },
+      ],
+      where: whereCondition,
+      order: [[sortBy, order]],
+      limit,
+      offset,
+      // group: ['LearningCenter.id'],
+    });
+
+    res.status(200).send({
+      total: learningCenters.count.length,
+      page,
+      limit,
+      data: learningCenters.rows,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Error fetching Learning Centers",
+      error: error.message,
+    });
   }
-);
+});
 
 /**
  * @swagger
@@ -259,7 +255,29 @@ route.get(
   roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
   async (req, res) => {
     try {
-      const learningCenter = await LearningCenter.findByPk(req.params.id);
+      const learningCenter = await LearningCenter.findByPk(req.params.id, {
+        include: [
+          {
+            model: Branch,
+
+            attributes: ["id", "name", "address"],
+          },
+          { model: Region, attributes: ["name"] },
+          {
+            model: Users,
+            as: "users",
+            attributes: ["id", "firstName", "lastName"],
+          },
+          { model: Like, attributes: [] },
+          {
+            model: Subject,
+
+            through: { attributes: [] },
+          },
+          { model: Comments },
+          { model: Profession },
+        ],
+      });
       if (!learningCenter) {
         return res.status(404).send({ message: "Learning Center not found" });
       }
@@ -349,7 +367,9 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     if (!learningCenter)
       return res.status(404).send({ message: "Learning Center not found" });
     await learningCenter.destroy();
-    res.status(200).send({ message: "Learning Center deleted" });
+    res
+      .status(200)
+      .send({ message: "Learning Center deleted", learningCenter });
   } catch (error) {
     res.status(500).send({
       message: "Error deleting Learning Center",

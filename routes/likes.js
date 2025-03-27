@@ -86,7 +86,7 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     const { id } = req.params;
     const deleted = await Like.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "Like o'chirildi" });
+      return res.send({ message: "Like o'chirildi", deleted });
     }
     res.status(404).send({ error: "Like bosmagan" });
   } catch (error) {

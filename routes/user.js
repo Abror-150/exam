@@ -268,7 +268,7 @@ route.get("/me", roleAuthMiddlewares(["USER", "ADMIN"]), async (req, res) => {
  *         description: Server xatosi
  */
 
-route.get("/:id", async (req, res) => {
+route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     const one = await Users.findByPk(req.params.id);
     if (!one) return res.status(404).send({ message: "user not found" });
@@ -593,7 +593,7 @@ route.patch(
  *         description: "Server xatosi"
  */
 
-route.get("/", async (req, res) => {
+route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     let {
       search,
@@ -694,6 +694,9 @@ route.get("/", async (req, res) => {
  *                 email:
  *                   type: string
  *                   example: "ali@example.com"
+ *                 learningCenterId:
+ *                   type: string
+ *                   example: "ali@example.com"
  *       404:
  *         description: Foydalanuvchi topilmadi
  *       500:
@@ -753,7 +756,7 @@ route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     const { id } = req.params;
     const deleted = await Users.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "user o'chirildi" });
+      return res.send({ message: "user o'chirildi", deleted });
     }
     res.status(404).send({ error: "user topilmadi" });
   } catch (error) {

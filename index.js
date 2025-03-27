@@ -13,6 +13,8 @@ const RegionRoute = require("./routes/regions");
 const SubjectRoute = require("./routes/subjects");
 const CourseRegisterRoute = require("./routes/courseRegister");
 const uploadRoute = require("./routes/upload");
+const SessionsRoute = require("./routes/sessions");
+const AdminRoute = require("./routes/admin");
 
 const app = express();
 app.use(express.json());
@@ -31,5 +33,7 @@ app.use("/resource-categories", ResourceCategories);
 app.use("/resources", ResourceRoute);
 app.use("/uploads", express.static("uploads"));
 app.use("/upload", uploadRoute);
+app.use("/sessions", SessionsRoute);
+app.use("/add-admin", AdminRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.listen(3000, () => console.log("server started on port 3000"));

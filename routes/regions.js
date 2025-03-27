@@ -159,7 +159,7 @@ route.get("/:id", async (req, res) => {
  *         description: Xato so‘rov
  */
 
-route.post("/", roleAuthMiddleware(["USER"]), async (req, res) => {
+route.post("/", async (req, res) => {
   try {
     const { error } = regionSchema.validate(req.body);
     if (error) {
@@ -208,7 +208,7 @@ route.post("/", roleAuthMiddleware(["USER"]), async (req, res) => {
  *       404:
  *         description: Viloyat topilmadi
  */
-route.patch("/:id", roleAuthMiddleware(["USER"]), async (req, res) => {
+route.patch("/:id", async (req, res) => {
   try {
     const { error } = regionSchema.validate(req.body);
     if (error) {
@@ -245,12 +245,12 @@ route.patch("/:id", roleAuthMiddleware(["USER"]), async (req, res) => {
  *       404:
  *         description: Viloyat topilmadi
  */
-route.delete("/:id", roleAuthMiddleware(["USER"]), async (req, res) => {
+route.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Region.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "viloyat o'chirildi" });
+      return res.send({ message: "viloyat o'chirildi", deleted });
     }
     res.status(404).send({ error: "viloyat topilmadi" });
   } catch (error) {
