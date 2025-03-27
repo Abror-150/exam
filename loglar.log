@@ -2,6 +2,7 @@
 {"level":"info","message":"get id boyicha ishladi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T09:53:24.732Z"}
 {"level":"info","message":"get id boyicha ishladi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T09:53:40.308Z"}
 {"level":"info","message":"user logged","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-27T10:02:17.499Z"}
+<<<<<<< HEAD
 {"level":"info","message":"user logged","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-27T10:35:42.793Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T10:45:49.407Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T10:57:41.627Z"}
@@ -13,3 +14,11 @@
 {"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T12:01:17.917Z"}
 {"level":"info","message":"user logged","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-27T12:11:56.329Z"}
 {"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T12:17:21.043Z"}
+=======
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T10:58:15.750Z"}
+{"level":"info","message":"user logged","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-27T10:59:39.359Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T11:29:31.979Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-27T11:29:42.312Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T11:29:58.841Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-27T11:49:32.537Z"}
+>>>>>>> 06efec5340e26ed0d4e93f16ba70c4bfcbf5ec2c
