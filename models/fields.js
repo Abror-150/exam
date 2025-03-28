@@ -22,6 +22,4 @@ const Field = db.define(
   { tableName: 'soxalar' }
 );
 
-
-
 module.exports = Field;

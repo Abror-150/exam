@@ -15,6 +15,10 @@ const Sessions = db.define('sessions', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  data: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 });
 
 module.exports = Sessions;

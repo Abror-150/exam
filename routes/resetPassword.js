@@ -140,6 +140,7 @@ route.post('/update-password', async (req, res) => {
 
     return res.json({ message: 'Parol updated' });
   } catch (error) {
+    resentPasswordLogger.log('error', 'internal server error');
     console.error('Error updating password:', error);
     return res.status(500).json({ message: 'Serverda xato yuz berdi' });
   }

@@ -9,7 +9,6 @@ const Profession = require('./professions');
 const Region = require('./regions');
 const Resource = require('./resource');
 const ResourceCategory = require('./resourceCategory');
-const Sessions = require('./sessions');
 const SubBranch = require('./subBranch');
 const SubCenter = require('./subCenter');
 const Subject = require('./subjects');
@@ -22,7 +21,7 @@ Users.belongsTo(LearningCenter, {
 });
 
 Users.hasMany(Comments, { foreignKey: 'userId' });
-Comments.belongsTo(Users, { foreignKey: 'userId' });
+Comments.belongsTo(Users, { foreignKey: 'userId', as: 'user' });
 
 LearningCenter.hasMany(Comments, { foreignKey: 'learningCenterId' });
 Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
@@ -32,12 +31,9 @@ Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 //   foreignKey: "learningCenterId",
 //   as: "learningcenters",
 // });
-
+Comments.belongsTo(Branch, { foreignKey: 'branchId' });
 SubCenter.belongsTo(Subject, { foreignKey: 'subjectId' });
 SubCenter.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
-
-Users.hasMany(Comments, { foreignKey: 'userId' });
-Comments.belongsTo(Users, { foreignKey: 'userId' });
 
 LearningCenter.hasMany(Comments, { foreignKey: 'learningCenterId' });
 Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
@@ -125,10 +121,8 @@ Users.hasMany(Resource, { foreignKey: 'userId' });
 
 Resource.belongsTo(Users, { foreignKey: 'userId' });
 
-ResourceCategory.hasMany(Resource, {
-  foreignKey: 'CategoryId',
-});
-Resource.belongsTo(ResourceCategory, { foreignKey: 'CategoryId' });
+ResourceCategory.hasMany(Resource, { foreignKey: 'resourceCategoryId' });
+Resource.belongsTo(ResourceCategory, { foreignKey: 'resourceCategoryId' });
 
 Users.hasMany(CourseRegister, {
   foreignKey: 'userId',
@@ -147,5 +141,5 @@ Subject.belongsTo(LearningCenter, {
   as: 'markazlar',
 });
 
-Users.hasMany(Sessions, { foreignKey: 'userId' });
-Sessions.belongsTo(Users, { foreignKey: 'userId' });
+// Users.hasMany(Sessions, { foreignKey: 'userId' });
+// Sessions.belongsTo(Users, { foreignKey: 'userId' });

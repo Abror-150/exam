@@ -18,6 +18,4 @@ const ResourceCategory = db.define('ResourceCategorys', {
   },
 });
 
-
-
 module.exports = ResourceCategory;

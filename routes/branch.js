@@ -1,12 +1,12 @@
 const express = require('express');
 const route = express.Router();
 const { Op, where } = require('sequelize');
-const { getRouteLogger } = require('../logger/logger');
 const Branch = require('../models/branches');
 const {
   branchesValidation,
   validateBranchUpdate,
 } = require('../validations/branches');
+const { getRouteLogger } = require('../logger/logger');
 const branchLogger = getRouteLogger(__filename);
 
 const LearningCenter = require('../models/learningCenter');

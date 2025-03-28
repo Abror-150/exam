@@ -25,7 +25,7 @@ const { message } = require('../validations/learningCenter');
 /**
  * @swagger
  * tags:
- *   name: Users
+ *   name: Auth
  *   description: User management APIs
  */
 
@@ -37,7 +37,7 @@ totp.options = { step: 120, digits: 4 };
  *   post:
  *     summary: Register a new user
  *     description: Creates a new user account and sends OTP to email.
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -145,7 +145,6 @@ route.post('/register', async (req, res) => {
     });
     let token = totp.generate(email + 'email');
     await sendEmail(email, token);
-    userLogger.log('info', 'register boldi');
     res.send(newUser);
   } catch (error) {
     userLogger.log('error', 'server error');
@@ -159,7 +158,7 @@ route.post('/register', async (req, res) => {
  *   post:
  *     summary: Email orqali OTP kodini tasdiqlash
  *     tags:
- *       - Users
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
@@ -208,8 +207,6 @@ route.post('/verify', async (req, res) => {
     userLogger.log('info', 'post qilindi');
     res.send(match);
   } catch (error) {
-    res.status(500).send({ message: 'interval server error' });
-    userLogger.log('error', 'interver server error');
     console.log(error);
   }
 });
@@ -219,7 +216,7 @@ route.post('/verify', async (req, res) => {
  * /users/login:
  *   post:
  *     summary: User login
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -277,7 +274,6 @@ route.post('/login', async (req, res) => {
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
-    userLogger.log('info', 'user logged');
     res.json({ accesToken, refreToken });
   } catch (error) {
     userLogger.log('error', 'Internal server error');
@@ -293,7 +289,7 @@ route.post('/login', async (req, res) => {
  * /users/refresh:
  *   post:
  *     summary: Refresh access token
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -318,7 +314,6 @@ route.post('/refresh', async (req, res) => {
     let { refreshTok } = req.body;
     const user = jwt.verify(refreshTok, 'refresh');
     const newAccestoken = getToken(user.id);
-    userLogger.log('info', 'token yangilandi');
     res.send({ newAccestoken });
   } catch (error) {
     userLogger.log('error', 'Internal server error');
@@ -591,7 +586,6 @@ route.get('/me', roleAuthMiddlewares(['ADMIN', 'USER']), async (req, res) => {
       logger.warn(`User profile not found: ${userId}`);
       return res.status(404).json({ error: 'User not found' });
     }
-    userLogger.log('info', 'me qilindi');
     res.json(user);
   } catch (error) {
     userLogger.log('info', 'internal server error');

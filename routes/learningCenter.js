@@ -2,15 +2,12 @@ const express = require('express');
 
 const route = express.Router();
 const LearningCenter = require('../models/learningCenter');
-const roleAuthMiddleware = require('../middlewares/roleAuth');
 const {
   learningCenterValidation,
   learningCenterValidationPatch,
 } = require('../validations/learningCenter');
 const Branch = require('../models/branches');
-const Profession = require('../models/professions');
 const Comments = require('../models/comment');
-const Region = require('../models/regions');
 const { Op } = require('sequelize');
 const Users = require('../models/user');
 const Subject = require('../models/subjects');
@@ -20,6 +17,9 @@ const Like = require('../models/likes');
 const { Sequelize } = require('sequelize');
 const { getRouteLogger } = require('../logger/logger');
 const { message } = require('../validations/regions');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Profession = require('../models/professions');
+const Region = require('../models/regions');
 
 const centerLogger = getRouteLogger(__filename);
 /**
@@ -95,10 +95,18 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       req.body;
     const userId = req?.userId;
 
+    console.log('Received Data:', req.body);
+    console.log('User ID:', userId);
+
+    if (!regionId) {
+      return res.status(400).json({ message: 'regionId is required' });
+    }
+
     const region = await Region.findByPk(regionId);
     if (!region) {
       centerLogger.log('warn', 'region not found');
 
+      return res.status(404).send({ message: 'region not found' });
       return res.status(404).send({ message: 'region not found' });
     }
 
@@ -107,6 +115,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       centerLogger.log('warn', 'name already exists');
 
       return res.status(401).send({ message: 'name already exists' });
+      return res.status(401).send({ message: 'name already exists' });
     }
 
     let PhoneExists = await LearningCenter.findOne({ where: { phone } });
@@ -114,9 +123,11 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       centerLogger.log('warn', 'phone already exists');
 
       return res.status(401).send({ message: 'phone already exists' });
+      return res.status(401).send({ message: 'phone already exists' });
     }
     centerLogger.log('info', 'post ');
 
+    console.log('Creating Learning Center...');
     const learningCenter = await LearningCenter.create({
       ...rest,
       regionId,
@@ -124,7 +135,15 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       name,
       phone,
     });
+    console.log('Learning Center Created:', learningCenter);
 
+    if (!Array.isArray(professionsId) || professionsId.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'professionsId is required and must be an array' });
+    }
+
+    console.log('Fetching existing professions...');
     const existingProfessions = await Profession.findAll({
       where: { id: professionsId },
       attributes: ['id'],
@@ -135,11 +154,14 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
 
     if (invalidIds.length > 0) {
       centerLogger.log('warn', 'not found');
+      console.log('Invalid Professions:', invalidIds);
       return res.status(404).json({
-        message: 'Not Found',
+        message: 'Some professions not found',
+        invalidIds,
       });
     }
 
+    console.log('Creating profession associations...');
     const professionData = professionsId.map((id) => ({
       professionId: id,
       learningCenterId: learningCenter.id,
@@ -148,6 +170,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     await Field.bulkCreate(professionData);
 
     if (subjectsId && subjectsId.length > 0) {
+      console.log('Creating subject associations...');
       const subjectData = subjectsId.map((id) => ({
         subjectId: id,
         learningCenterId: learningCenter.id,
@@ -161,12 +184,88 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     });
   } catch (error) {
     centerLogger.log('error', 'internal server error');
+    console.error('Error:', error);
     res.status(500).send({
       message: 'Error creating Learning Center',
       error: error.message,
     });
   }
 });
+
+// route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
+//   let { error } = learningCenterValidation.validate(req.body);
+//   if (error) {
+//     return res.status(400).json({ message: error.details[0].message });
+//   }
+
+//   try {
+//     const { professionsId, subjectsId, name, phone, regionId, ...rest } =
+//       req.body;
+//     const userId = req?.userId;
+
+//     const region = await Region.findByPk(regionId);
+//     if (!region) {
+//       return res.status(404).send({ message: "region not found" });
+//     }
+
+//     let exists = await LearningCenter.findOne({ where: { name } });
+//     if (exists) {
+//       return res.status(401).send({ message: "name already exists" });
+//     }
+
+//     let PhoneExists = await LearningCenter.findOne({ where: { phone } });
+//     if (PhoneExists) {
+//       return res.status(401).send({ message: "phone already exists" });
+//     }
+
+//     const learningCenter = await LearningCenter.create({
+//       ...rest,
+//       regionId,
+//       userId,
+//       name,
+//       phone,
+//     });
+
+//     const existingProfessions = await Profession.findAll({
+//       where: { id: professionsId },
+//       attributes: ["id"],
+//     });
+
+//     const existingIds = existingProfessions.map((p) => p.id);
+//     const invalidIds = professionsId.filter((id) => !existingIds.includes(id));
+
+//     if (invalidIds.length > 0) {
+//       return res.status(404).json({
+//         message: "Some professions not Found",
+//       });
+//     }
+
+//     const professionData = professionsId.map((id) => ({
+//       professionId: id,
+//       learningCenterId: learningCenter.id,
+//     }));
+
+//     await Field.bulkCreate(professionData);
+
+//     if (subjectsId && subjectsId.length > 0) {
+//       const subjectData = subjectsId.map((id) => ({
+//         subjectId: id,
+//         learningCenterId: learningCenter.id,
+//       }));
+//       await SubCenter.bulkCreate(subjectData);
+//     }
+
+//     res.status(201).send({
+//       message: "Learning Center created",
+//       data: learningCenter,
+//     });
+//   } catch (error) {
+//     res.status(500).send({
+//       message: "Error creating Learning Center",
+//       error: error.message,
+//     });
+//   }
+// });
 
 /**
  * @swagger
@@ -232,11 +331,24 @@ route.get(
           { model: Branch, attributes: ['id', 'name', 'address'] },
           { model: Region, attributes: ['name'] },
           {
+            model: Branch,
+
+            attributes: ['id', 'name', 'address'],
+          },
+          { model: Region, attributes: ['name'] },
+          {
             model: Users,
             as: 'registeredUser',
             attributes: ['id', 'firstName', 'lastName'],
           },
           { model: Subject, as: 'subjects', through: { attributes: [] } },
+          { model: Like, attributes: ['id', 'learningCenterId', 'userId'] },
+          {
+            model: Subject,
+            as: 'subjects',
+
+            through: { attributes: [] },
+          },
           { model: Comments },
           { model: Profession },
         ],
@@ -333,6 +445,7 @@ route.get('/:id', async (req, res) => {
     }
 
     res.status(200).json({ learningCenter });
+    res.status(200).send({ message: 'Learning center', data: learningCenter });
   } catch (error) {
     res.status(500).json({
       message: 'Error fetching Learning Center',
@@ -382,6 +495,7 @@ route.patch(
         centerLogger.log('warn', 'center not found');
 
         return res.status(404).send({ message: 'Learning Center not found' });
+        return res.status(404).send({ message: 'Learning Center not found' });
       }
       await learningCenter.update(req.body);
       centerLogger.log('info', 'patch qilindi');
@@ -427,6 +541,7 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     if (!learningCenter) {
       centerLogger.log('warn', 'center not found');
 
+      return res.status(404).send({ message: 'Learning Center not found' });
       return res.status(404).send({ message: 'Learning Center not found' });
     }
     centerLogger.log('info', 'deleted');
