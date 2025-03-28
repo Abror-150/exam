@@ -10,9 +10,9 @@ let logger = winston.createLogger({
     new winston.transports.File({ filename: "loglar.log" }),
     new winston.transports.MongoDB({
       collection: "loglar",
-      db: "mongodb://localhost:27017/lg",
+      db: "mongodb+srv://shukrullayevikromxon:TvsJZnNVyZhWC6cw@educenter.ylo3aih.mongodb.net/?retryWrites=true&w=majority&appName=educenter",
     }),
   ],
 });
-const getRouteLogger = (moduleName)=>logger.child({module:moduleName})
+const getRouteLogger = (moduleName) => logger.child({ module: moduleName });
 module.exports = { logger, getRouteLogger };
