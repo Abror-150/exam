@@ -4,6 +4,7 @@ const route = Router();
 const roleAuthMiddleware = require("../middlewares/roleAuth");
 const sessionsSchema = require("../validations/sessions");
 const Sessions = require("../models/sessions");
+const Users = require("../models/user");
 
 /**
  * @swagger

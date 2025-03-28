@@ -218,3 +218,20 @@
 {"level":"info","message":"like create","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\likes.js","timestamp":"2025-03-28T08:04:48.973Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:05:54.965Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:08:45.333Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\courseRegister.js","timestamp":"2025-03-28T08:38:41.411Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\courseRegister.js","timestamp":"2025-03-28T08:38:49.373Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\myInfo.js","timestamp":"2025-03-28T08:38:59.246Z"}
+{"level":"info","message":"get boldi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-28T08:39:09.062Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\professions.js","timestamp":"2025-03-28T08:39:19.668Z"}
+{"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:39:27.484Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:39:35.419Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:39:47.511Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:40:07.716Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\professions.js","timestamp":"2025-03-28T08:40:19.170Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:40:56.500Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:41:26.132Z"}
+{"level":"info","message":"Subjects fetched successfully","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-28T08:42:03.367Z"}
+{"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:42:22.928Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:42:35.664Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:44:56.013Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:47:53.858Z"}
