@@ -1,22 +1,22 @@
-const express = require("express");
+const express = require('express');
 const route = express.Router();
-const { Op, where } = require("sequelize");
-const { getRouteLogger } = require("../logger/logger");
-const Branch = require("../models/branches");
+const { Op, where } = require('sequelize');
+const { getRouteLogger } = require('../logger/logger');
+const Branch = require('../models/branches');
 const {
   branchesValidation,
   validateBranchUpdate,
-} = require("../validations/branches");
+} = require('../validations/branches');
 const branchLogger = getRouteLogger(__filename);
 
-const LearningCenter = require("../models/learningCenter");
-const Region = require("../models/regions");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const SubBranch = require("../models/subBranch");
-const ProfessionBranch = require("../models/professionBranch");
-const Subject = require("../models/subjects");
-const Profession = require("../models/professions");
-const Field = require("../models/fields");
+const LearningCenter = require('../models/learningCenter');
+const Region = require('../models/regions');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const SubBranch = require('../models/subBranch');
+const ProfessionBranch = require('../models/professionBranch');
+const Subject = require('../models/subjects');
+const Profession = require('../models/professions');
+const Field = require('../models/fields');
 /**
  * @swagger
  * tags:
@@ -106,7 +106,7 @@ const Field = require("../models/fields");
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     const {
       name,
@@ -123,14 +123,14 @@ route.get("/", async (req, res) => {
     if (regionId) whereClause.regionId = regionId;
     if (learningCenterId) whereClause.learningCenterId = learningCenterId;
 
-    let order = [["createdAt", "DESC"]];
+    let order = [['createdAt', 'DESC']];
     if (orderBy) {
       order = [
         [
           orderBy,
-          orderDirection && orderDirection.toUpperCase() === "ASC"
-            ? "ASC"
-            : "DESC",
+          orderDirection && orderDirection.toUpperCase() === 'ASC'
+            ? 'ASC'
+            : 'DESC',
         ],
       ];
     }
@@ -147,7 +147,7 @@ route.get("/", async (req, res) => {
       limit: parseInt(limit),
       offset,
     });
-    branchLogger.log("info", "get ishladi");
+    branchLogger.log('info', 'get ishladi');
     res.json({
       total: count,
       page: parseInt(page),
@@ -155,8 +155,8 @@ route.get("/", async (req, res) => {
       data: rows,
     });
   } catch (error) {
-    console.error("error", error);
-    res.status(500).json({ error: "Serverda xatolik yuz berdi" });
+    console.error('error', error);
+    res.status(500).json({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -180,7 +180,7 @@ route.get("/", async (req, res) => {
  *         description: Filial topilmadi
  */
 
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const branch = await Branch.findByPk(req.params.id, {
       include: [
@@ -189,12 +189,13 @@ route.get("/:id", async (req, res) => {
         { model: Profession },
       ],
     });
-    if (!branch) return res.status(404).send({ message: "Branch not found" });
-    branchLogger.log("info", "get id boyicha ishladi");
+    if (!branch) return res.status(404).send({ message: 'Branch not found' });
+
+    branchLogger.log('info', 'get id boyicha ishladi');
 
     res.send(branch);
   } catch (error) {
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -262,7 +263,7 @@ route.get("/:id", async (req, res) => {
  *           description: "Server xatosi"
  */
 
-route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   let { error } = branchesValidation.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
@@ -281,24 +282,27 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
 
     const learningCenter = await LearningCenter.findByPk(learningCenterId);
     if (!learningCenter) {
-      return res.status(404).json({ error: "Edu center not found" });
+      return res.status(404).json({ error: 'Edu center not found' });
     }
     const region = await Region.findByPk(regionId);
     if (!region) {
-      return res.status(404).json({ error: "Region not found" });
+      branchLogger.log('warn', 'region not found');
+      return res.status(404).json({ error: 'Region not found' });
     }
     const branchExists = await Branch.findOne({
       where: { name },
     });
     if (branchExists) {
-      return res.status(409).json({ message: "Branch already exists" });
+      branchLogger.log('info', 'Branch already exists');
+
+      return res.status(409).json({ message: 'Branch already exists' });
     }
     const phoneExists = await Branch.findOne({
       where: { phone },
     });
     if (phoneExists) {
-      branchLogger.log("info", "phone already");
-      return res.status(409).json({ message: "Phone already exists" });
+      branchLogger.log('info', 'phone already');
+      return res.status(409).json({ message: 'Phone already exists' });
     }
 
     const branch = await Branch.create({
@@ -309,7 +313,7 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       address,
       learningCenterId,
     });
-    branchLogger.log("info", "post qilindi");
+    branchLogger.log('info', 'post qilindi');
 
     const count = await Branch.count({ where: { learningCenterId } });
     await LearningCenter.update(
@@ -324,7 +328,7 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       if (validProfessions.length !== professionsId.length) {
         return res
           .status(404)
-          .json({ message: "Some profession IDs are incorrect or not found!" });
+          .json({ message: 'Some profession IDs are incorrect or not found!' });
       }
 
       const professionData = professionsId.map((id) => ({
@@ -343,7 +347,7 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       if (validSubjects.length !== subjectsId.length) {
         return res
           .status(404)
-          .json({ message: "Some subject IDs are incorrect or not found!" });
+          .json({ message: 'Some subject IDs are incorrect or not found!' });
       }
 
       const subjectData = subjectsId.map((id) => ({
@@ -354,9 +358,9 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     }
     res.status(201).send({ branch, branchNumber: count });
   } catch (error) {
-    console.log("error", error);
+    console.log('error', error);
 
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -398,21 +402,21 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *       404:
  *         description: Filial topilmadi
  */
-route.patch("/:id", async (req, res) => {
+route.patch('/:id', async (req, res) => {
   const { error } = validateBranchUpdate(req.body);
   if (error) {
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
     const branch = await Branch.findByPk(req.params.id);
-    if (!branch) return res.status(404).send({ message: "Branch not found" });
+    if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.update(req.body);
-    branchLogger.log("info", "patch ishladi");
+    branchLogger.log('info', 'patch ishladi');
 
     res.send(branch);
   } catch (error) {
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -435,18 +439,17 @@ route.patch("/:id", async (req, res) => {
  *       404:
  *         description: Filial topilmadi
  */
-route.delete("/:id", async (req, res) => {
+route.delete('/:id', async (req, res) => {
   try {
     const branch = await Branch.findByPk(req.params.id);
-    if (!branch) return res.status(404).send({ message: "Branch not found" });
+    if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.destroy();
-
-    branchLogger.log("info", "delete ishladi");
+    branchLogger.log('info', 'delete ishladi');
 
     res.send(branch);
   } catch (error) {
-    res.status(500).send({ error: "Serverda xatolik yuz berdi" });
+    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 

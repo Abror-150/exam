@@ -1,15 +1,14 @@
-const { Router } = require("express");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const { Op } = require('sequelize');
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const professionSchema = require("../validations/professions");
-const LearningCenter = require("../models/learningCenter");
-const Profession = require("../models/professions");
-const Field = require("../models/fields");
-const Subject = require("../models/subjects");
-const Users = require("../models/user");
-const logger = require("../logger/logger");
-const Branch = require("../models/branches");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const professionSchema = require('../validations/professions');
+const LearningCenter = require('../models/learningCenter');
+const Profession = require('../models/professions');
+const Field = require('../models/fields');
+const Subject = require('../models/subjects');
+const Users = require('../models/user');
+const Branch = require('../models/branches');
 
 /**
  * @swagger
@@ -49,13 +48,13 @@ const Branch = require("../models/branches");
  *       200:
  *         description: Kasblar ro‘yxati
  */
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       page = 1,
       limit = 10,
-      sortBy = "id",
-      order = "ASC",
+      sortBy = 'id',
+      order = 'ASC',
       name,
     } = req.query;
     page = parseInt(page);
@@ -76,13 +75,12 @@ route.get("/", async (req, res) => {
           model: Branch,
           through: { attributes: [] },
         },
-        // { model: Subject },
       ],
     });
     res.status(200).json(data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -105,25 +103,23 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Kasb topilmadi
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const profession = await Profession.findByPk(id, {
       include: [
         {
           model: LearningCenter,
-          as: "markaz",
-          through: { attributes: [] },
+          // as: 'markazs',
         },
       ],
     });
     if (!profession) {
-      return res.status(404).json({ error: "Kasb topilmadi" });
+      return res.status(404).json({ error: 'Kasb topilmadi' });
     }
     res.json(profession);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
-    logger.warn(`Profession with ID ${id} not found`);
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -153,10 +149,9 @@ route.get("/:id", async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.post("/", async (req, res) => {
+route.post('/', async (req, res) => {
   const { error } = professionSchema.validate(req.body);
   if (error) {
-    logger.warn(`Validation error: ${error.details[0].message}`);
     return res.status(400).json({ error: error.details[0].message });
   }
   try {
@@ -166,15 +161,12 @@ route.post("/", async (req, res) => {
     });
 
     if (exitingName) {
-      logger.warn(`Profession '${name}' already exists`);
-      return res.status(400).json({ message: "Profession already exists" });
+      return res.status(400).json({ message: 'Profession already exists' });
     }
     const newProfession = await Profession.create(req.body);
-    logger.info(`New profession added: ${name}`);
     res.status(201).json(newProfession);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
-    logger.error(`Error creating profession: ${error.message}`);
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -214,27 +206,23 @@ route.post("/", async (req, res) => {
  *         description: Server xatosi
  */
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
       const { error } = professionSchema.validate(req.body);
       if (error) {
-        logger.warn(`Validation error: ${error.details[0].message}`);
         return res.status(400).send({ error: error.details[0].message });
       }
       const { id } = req.params;
       const one = await Profession.findByPk(id);
       if (!one) {
-        logger.warn(`Profession with ID ${id} not found`);
-        return res.status(404).send({ error: "Kasb not found" });
+        return res.status(404).send({ error: 'Kasb not found' });
       }
       await one.update(req.body);
-      logger.info(`Profession with ID ${id} updated`);
       res.json(one);
     } catch (error) {
-      res.status(500).json({ error: "Server xatosi", details: error.message });
-      logger.error(`Error updating profession ${id}: ${error.message}`);
+      res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
 );
@@ -261,20 +249,17 @@ route.patch(
  *       500:
  *         description: Server xatosi
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Profession.destroy({ where: { id } });
     if (deleted) {
-      logger.info(`Profession with ID ${id} deleted`);
       return res.send(deleted);
     }
 
-    logger.warn(`Profession with ID ${id} not found`);
-    res.status(404).send({ error: "Kasb topilmadi" });
+    res.status(404).send({ error: 'Kasb topilmadi' });
   } catch (error) {
-    logger.error(`Error deleting profession ${id}: ${error.message}`);
-    res.status(500).send({ error: "Server xatosi", details: error.message });
+    res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
 

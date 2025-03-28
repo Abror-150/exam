@@ -106,15 +106,15 @@ route.get('/myInfo', roleAuthMiddleware(['ADMIN']), async (req, res) => {
 
     const user = await Users.findOne({
       where: { id: userId },
-      attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber'],
+      attributes: ['id', 'firstName', 'lastName', 'email', 'phone'],
       include: [
         {
           model: Resource,
-          attributes: ['name', 'img', 'media', 'description'],
+          // attributes: ['name', 'img', 'media', 'describtion'],
         },
         {
           model: Comments,
-          attributes: ['comment', 'star', 'learningCenterId'],
+          // attributes: ['comment', 'star', 'learningCenterId'],
         },
         {
           model: Like,

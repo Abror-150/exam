@@ -9,7 +9,7 @@ async function connectedDb() {
     await db.authenticate();
     console.log('connected db');
     require('../models/connections');
-    // await db.sync({ force: true });
+    // await db.sync({ alter: true });
     // console.log('ulandi ');
   } catch (error) {
     console.log(error);

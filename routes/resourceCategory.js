@@ -1,9 +1,8 @@
-const express = require("express");
+const express = require('express');
 const route = express.Router();
-const ResourceCategory = require("../models/resourceCategory");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Resource = require("../models/resource");
-const logger = require("../logger/logger");
+const ResourceCategory = require('../models/resourceCategory');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Resource = require('../models/resource');
 
 /**
  * @swagger
@@ -45,7 +44,7 @@ const logger = require("../logger/logger");
  *       500:
  *         description: Server xatosi
  */
-route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
     const { name, img } = req.body;
     const existingCategory = await ResourceCategory.findOne({
@@ -53,7 +52,7 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
     });
 
     if (existingCategory) {
-      return res.status(400).json({ message: "This category already exists" });
+      return res.status(400).json({ message: 'This category already exists' });
     }
 
     const resourceCategory = await ResourceCategory.create({
@@ -61,7 +60,7 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
       img,
     });
     res.status(201).json({
-      message: "ResourceCategory added",
+      message: 'ResourceCategory added',
       data: resourceCategory,
     });
   } catch (error) {
@@ -135,12 +134,12 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       name,
-      sortBy = "createdAt",
-      order = "DESC",
+      sortBy = 'createdAt',
+      order = 'DESC',
       page = 1,
       limit = 10,
     } = req.query;
@@ -162,7 +161,7 @@ route.get("/", async (req, res) => {
       offset,
     });
     res.json({
-      message: "Barcha ResourceCategorylar",
+      message: 'Barcha ResourceCategorylar',
       page,
       limit,
       total: resourceCategories.count,
@@ -232,12 +231,12 @@ route.get("/", async (req, res) => {
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       name,
-      sort = "createdAt",
-      order = "desc",
+      sort = 'createdAt',
+      order = 'desc',
       page = 1,
       limit = 10,
     } = req.query;
@@ -259,7 +258,7 @@ route.get("/", async (req, res) => {
     });
 
     res.json({
-      message: "Barcha ResourceCategorylar",
+      message: 'Barcha ResourceCategorylar',
       data: resourceCategories.rows,
       total: resourceCategories.count,
     });
@@ -318,22 +317,23 @@ route.get("/", async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.patch("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
+route.patch('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
     const resourceCategory = await ResourceCategory.findByPk(req.params.id);
     if (!resourceCategory) {
-      return res.status(404).json({ message: "ResourceCategory topilmadi" });
+      logger.warn(`Category not found: ID ${req.params.id}`);
+      return res.status(404).json({ message: 'ResourceCategory topilmadi' });
     }
 
     await resourceCategory.update(req.body);
     res.json({
-      message: "ResourceCategory yangilandi",
+      message: 'ResourceCategory yangilandi',
       data: resourceCategory,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "ResourceCategory yangilashda xatolik",
+      message: 'ResourceCategory yangilashda xatolik',
       error: error.message,
     });
   }
@@ -372,15 +372,15 @@ route.patch("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   try {
     const resourceCategory = await ResourceCategory.findByPk(req.params.id);
     if (!resourceCategory) {
-      return res.status(404).json({ message: "ResourceCategory topilmadi" });
+      return res.status(404).json({ message: 'ResourceCategory topilmadi' });
     }
 
     await resourceCategory.destroy();
-    res.json({ message: "ResourceCategory deleted" });
+    res.json(resourceCategory);
   } catch (error) {
     console.error(error);
     res.status(500).json({

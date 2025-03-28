@@ -4,9 +4,10 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const Users = require('../models/user');
 const { Sequelize, Op } = require('sequelize');
-const { sendEmail } = require('../functions/eskiz');
+const { sendEmail, getToken } = require('../functions/eskiz');
 const NodeCache = require('node-cache');
 const { message } = require('../validations/professions');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
 const myCache = new NodeCache({ stdTTL: 3600 });
 const route = express.Router();
 
@@ -15,6 +16,8 @@ const route = express.Router();
  * /reset-password:
  *   post:
  *     summary: Parolni tiklash linkini yuborish
+ *     tags:
+ *       - Reset-Password
  *     description: Foydalanuvchi elektron pochta manzili bo'yicha parolni tiklash linkini yuboradi.
  *     requestBody:
  *       required: true
@@ -38,33 +41,39 @@ const route = express.Router();
  *         description: Serverda xato yuz berdi
  */
 
-route.post('/reset-password', async (req, res) => {
-  const { email } = req.body;
+route.post(
+  '/reset-password',
+  roleAuthMiddleware(['ADMIN', 'USER']),
+  async (req, res) => {
+    const { email } = req.body;
 
-  try {
-    const user = await Users.findOne({ where: { email } });
-    if (!user) {
-      return res.status(404).json({ message: 'user not found' });
+    try {
+      const user = await Users.findOne({ where: { email } });
+      if (!user) {
+        return res.status(404).json({ message: 'user not found' });
+      }
+
+      const resetToken = getToken(user.id, user.role);
+      myCache.set(resetToken, email, 3600);
+
+      const reseToken = `${resetToken}`;
+      await sendEmail(email, reseToken);
+
+      return res.json({ reseToken });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return res.status(500).json({ message: 'Serverda xato yuz berdi' });
     }
-
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    myCache.set(resetToken, email, 3600);
-
-    const reseToken = `${resetToken}`;
-    await sendEmail(email, reseToken);
-
-    return res.json({ resetLink });
-  } catch (error) {
-    console.error('Error resetting password:', error);
-    return res.status(500).json({ message: 'Serverda xato yuz berdi' });
   }
-});
+);
 
 /**
  * @swagger
  * /update-password:
  *   post:
  *     summary: Parolni yangilash
+ *     tags:
+ *       - Reset-Password
  *     description: Reset token yordamida foydalanuvchining parolini yangilash.
  *     requestBody:
  *       required: true
@@ -73,39 +82,52 @@ route.post('/reset-password', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               resetToken:
  *                 type: string
- *                 example: "user@example.com"
+ *                 description: Foydalanuvchiga yuborilgan reset token
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *               newPassword:
  *                 type: string
- *                 example: "newPassword123"
+ *                 description: Yangi parol
+ *                 example: "newSecurePassword123"
  *     responses:
  *       200:
  *         description: Parol muvaffaqiyatli yangilandi
  *       400:
  *         description: Noto'g'ri yoki muddati o'tgan token
+ *       404:
+ *         description: Foydalanuvchi topilmadi
  *       500:
  *         description: Serverda xato yuz berdi
  */
 
 route.post('/update-password', async (req, res) => {
-  const { newPassword } = req.body;
+  const { resetToken, newPassword } = req.body;
 
   try {
-    const user = await Users.findOne({ where: { email: req.body.email } });
-
-    if (!user) {
-      return res.status(404).json({ message: 'email not found' });
+    const email = myCache.get(resetToken);
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "Token noto'g'ri yoki muddati tugagan" });
     }
+
+    const user = await Users.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: 'Foydalanuvchi topilmadi' });
+    }
+
     if (!newPassword) {
-      return res.status(401).send({ message: 'password kiriting' });
+      return res.status(400).json({ message: 'Yangi parol kiriting' });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
-    return res.json({ message: 'Parol muvaffaqiyatli yangilandi!' });
+    myCache.del(resetToken);
+
+    return res.json({ message: 'Parol updated' });
   } catch (error) {
     console.error('Error updating password:', error);
     return res.status(500).json({ message: 'Serverda xato yuz berdi' });

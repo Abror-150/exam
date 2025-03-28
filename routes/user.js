@@ -22,7 +22,7 @@ const Sessions = require("../models/sessions");
 /**
  * @swagger
  * tags:
- *   name: Users
+ *   name: Auth
  *   description: User management APIs
  */
 
@@ -34,7 +34,7 @@ totp.options = { step: 120, digits: 4 };
  *   post:
  *     summary: Register a new user
  *     description: Creates a new user account and sends OTP to email.
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -92,6 +92,7 @@ totp.options = { step: 120, digits: 4 };
 route.post("/register", async (req, res) => {
   const { error } = userValidation.validate(req.body);
   if (error) {
+    userLogger.log("warn", "validatsiya error");
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
@@ -100,12 +101,16 @@ route.post("/register", async (req, res) => {
       where: { firstName },
     });
     if (userExists) {
+      userLogger.log("warn", "first name  already exist");
+
       return res.status(401).send({ message: "first name already exists" });
     }
     let lastNameExists = await Users.findOne({
       where: { lastName },
     });
     if (lastNameExists) {
+      userLogger.log("warn", "last name  already exist");
+
       return res.status(401).send({ message: "last name already exists" });
     }
 
@@ -113,6 +118,7 @@ route.post("/register", async (req, res) => {
       where: { email },
     });
     if (emailExists) {
+      userLogger.log("warn", "email   already exist");
       return res.status(401).send({ message: "Email already exists" });
     }
 
@@ -120,6 +126,8 @@ route.post("/register", async (req, res) => {
       where: { phone },
     });
     if (phoneExists) {
+      userLogger.log("warn", "phone  already exist");
+
       return res.status(401).send({ message: "Phone already exists" });
     }
     let hash = bcrypt.hashSync(password, 10);
@@ -184,6 +192,7 @@ route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     res.send(one);
   } catch (error) {
     res.status(500).send({ error: "server error" });
+    userLogger.log("error", "serverda xatolik");
   }
 });
 /**
@@ -192,7 +201,7 @@ route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *   post:
  *     summary: Email orqali OTP kodini tasdiqlash
  *     tags:
- *       - Users
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
@@ -225,12 +234,16 @@ route.post("/verify", async (req, res) => {
   try {
     let user = await Users.findOne({ where: { email } });
     if (!user) {
+      userLogger.log("warn", "user already exists");
+
       res.status(404).send({ message: "user not exists" });
       return;
     }
     let match = totp.verify({ token: otp, secret: email + "email" });
     if (!match) {
+      userLogger.log("warn", "otp not valid");
       res.status(401).send({ message: "otp not valid" });
+
       return;
     }
     await user.update({ status: "ACTIVE" });
@@ -245,7 +258,7 @@ route.post("/verify", async (req, res) => {
  * /users/login:
  *   post:
  *     summary: User login
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -269,6 +282,7 @@ route.post("/verify", async (req, res) => {
 route.post("/login", async (req, res) => {
   const { error } = loginValidation.validate(req.body);
   if (error) {
+    userLogger.log("warn", "validation error");
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
@@ -276,27 +290,32 @@ route.post("/login", async (req, res) => {
     let user = await Users.findOne({ where: { firstName } });
 
     if (!user) {
+      userLogger.log("warn", "user  not  found");
       return res.status(404).json({ message: "User not found" });
     }
 
     let match = bcrypt.compareSync(password, user.password);
     if (!match) {
+      userLogger.log("warn", "password error");
+
       return res.status(401).json({ message: "Invalid password" });
     }
-    
+
     let userIp = req.ip;
     let userSesion = await Sessions.findOne({ where: { userId: user.id } });
     let sesion = await Sessions.findOne({ where: { userIp } });
     if (!userSesion || !sesion) {
       await Sessions.create({ userId: user.id, userIp });
     }
-    
+
     await Users.update({ lastIp: userIp }, { where: { id: user.id } });
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
     res.json({ accesToken, refreToken });
   } catch (error) {
+    userLogger.log("error", "Internal server error");
+
     console.log(error);
 
     res.status(500).json({ message: "Internal server error" });
@@ -308,7 +327,7 @@ route.post("/login", async (req, res) => {
  * /users/refresh:
  *   post:
  *     summary: Refresh access token
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -326,6 +345,7 @@ route.post("/login", async (req, res) => {
 route.post("/refresh", async (req, res) => {
   let { error } = refreshTokenValidation.validate(req.body);
   if (error) {
+    userLogger.log("error", "validation error");
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
@@ -334,7 +354,10 @@ route.post("/refresh", async (req, res) => {
     const newAccestoken = getToken(user.id);
     res.send({ newAccestoken });
   } catch (error) {
+    userLogger.log("error", "Internal server error");
+
     res.status(500).send({ message: "Internal server error" });
+
     console.log(error);
   }
 });
@@ -406,13 +429,15 @@ route.patch(
       const user = await Users.findByPk(req.userId);
 
       const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch)
+      if (!isMatch) {
+        userLogger.log("warn", "password wrong error");
         return res.status(400).json({ error: "Eski parol noto'g'ri" });
+      }
 
       const hash = await bcrypt.hash(newPassword, 10);
       await Users.update({ password: hash }, { where: { id: user.id } });
-
-      res.json({ message: "Parol muvaffaqiyatli o'zgartirildi" });
+      userLogger.log("info", "user yangilandi");
+      res.json({ message: "Password updated" });
     } catch (error) {
       res.status(500).json({ error: "Server xatosi", details: error.message });
     }
@@ -424,7 +449,7 @@ route.patch(
  *   get:
  *     summary: "Barcha foydalanuvchilar ro‘yxatini olish"
  *     description: "Bazadagi barcha foydalanuvchilarni qaytaradi."
- *     tags: [Users]
+ *     tags: [User]
  *     parameters:
  *       - in: query
  *         name: search
@@ -541,6 +566,7 @@ route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       limit,
       offset: (page - 1) * limit,
     });
+    userLogger.log("info", "get boldi");
 
     res.status(200).json({
       total: users.count,
@@ -655,7 +681,7 @@ route.get("/me", roleAuthMiddlewares(["USER", "ADMIN"]), async (req, res) => {
  * /users/me/password:
  *   patch:
  *     summary: Foydalanuvchi ma'lumotlarini yangilash
- *     tags: [Users]
+ *     tags: [User]
  *
  *     parameters:
  *       - in: path
@@ -720,6 +746,7 @@ route.patch(
         return res.status(404).send({ error: "user not found" });
       }
       await one.update(req.body);
+
       res.json(one);
     } catch (error) {
       res.status(500).json({ error: "Server xatosi", details: error.message });
@@ -732,7 +759,7 @@ route.patch(
  * /users/{id}:
  *   delete:
  *     summary: Foydalanuvchini o‘chirish
- *     tags: [Users]
+ *     tags: [User]
  *
  *     parameters:
  *       - in: path

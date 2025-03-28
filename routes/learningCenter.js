@@ -1,4 +1,5 @@
 const express = require("express");
+
 const route = express.Router();
 const LearningCenter = require("../models/learningCenter");
 const roleAuthMiddleware = require("../middlewares/roleAuth");
@@ -81,33 +82,77 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
+
   try {
-    const { professionsId, subjectsId, name, phone, ...rest } = req.body;
+    const { professionsId, subjectsId, name, phone, regionId, ...rest } =
+      req.body;
     const userId = req?.userId;
+
+    console.log("Received Data:", req.body);
+    console.log("User ID:", userId);
+
+    if (!regionId) {
+      return res.status(400).json({ message: "regionId is required" });
+    }
+
+    const region = await Region.findByPk(regionId);
+    if (!region) {
+      return res.status(404).send({ message: "region not found" });
+    }
+
     let exists = await LearningCenter.findOne({ where: { name } });
     if (exists) {
       return res.status(401).send({ message: "name already exists" });
     }
+
     let PhoneExists = await LearningCenter.findOne({ where: { phone } });
     if (PhoneExists) {
       return res.status(401).send({ message: "phone already exists" });
     }
+
+    console.log("Creating Learning Center...");
     const learningCenter = await LearningCenter.create({
       ...rest,
+      regionId,
       userId,
       name,
       phone,
     });
+    console.log("Learning Center Created:", learningCenter);
 
-    if (professionsId && professionsId.length > 0) {
-      const professionData = professionsId.map((id) => ({
-        professionId: id,
-        learningCenterId: learningCenter.id,
-      }));
-      await Field.bulkCreate(professionData);
+    if (!Array.isArray(professionsId) || professionsId.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "professionsId is required and must be an array" });
     }
 
+    console.log("Fetching existing professions...");
+    const existingProfessions = await Profession.findAll({
+      where: { id: professionsId },
+      attributes: ["id"],
+    });
+
+    const existingIds = existingProfessions.map((p) => p.id);
+    const invalidIds = professionsId.filter((id) => !existingIds.includes(id));
+
+    if (invalidIds.length > 0) {
+      console.log("Invalid Professions:", invalidIds);
+      return res.status(404).json({
+        message: "Some professions not found",
+        invalidIds,
+      });
+    }
+
+    console.log("Creating profession associations...");
+    const professionData = professionsId.map((id) => ({
+      professionId: id,
+      learningCenterId: learningCenter.id,
+    }));
+
+    await Field.bulkCreate(professionData);
+
     if (subjectsId && subjectsId.length > 0) {
+      console.log("Creating subject associations...");
       const subjectData = subjectsId.map((id) => ({
         subjectId: id,
         learningCenterId: learningCenter.id,
@@ -120,13 +165,88 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
       data: learningCenter,
     });
   } catch (error) {
+    console.error("Error:", error);
     res.status(500).send({
       message: "Error creating Learning Center",
       error: error.message,
     });
-    console.log(error);
   }
 });
+
+// route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
+//   let { error } = learningCenterValidation.validate(req.body);
+//   if (error) {
+//     return res.status(400).json({ message: error.details[0].message });
+//   }
+
+//   try {
+//     const { professionsId, subjectsId, name, phone, regionId, ...rest } =
+//       req.body;
+//     const userId = req?.userId;
+
+//     const region = await Region.findByPk(regionId);
+//     if (!region) {
+//       return res.status(404).send({ message: "region not found" });
+//     }
+
+//     let exists = await LearningCenter.findOne({ where: { name } });
+//     if (exists) {
+//       return res.status(401).send({ message: "name already exists" });
+//     }
+
+//     let PhoneExists = await LearningCenter.findOne({ where: { phone } });
+//     if (PhoneExists) {
+//       return res.status(401).send({ message: "phone already exists" });
+//     }
+
+//     const learningCenter = await LearningCenter.create({
+//       ...rest,
+//       regionId,
+//       userId,
+//       name,
+//       phone,
+//     });
+
+//     const existingProfessions = await Profession.findAll({
+//       where: { id: professionsId },
+//       attributes: ["id"],
+//     });
+
+//     const existingIds = existingProfessions.map((p) => p.id);
+//     const invalidIds = professionsId.filter((id) => !existingIds.includes(id));
+
+//     if (invalidIds.length > 0) {
+//       return res.status(404).json({
+//         message: "Some professions not Found",
+//       });
+//     }
+
+//     const professionData = professionsId.map((id) => ({
+//       professionId: id,
+//       learningCenterId: learningCenter.id,
+//     }));
+
+//     await Field.bulkCreate(professionData);
+
+//     if (subjectsId && subjectsId.length > 0) {
+//       const subjectData = subjectsId.map((id) => ({
+//         subjectId: id,
+//         learningCenterId: learningCenter.id,
+//       }));
+//       await SubCenter.bulkCreate(subjectData);
+//     }
+
+//     res.status(201).send({
+//       message: "Learning Center created",
+//       data: learningCenter,
+//     });
+//   } catch (error) {
+//     res.status(500).send({
+//       message: "Error creating Learning Center",
+//       error: error.message,
+//     });
+//   }
+// });
 
 /**
  * @swagger
@@ -168,68 +288,74 @@ route.post("/", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
  *       500:
  *         description: Server error
  */
-route.get("/", async (req, res) => {
-  try {
-    let { search, sortBy, order, page, limit } = req.query;
 
-    sortBy = sortBy || "createdAt";
-    order = order || "DESC";
-    page = parseInt(page) || 1;
-    limit = parseInt(limit) || 10;
-    let offset = (page - 1) * limit;
-    let whereCondition = {};
-    if (search) {
-      whereCondition.name = { [Op.like]: `%${search}%` };
+route.get(
+  "/",
+
+  async (req, res) => {
+    try {
+      let { search, sortBy, order, page, limit } = req.query;
+
+      sortBy = sortBy || "createdAt";
+      order = order || "DESC";
+      page = parseInt(page) || 1;
+      limit = parseInt(limit) || 10;
+      let offset = (page - 1) * limit;
+
+      let whereCondition = {};
+      if (search) {
+        whereCondition.name = { [Op.like]: `%${search}%` };
+      }
+
+      const learningCenters = await LearningCenter.findAndCountAll({
+        // attributes: [
+        //   'id',
+        //   'name',
+        //   'address',
+        //   [Sequelize.fn('COUNT', Sequelize.col('Likes.id')), 'numberOfLikes'],
+        // ],
+        include: [
+          {
+            model: Branch,
+
+            attributes: ["id", "name", "address"],
+          },
+          { model: Region, attributes: ["name"] },
+          {
+            model: Users,
+            as: "registeredUser",
+            attributes: ["id", "firstName", "lastName"],
+          },
+          { model: Like, attributes: ["id", "learningCenterId", "userId"] },
+          {
+            model: Subject,
+            as: "subjects",
+
+            through: { attributes: [] },
+          },
+          { model: Comments },
+          { model: Profession },
+        ],
+        where: whereCondition,
+        order: [[sortBy, order]],
+        limit,
+        offset,
+        // group: ['LearningCenter.id'],
+      });
+      res.status(200).send({
+        total: learningCenters.count.length,
+        page,
+        limit,
+        data: learningCenters.rows,
+      });
+    } catch (error) {
+      res.status(500).send({
+        message: "Error fetching Learning Centers",
+        error: error.message,
+      });
     }
-
-    const learningCenters = await LearningCenter.findAndCountAll({
-      // attributes: [
-      //   'id',
-      //   'name',
-      //   'address',
-      //   [Sequelize.fn('COUNT', Sequelize.col('Likes.id')), 'numberOfLikes'],
-      // ],
-      include: [
-        {
-          model: Branch,
-
-          attributes: ["id", "name", "address"],
-        },
-        { model: Region, attributes: ["name"] },
-        {
-          model: Users,
-          as: "users",
-          attributes: ["id", "firstName", "lastName"],
-        },
-        { model: Like, attributes: ["id", "userId"] },
-        {
-          model: Subject,
-
-          through: { attributes: [] },
-        },
-        { model: Comments },
-        { model: Profession },
-      ],
-      where: whereCondition,
-      order: [[sortBy, order]],
-      limit,
-      offset,
-      // group: ['LearningCenter.id'],
-    });
-
-    res.status(200).send({
-      total: learningCenters.count.length,
-      page,
-      limit,
-      data: learningCenters.rows,
-    });
-  } catch (error) {
-    res.status(500).send({
-      message: "Error fetching Learning Centers",
-      error: error.message,
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -249,50 +375,20 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Learning Center not found
  */
-
-route.get(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "SUPER_ADMIN"]),
-  async (req, res) => {
-    try {
-      const learningCenter = await LearningCenter.findByPk(req.params.id, {
-        include: [
-          {
-            model: Branch,
-
-            attributes: ["id", "name", "address"],
-          },
-          { model: Region, attributes: ["name"] },
-          {
-            model: Users,
-            as: "users",
-            attributes: ["id", "firstName", "lastName"],
-          },
-          { model: Like, attributes: [] },
-          {
-            model: Subject,
-
-            through: { attributes: [] },
-          },
-          { model: Comments },
-          { model: Profession },
-        ],
-      });
-      if (!learningCenter) {
-        return res.status(404).send({ message: "Learning Center not found" });
-      }
-      res
-        .status(200)
-        .send({ message: "Learning center", data: learningCenter });
-    } catch (error) {
-      res.status(500).send({
-        message: "Error fetching Learning Center",
-        error: error.message,
-      });
+route.get("/:id", async (req, res) => {
+  try {
+    const learningCenter = await LearningCenter.findByPk(req.params.id);
+    if (!learningCenter) {
+      return res.status(404).send({ message: "Learning Center not found" });
     }
+    res.status(200).send({ message: "Learning center", data: learningCenter });
+  } catch (error) {
+    res.status(500).send({
+      message: "Error fetching Learning Center",
+      error: error.message,
+    });
   }
-);
-
+});
 /**
  * @swagger
  * /learning-centers/{id}:
@@ -326,8 +422,9 @@ route.patch(
   async (req, res) => {
     try {
       const learningCenter = await LearningCenter.findByPk(req.params.id);
-      if (!learningCenter)
+      if (!learningCenter) {
         return res.status(404).send({ message: "Learning Center not found" });
+      }
       await learningCenter.update(req.body);
       res
         .status(200)
@@ -364,12 +461,12 @@ route.patch(
 route.delete("/:id", roleAuthMiddleware(["ADMIN", "CEO"]), async (req, res) => {
   try {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
-    if (!learningCenter)
+
+    if (!learningCenter) {
       return res.status(404).send({ message: "Learning Center not found" });
+    }
     await learningCenter.destroy();
-    res
-      .status(200)
-      .send({ message: "Learning Center deleted", learningCenter });
+    res.status(200).send({ message: "Learning Center deleted" });
   } catch (error) {
     res.status(500).send({
       message: "Error deleting Learning Center",
