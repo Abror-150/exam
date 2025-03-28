@@ -15,7 +15,7 @@ const branchesValidation = Joi.object({
 const validateBranchUpdate = (data) => {
   return branchesValidation
     .fork(Object.keys(data), (schema) => schema.optional())
-    .min(2)
+    .min(1)
     .validate(data);
 };
 module.exports = { branchesValidation, validateBranchUpdate };

@@ -229,6 +229,11 @@ route.patch('/:id', async (req, res) => {
 
       return res.status(400).send({ error: error.details[0].message });
     }
+    const region = await Region.findByPk(req.body.regionId);
+    if (!region) {
+      return res.status(400).json({ message: 'Invalid regionId' });
+    }
+
     const { id } = req.params;
     const one = await Region.findByPk(id);
     if (!one) {

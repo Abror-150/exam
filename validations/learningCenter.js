@@ -14,15 +14,11 @@ const learningCenterValidation = Joi.object({
   subjectsId: Joi.array().items(Joi.number().integer()),
 });
 
-const learningCenterValidationPatch = Joi.object({
-  name: Joi.string(),
-  phone: Joi.string(),
-  img: Joi.string().uri(),
-  regionId: Joi.number().integer().positive(),
-  address: Joi.string(),
+const validateLearningUpdate = (data) => {
+  return branchesValidation
+    .fork(Object.keys(data), (schema) => schema.optional())
+    .min(1)
+    .validate(data);
+};
 
-  professionsId: Joi.array().items(Joi.number().integer()),
-  subjectsId: Joi.array().items(Joi.number().integer()),
-});
-
-module.exports = { learningCenterValidation, learningCenterValidationPatch };
+module.exports = { learningCenterValidation, validateLearningUpdate };

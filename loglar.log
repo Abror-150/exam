@@ -199,3 +199,18 @@
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:22:50.053Z"}
 {"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:26:31.134Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:26:45.893Z"}
+{"level":"error","message":"Internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-28T07:54:04.795Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T07:58:30.774Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T07:59:36.286Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:00:46.846Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:06:20.337Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:06:39.794Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:07:05.327Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:07:56.467Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:09:02.191Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:09:44.588Z"}
+{"level":"warn","message":"User already liked this learning center","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\likes.js","timestamp":"2025-03-28T08:10:44.278Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:11:47.844Z"}
+{"level":"info","message":"Resource updated","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:12:07.650Z"}
+{"level":"info","message":"Resource updated","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:12:10.931Z"}
+{"level":"info","message":"Resource updated","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:12:19.727Z"}
