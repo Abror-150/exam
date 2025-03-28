@@ -6,7 +6,9 @@ const Users = require('../models/user');
 const LearningCenter = require('../models/learningCenter');
 const { message } = require('../validations/regions');
 const { Op } = require('sequelize');
+const { getRouteLogger } = require('../logger/logger');
 
+const commentLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * components:
@@ -209,7 +211,10 @@ route.get('/', async (req, res) => {
       averageStar: parseFloat(averageStar.toFixed(2)),
       comments: rows,
     });
+    commentLogger.log('info', 'get qilindi');
   } catch (error) {
+    commentLogger.log('error', 'internal server error');
+
     res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
     console.error('Xatolik yuz berdi:', error);
   }
@@ -243,11 +248,16 @@ route.get('/:id', async (req, res) => {
     });
 
     if (!comment) {
+      commentLogger.log('warn', 'comment not found');
+
       return res.status(404).send({ message: 'comment not found' });
     }
+    commentLogger.log('info', 'id boyicha get ');
 
     res.send(comment);
   } catch (error) {
+    commentLogger.log('error', 'internal server error');
+
     res.status(500).send({ error: 'server error' });
   }
 });
@@ -345,6 +355,8 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
     const learningExists = await LearningCenter.findByPk(learningCenterId);
 
     if (!learningExists) {
+      commentLogger.log('warn', 'edu center not found');
+
       return res.status(404).send({ message: 'edu center not found' });
     }
 
@@ -354,9 +366,12 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
       star,
       message,
     });
+    commentLogger.log('info', 'post qilindi');
 
     res.send(newComment);
   } catch (error) {
+    commentLogger.log('error', 'internal server error');
+
     res.status(500).send({ error: 'server error' });
   }
 });
@@ -403,13 +418,18 @@ route.patch(
       const comment = await Comments.findByPk(req.params.id);
 
       if (!comment) {
+        commentLogger.log('warn', 'comment not found');
+
         return res.status(404).send('Comment not found');
       }
+      commentLogger.log('info', 'patch qilindi');
 
       await comment.update({ learningCenterId, message, star });
 
       res.send(comment);
     } catch (error) {
+      commentLogger.log('error', 'internal server error');
+
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);
     }
   }
@@ -442,12 +462,18 @@ route.delete(
     try {
       const comment = await Comments.findByPk(req.params.id);
       if (!comment) {
+        commentLogger.log('error', 'comment not found');
+
         return res.status(404).send('Comment not found');
       }
+      commentLogger.log('info', 'comment deleted');
+
       await comment.destroy();
 
       res.send(comment);
     } catch (error) {
+      commentLogger.log('error', 'internal server error');
+
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);
     }
   }

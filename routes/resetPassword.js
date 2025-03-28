@@ -1,7 +1,6 @@
 // routes/auth.js
 const express = require('express');
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const Users = require('../models/user');
 const { Sequelize, Op } = require('sequelize');
 const { sendEmail, getToken } = require('../functions/eskiz');
@@ -10,7 +9,9 @@ const { message } = require('../validations/professions');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const myCache = new NodeCache({ stdTTL: 3600 });
 const route = express.Router();
+const { getRouteLogger } = require('../logger/logger');
 
+const resentPasswordLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * /reset-password:
@@ -50,6 +51,7 @@ route.post(
     try {
       const user = await Users.findOne({ where: { email } });
       if (!user) {
+        resentPasswordLogger.log('warn', 'user not found');
         return res.status(404).json({ message: 'user not found' });
       }
 
@@ -58,9 +60,12 @@ route.post(
 
       const reseToken = `${resetToken}`;
       await sendEmail(email, reseToken);
+      resentPasswordLogger.log('info', 'post qilindi');
 
       return res.json({ reseToken });
     } catch (error) {
+      resentPasswordLogger.log('error', 'internal server error');
+
       console.error('Error resetting password:', error);
       return res.status(500).json({ message: 'Serverda xato yuz berdi' });
     }
@@ -103,10 +108,12 @@ route.post(
 
 route.post('/update-password', async (req, res) => {
   const { resetToken, newPassword } = req.body;
-
+  resentPasswordLogger.log('info', 'password updated');
   try {
     const email = myCache.get(resetToken);
     if (!email) {
+      resentPasswordLogger.log('warn', 'email not found');
+
       return res
         .status(400)
         .json({ message: "Token noto'g'ri yoki muddati tugagan" });
@@ -114,10 +121,14 @@ route.post('/update-password', async (req, res) => {
 
     const user = await Users.findOne({ where: { email } });
     if (!user) {
-      return res.status(404).json({ message: 'Foydalanuvchi topilmadi' });
+      resentPasswordLogger.log('warn', 'user not found');
+
+      return res.status(404).json({ message: 'user not found' });
     }
 
     if (!newPassword) {
+      resentPasswordLogger.log('warn', 'password not found');
+
       return res.status(400).json({ message: 'Yangi parol kiriting' });
     }
 

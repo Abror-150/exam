@@ -2,14 +2,19 @@ const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
 const roleAuthMiddleware = require('../middlewares/roleAuth');
-const professionSchema = require('../validations/professions');
+const {
+  professionSchema,
+  professionPatchValidation,
+} = require('../validations/professions');
 const LearningCenter = require('../models/learningCenter');
 const Profession = require('../models/professions');
 const Field = require('../models/fields');
 const Subject = require('../models/subjects');
 const Users = require('../models/user');
 const Branch = require('../models/branches');
+const { getRouteLogger } = require('../logger/logger');
 
+const professionLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * /professions:
@@ -77,8 +82,11 @@ route.get('/', async (req, res) => {
         },
       ],
     });
+    professionLogger.log('info', 'get qilindi');
     res.status(200).json(data);
   } catch (error) {
+    professionLogger.log('error', 'internal server error');
+
     console.error(error);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
@@ -115,10 +123,16 @@ route.get('/:id', async (req, res) => {
       ],
     });
     if (!profession) {
-      return res.status(404).json({ error: 'Kasb topilmadi' });
+      professionLogger.log('warn', 'profession not found');
+
+      return res.status(404).json({ error: 'Kasb not found' });
     }
+    professionLogger.log('info', 'get id boyicha qilindi');
+
     res.json(profession);
   } catch (error) {
+    professionLogger.log('error', 'internal server error');
+
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -152,6 +166,8 @@ route.get('/:id', async (req, res) => {
 route.post('/', async (req, res) => {
   const { error } = professionSchema.validate(req.body);
   if (error) {
+    professionLogger.log('warn', 'validation error');
+
     return res.status(400).json({ error: error.details[0].message });
   }
   try {
@@ -161,11 +177,17 @@ route.post('/', async (req, res) => {
     });
 
     if (exitingName) {
+      professionLogger.log('warn', 'already exists');
+
       return res.status(400).json({ message: 'Profession already exists' });
     }
+    professionLogger.log('info', 'post qilindi');
+
     const newProfession = await Profession.create(req.body);
     res.status(201).json(newProfession);
   } catch (error) {
+    professionLogger.log('error', 'internal server error');
+
     res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
@@ -210,7 +232,7 @@ route.patch(
   roleAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
-      const { error } = professionSchema.validate(req.body);
+      const { error } = professionPatchValidation.validate(req.body);
       if (error) {
         return res.status(400).send({ error: error.details[0].message });
       }
@@ -219,9 +241,13 @@ route.patch(
       if (!one) {
         return res.status(404).send({ error: 'Kasb not found' });
       }
+      professionLogger.log('info', 'patch qilindi');
+
       await one.update(req.body);
       res.json(one);
     } catch (error) {
+      professionLogger.log('error', 'internal server error');
+
       res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
@@ -254,11 +280,16 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     const deleted = await Profession.destroy({ where: { id } });
     if (deleted) {
+      professionLogger.log('info', 'deleted');
+
       return res.send(deleted);
     }
+    professionLogger.log('warn', 'kasb not found');
 
-    res.status(404).send({ error: 'Kasb topilmadi' });
+    res.status(404).send({ error: 'Kasb not found' });
   } catch (error) {
+    professionLogger.log('error', 'internal server error');
+
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });

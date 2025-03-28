@@ -3,7 +3,10 @@ const express = require('express');
 const route = express.Router();
 const LearningCenter = require('../models/learningCenter');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
-const learningCenterValidation = require('../validations/learningCenter');
+const {
+  learningCenterValidation,
+  learningCenterValidationPatch,
+} = require('../validations/learningCenter');
 const Branch = require('../models/branches');
 const Profession = require('../models/professions');
 const Comments = require('../models/comment');
@@ -15,7 +18,10 @@ const SubCenter = require('../models/subCenter');
 const Field = require('../models/fields');
 const Like = require('../models/likes');
 const { Sequelize } = require('sequelize');
+const { getRouteLogger } = require('../logger/logger');
+const { message } = require('../validations/regions');
 
+const centerLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * /learning-centers:
@@ -80,6 +86,7 @@ const { Sequelize } = require('sequelize');
 route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
   let { error } = learningCenterValidation.validate(req.body);
   if (error) {
+    centerLogger.log('warn', 'validation error');
     return res.status(400).json({ message: error.details[0].message });
   }
 
@@ -90,18 +97,25 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
 
     const region = await Region.findByPk(regionId);
     if (!region) {
+      centerLogger.log('warn', 'region not found');
+
       return res.status(404).send({ message: 'region not found' });
     }
 
     let exists = await LearningCenter.findOne({ where: { name } });
     if (exists) {
+      centerLogger.log('warn', 'name already exists');
+
       return res.status(401).send({ message: 'name already exists' });
     }
 
     let PhoneExists = await LearningCenter.findOne({ where: { phone } });
     if (PhoneExists) {
+      centerLogger.log('warn', 'phone already exists');
+
       return res.status(401).send({ message: 'phone already exists' });
     }
+    centerLogger.log('info', 'post ');
 
     const learningCenter = await LearningCenter.create({
       ...rest,
@@ -120,6 +134,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     const invalidIds = professionsId.filter((id) => !existingIds.includes(id));
 
     if (invalidIds.length > 0) {
+      centerLogger.log('warn', 'not found');
       return res.status(404).json({
         message: 'Not Found',
       });
@@ -145,6 +160,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
       data: learningCenter,
     });
   } catch (error) {
+    centerLogger.log('error', 'internal server error');
     res.status(500).send({
       message: 'Error creating Learning Center',
       error: error.message,
@@ -212,40 +228,38 @@ route.get(
       }
 
       const learningCenters = await LearningCenter.findAndCountAll({
-        // attributes: [
-        //   'id',
-        //   'name',
-        //   'address',
-        //   [Sequelize.fn('COUNT', Sequelize.col('Likes.id')), 'numberOfLikes'],
-        // ],
         include: [
-          {
-            model: Branch,
-
-            attributes: ['id', 'name', 'address'],
-          },
+          { model: Branch, attributes: ['id', 'name', 'address'] },
           { model: Region, attributes: ['name'] },
           {
             model: Users,
             as: 'registeredUser',
             attributes: ['id', 'firstName', 'lastName'],
           },
-          { model: Like, attributes: ['id', 'learningCenterId', 'userId'] },
-          {
-            model: Subject,
-            as: 'subjects',
-
-            through: { attributes: [] },
-          },
+          { model: Subject, as: 'subjects', through: { attributes: [] } },
           { model: Comments },
           { model: Profession },
         ],
+        attributes: {
+          include: [
+            [
+              Sequelize.literal(`(
+          SELECT COUNT(*) 
+          FROM layklar 
+          WHERE layklar.learningCenterId 
+        )`),
+              'numberOfLikes',
+            ],
+          ],
+        },
         where: whereCondition,
         order: [[sortBy, order]],
         limit,
         offset,
-        // group: ['LearningCenter.id'],
       });
+
+      centerLogger.log('info', 'get qilindi');
+
       res.status(200).send({
         total: learningCenters.count.length,
         page,
@@ -253,6 +267,8 @@ route.get(
         data: learningCenters.rows,
       });
     } catch (error) {
+      centerLogger.log('error', 'internal server error');
+
       res.status(500).send({
         message: 'Error fetching Learning Centers',
         error: error.message,
@@ -265,7 +281,7 @@ route.get(
  * @swagger
  * /learning-centers/{id}:
  *   get:
- *     summary: Get a single Learning Center by ID
+ *     summary: Get a specific learning center by ID
  *     tags: [Learning Centers]
  *     parameters:
  *       - in: path
@@ -273,26 +289,58 @@ route.get(
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID of the learning center to retrieve
  *     responses:
  *       200:
- *         description: Learning Center data
+ *         description: Learning center details
  *       404:
- *         description: Learning Center not found
+ *         description: Learning center not found
+ *       500:
+ *         description: Internal server error
  */
 route.get('/:id', async (req, res) => {
   try {
-    const learningCenter = await LearningCenter.findByPk(req.params.id);
+    const { id } = req.params;
+    const learningCenter = await LearningCenter.findByPk(id, {
+      include: [
+        { model: Branch, attributes: ['id', 'name', 'address'] },
+        { model: Region, attributes: ['name'] },
+        {
+          model: Users,
+          as: 'registeredUser',
+          attributes: ['id', 'firstName', 'lastName'],
+        },
+        { model: Subject, as: 'subjects', through: { attributes: [] } },
+        { model: Comments },
+        { model: Profession },
+      ],
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+          SELECT COUNT(*) 
+          FROM layklar 
+          WHERE layklar.learningCenterId
+        )`),
+            'numberOfLikes',
+          ],
+        ],
+      },
+    });
+
     if (!learningCenter) {
-      return res.status(404).send({ message: 'Learning Center not found' });
+      return res.status(404).json({ message: 'Learning Center not found' });
     }
-    res.status(200).send({ message: 'Learning center', data: learningCenter });
+
+    res.status(200).json({ learningCenter });
   } catch (error) {
-    res.status(500).send({
+    res.status(500).json({
       message: 'Error fetching Learning Center',
       error: error.message,
     });
   }
 });
+
 /**
  * @swagger
  * /learning-centers/{id}:
@@ -324,16 +372,26 @@ route.patch(
   '/:id',
   roleAuthMiddleware(['ADMIN', 'CEO', 'SUPER_ADMIN']),
   async (req, res) => {
+    let { error } = learningCenterValidationPatch.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message });
+    }
     try {
       const learningCenter = await LearningCenter.findByPk(req.params.id);
       if (!learningCenter) {
+        centerLogger.log('warn', 'center not found');
+
         return res.status(404).send({ message: 'Learning Center not found' });
       }
       await learningCenter.update(req.body);
+      centerLogger.log('info', 'patch qilindi');
+
       res
         .status(200)
         .send({ message: 'Learning Center updated', data: learningCenter });
     } catch (error) {
+      centerLogger.log('error', 'internal server error');
+
       res.status(500).send({
         message: 'Error updating Learning Center',
         error: error.message,
@@ -367,11 +425,17 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
     const learningCenter = await LearningCenter.findByPk(req.params.id);
 
     if (!learningCenter) {
+      centerLogger.log('warn', 'center not found');
+
       return res.status(404).send({ message: 'Learning Center not found' });
     }
+    centerLogger.log('info', 'deleted');
+
     await learningCenter.destroy();
     res.status(200).send({ message: 'Learning Center deleted' });
   } catch (error) {
+    centerLogger.log('error', 'internal server error');
+
     res.status(500).send({
       message: 'Error deleting Learning Center',
       error: error.message,

@@ -9,6 +9,7 @@ const Profession = require('./professions');
 const Region = require('./regions');
 const Resource = require('./resource');
 const ResourceCategory = require('./resourceCategory');
+const Sessions = require('./sessions');
 const SubBranch = require('./subBranch');
 const SubCenter = require('./subCenter');
 const Subject = require('./subjects');
@@ -124,8 +125,10 @@ Users.hasMany(Resource, { foreignKey: 'userId' });
 
 Resource.belongsTo(Users, { foreignKey: 'userId' });
 
-ResourceCategory.hasMany(Resource, { foreignKey: 'resourceCategoryId' });
-Resource.belongsTo(ResourceCategory, { foreignKey: 'resourceCategoryId' });
+ResourceCategory.hasMany(Resource, {
+  foreignKey: 'CategoryId',
+});
+Resource.belongsTo(ResourceCategory, { foreignKey: 'CategoryId' });
 
 Users.hasMany(CourseRegister, {
   foreignKey: 'userId',
@@ -143,3 +146,6 @@ Subject.belongsTo(LearningCenter, {
   foreignKey: 'learningCenterId',
   as: 'markazlar',
 });
+
+Users.hasMany(Sessions, { foreignKey: 'userId' });
+Sessions.belongsTo(Users, { foreignKey: 'userId' });

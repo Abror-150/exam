@@ -16,9 +16,12 @@ const {
   userValidation,
   loginValidation,
   refreshTokenValidation,
+  userValidationPatch,
 } = require('../validations/user');
 const roleAuthMiddlewares = require('../middlewares/roleAuth');
 const Sessions = require('../models/sessions');
+const Resource = require('../models/resource');
+const { message } = require('../validations/learningCenter');
 /**
  * @swagger
  * tags:
@@ -152,53 +155,6 @@ route.post('/register', async (req, res) => {
 
 /**
  * @swagger
- * /users/{id}:
- *   get:
- *     summary: Foydalanuvchi ma'lumotlarini olish
- *     tags: [User]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Foydalanuvchi ID si
- *     responses:
- *       200:
- *         description: Foydalanuvchi ma'lumotlari
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                   example: 1
- *                 name:
- *                   type: string
- *                   example: "Ali Valiyev"
- *                 email:
- *                   type: string
- *                   example: "ali@example.com"
- *       404:
- *         description: Foydalanuvchi topilmadi
- *       500:
- *         description: Server xatosi
- */
-
-route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  try {
-    const one = await Users.findByPk(req.params.id);
-    if (!one) return res.status(404).send({ message: 'user not found' });
-    userLogger.log('info', 'id boyicha qilindi');
-    res.send(one);
-  } catch (error) {
-    res.status(500).send({ error: 'server error' });
-    userLogger.log('error', 'serverda xatolik');
-  }
-});
-/**
- * @swagger
  * /users/verify:
  *   post:
  *     summary: Email orqali OTP kodini tasdiqlash
@@ -306,14 +262,18 @@ route.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid password' });
     }
 
-    let userIp = req.ip;
+    let lastIp = req.ip || '127.0.0.1';
+    let ipAddress = req.ip;
     let userSesion = await Sessions.findOne({ where: { userId: user.id } });
-    let sesion = await Sessions.findOne({ where: { userIp } });
+    let sesion = await Sessions.findOne({ where: { ipAddress } });
     if (!userSesion || !sesion) {
-      await Sessions.create({ userId: user.id, userIp });
+      await Sessions.create({
+        userId: user.id,
+        ipAddress: ipAddress,
+      });
     }
 
-    await Users.update({ lastIp: userIp }, { where: { id: user.id } });
+    await Users.update({ lastIp: lastIp }, { where: { id: user.id } });
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
@@ -446,6 +406,7 @@ route.patch(
       userLogger.log('info', 'user yangilandi');
       res.json({ message: 'Password updated' });
     } catch (error) {
+      userLogger.log('error', 'internal server error');
       res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
@@ -537,55 +498,6 @@ route.patch(
  *         description: "Server xatosi"
  */
 
-route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  try {
-    let {
-      search,
-      firstName,
-      lastName,
-      email,
-      phone,
-      sortBy = 'id',
-      order = 'ASC',
-      page = 1,
-      limit = 10,
-    } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
-
-    let whereCondition = {};
-    if (search) {
-      whereCondition[Op.or] = [
-        { firstName: { [Op.like]: `%${search}%` } },
-        { lastName: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-        { phone: { [Op.like]: `%${search}%` } },
-      ];
-    } else {
-      if (firstName) whereCondition.firstName = { [Op.like]: `%${firstName}%` };
-      if (lastName) whereCondition.lastName = { [Op.like]: `%${lastName}%` };
-      if (email) whereCondition.email = { [Op.like]: `%${email}%` };
-      if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
-    }
-    const users = await Users.findAndCountAll({
-      where: whereCondition,
-      order: [[sortBy, order.toUpperCase()]],
-      limit,
-      offset: (page - 1) * limit,
-    });
-    userLogger.log('info', 'get boldi');
-
-    res.status(200).json({
-      total: users.count,
-      page,
-      limit,
-      data: users.rows,
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
 /**
  * @swagger
  * /users/me:
@@ -666,13 +578,15 @@ route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *                   example: "Xatolik tafsilotlari"
  */
 
-route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
+route.get('/me', roleAuthMiddlewares(['ADMIN', 'USER']), async (req, res) => {
   try {
     const userId = req.userId;
+    console.log(userId);
 
     const user = await Users.findByPk(userId, {
       attributes: ['id', 'firstName', 'lastName', 'email', 'img', 'lastIp'],
     });
+
     if (!user) {
       logger.warn(`User profile not found: ${userId}`);
       return res.status(404).json({ error: 'User not found' });
@@ -680,8 +594,174 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
     userLogger.log('info', 'me qilindi');
     res.json(user);
   } catch (error) {
+    userLogger.log('info', 'internal server error');
+
     console.error('Xatolik:', error);
     res.status(500).json({ error: 'Server xatosi', details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /users/me-sesion:
+ *   get:
+ *     summary: Get current user session
+ *     tags: [Profile]
+ *
+ *     responses:
+ *       200:
+ *         description: User session found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "You are logged in"
+ *                 session:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     userId:
+ *                       type: integer
+ *                     lastIp:
+ *                       type: string
+ *       401:
+ *         description: Unauthorized - User needs to log in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Session not found, please log in"
+ *       500:
+ *         description: Internal Server Error
+ */
+route.get(
+  '/me-sesion',
+  roleAuthMiddleware(['ADMIN', 'USER']),
+  async (req, res) => {
+    try {
+      const userId = req.userId;
+      const ipAddress = req.ip;
+
+      const session = await Sessions.findOne({ where: { userId, ipAddress } });
+
+      if (session) {
+        return res.status(200).json({ message: 'You are logged in', session });
+      } else {
+        return res
+          .status(401)
+          .json({ message: 'Session not found, please log in' });
+      }
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
+);
+
+route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
+  try {
+    let {
+      search,
+      firstName,
+      lastName,
+      email,
+      phone,
+      sortBy = 'id',
+      order = 'ASC',
+      page = 1,
+      limit = 10,
+    } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    let whereCondition = {};
+    if (search) {
+      whereCondition[Op.or] = [
+        { firstName: { [Op.like]: `%${search}%` } },
+        { lastName: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { phone: { [Op.like]: `%${search}%` } },
+      ];
+    } else {
+      if (firstName) whereCondition.firstName = { [Op.like]: `%${firstName}%` };
+      if (lastName) whereCondition.lastName = { [Op.like]: `%${lastName}%` };
+      if (email) whereCondition.email = { [Op.like]: `%${email}%` };
+      if (phone) whereCondition.phone = { [Op.like]: `%${phone}%` };
+    }
+    const users = await Users.findAndCountAll({
+      where: whereCondition,
+      order: [[sortBy, order.toUpperCase()]],
+      limit,
+      offset: (page - 1) * limit,
+    });
+    userLogger.log('info', 'get boldi');
+
+    res.status(200).json({
+      total: users.count,
+      page,
+      limit,
+      data: users.rows,
+    });
+  } catch (error) {
+    userLogger.log('error', 'Internal server error');
+
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Foydalanuvchi ma'lumotlarini olish
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Foydalanuvchi ID si
+ *     responses:
+ *       200:
+ *         description: Foydalanuvchi ma'lumotlari
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 name:
+ *                   type: string
+ *                   example: "Ali Valiyev"
+ *                 email:
+ *                   type: string
+ *                   example: "ali@example.com"
+ *       404:
+ *         description: Foydalanuvchi topilmadi
+ *       500:
+ *         description: Server xatosi
+ */
+
+route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
+  try {
+    const one = await Users.findByPk(req.params.id);
+    if (!one) return res.status(404).send({ message: 'user not found' });
+    userLogger.log('info', 'id boyicha qilindi');
+    res.send(one);
+  } catch (error) {
+    res.status(500).send({ error: 'server error' });
+    userLogger.log('error', 'serverda xatolik');
   }
 });
 
@@ -690,7 +770,7 @@ route.get('/me', roleAuthMiddlewares(['USER', 'ADMIN']), async (req, res) => {
  * /users/me/password:
  *   patch:
  *     summary: Foydalanuvchi ma'lumotlarini yangilash
- *     tags: [User]
+ *     tags: [Profile]
  *
  *     parameters:
  *       - in: path
@@ -748,16 +828,23 @@ route.patch(
   '/:id',
   roleAuthMiddlewares(['ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
+    let { error } = userValidationPatch.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message });
+    }
     try {
       const { id } = req.params;
       const one = await Users.findByPk(id);
       if (!one) {
+        userLogger.log('warn', 'user not found');
         return res.status(404).send({ error: 'user not found' });
       }
       await one.update(req.body);
 
       res.json(one);
     } catch (error) {
+      userLogger.log('error', 'internal server error');
+
       res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }
@@ -798,11 +885,69 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     const deleted = await Users.destroy({ where: { id } });
     if (deleted) {
+      userLogger.log('warn', 'delete bold');
       return res.send({ message: "user o'chirildi", deleted });
     }
     res.status(404).send({ error: 'user topilmadi' });
   } catch (error) {
+    userLogger.log('error', 'internal server error');
+
     res.status(500).send({ error: 'Server xatosi', details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /users/resources/user/{id}:
+ *   get:
+ *     summary: Get all resources belonging to a specific user
+ *     tags: [Resources]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of resources belonging to the user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+
+route.get('/resources/user/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await Users.findOne({
+      where: { id: userId },
+      include: [{ model: Resource }],
+    });
+
+    if (!user) {
+      userLogger.log('warn', 'user not found');
+      return res.status(404).json({ message: 'user not found' });
+    }
+    userLogger.log('info', 'get ishladi');
+    res.status(200).json({
+      message: 'User and their resources',
+      data: {
+        user: {
+          id: user.id,
+          name: user.firstName,
+          email: user.lastName,
+        },
+        resources: user.Resources,
+      },
+    });
+  } catch (error) {
+    userLogger.log('error', 'internal server error');
+    res
+      .status(500)
+      .json({ message: 'internal server error', error: error.message });
   }
 });
 

@@ -7,7 +7,9 @@ const CourseRegister = require('../models/courseRegister');
 const Branch = require('../models/branches');
 const LearningCenter = require('../models/learningCenter');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
+const { getRouteLogger } = require('../logger/logger');
 
+const myInfoLogger = getRouteLogger(__filename);
 const route = Router();
 
 /**
@@ -110,11 +112,9 @@ route.get('/myInfo', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       include: [
         {
           model: Resource,
-          // attributes: ['name', 'img', 'media', 'describtion'],
         },
         {
           model: Comments,
-          // attributes: ['comment', 'star', 'learningCenterId'],
         },
         {
           model: Like,
@@ -139,11 +139,15 @@ route.get('/myInfo', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     });
 
     if (!user) {
+      myInfoLogger.log('warn', 'user not found');
       return res.status(404).json({ message: 'User not found' });
     }
+    myInfoLogger.log('info', 'get qilindi');
 
     res.json({ data: user });
   } catch (error) {
+    myInfoLogger.log('error', 'internal server error');
+
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }

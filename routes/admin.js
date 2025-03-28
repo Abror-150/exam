@@ -1,24 +1,23 @@
-const { Router } = require("express");
+const { Router } = require('express');
 const route = Router();
-const bcrypt = require("bcrypt");
-const { totp } = require("otplib");
-const jwt = require("jsonwebtoken");
-const { Op } = require("sequelize");
-const { getToken } = require("../functions/eskiz");
-const { refreshToken } = require("../functions/eskiz");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Users = require("../models/user");
-const { userValidation } = require("../validations/user");
-const { sendEmail } = require("../functions/eskiz");
-
+const bcrypt = require('bcrypt');
+const { totp } = require('otplib');
+const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
+const { getToken } = require('../functions/eskiz');
+const { refreshToken } = require('../functions/eskiz');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Users = require('../models/user');
+const { userValidation } = require('../validations/user');
+const { sendEmail } = require('../functions/eskiz');
+const { getRouteLogger } = require('../logger/logger');
+const adminLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * /add-admin:
  *   post:
  *     summary: Create a new admin user
  *     tags: [Admin]
- *     security:
- *       - BearerAuth: []  # ⬅️ Swaggerga token qo'shish
  *     requestBody:
  *       required: true
  *       content:
@@ -85,37 +84,51 @@ const { sendEmail } = require("../functions/eskiz");
  *       500:
  *         description: Internal server error
  */
-route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   const { error } = userValidation.validate(req.body);
   if (error) {
+    adminLogger.log('warn', 'validation error');
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
-    console.log("Decoded User:", req.user);
+    console.log('Decoded User:', req.user);
 
-    if (!req.user || req.user.role !== "ADMIN") {
+    if (!req.user || req.user.role !== 'ADMIN') {
+      adminLogger.log('warn', 'admin create error');
+
       return res
         .status(403)
-        .send({ message: "Access denied: Only admins can create users" });
+        .send({ message: 'Access denied: Only admins can create users' });
     }
 
     let { firstName, phone, email, lastName, password, ...rest } = req.body;
 
     let adminExists = await Users.findOne({ where: { firstName } });
-    if (adminExists)
-      return res.status(401).send({ message: "first name already exists" });
+    if (adminExists) {
+      adminLogger.log('warn', 'validation error');
+      return res.status(401).send({ message: 'first name already exists' });
+    }
 
     let lastNameExists = await Users.findOne({ where: { lastName } });
-    if (lastNameExists)
-      return res.status(401).send({ message: "last name already exists" });
+    if (lastNameExists) {
+      adminLogger.log('warn', 'last name already exists');
+
+      return res.status(401).send({ message: 'last name already exists' });
+    }
 
     let emailExists = await Users.findOne({ where: { email } });
-    if (emailExists)
-      return res.status(401).send({ message: "Email already exists" });
+    if (emailExists) {
+      adminLogger.log('warn', 'email  already exists');
+
+      return res.status(401).send({ message: 'Email already exists' });
+    }
 
     let phoneExists = await Users.findOne({ where: { phone } });
-    if (phoneExists)
-      return res.status(401).send({ message: "Phone already exists" });
+    if (phoneExists) {
+      adminLogger.log('warn', 'phone  already exists');
+
+      return res.status(401).send({ message: 'Phone already exists' });
+    }
 
     let hash = bcrypt.hashSync(password, 10);
     let newAdmin = await Users.create({
@@ -125,15 +138,17 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       lastName,
       phone,
       password: hash,
-      status: "PENDING",
+      status: 'PENDING',
     });
 
-    let token = totp.generate(email + "email");
+    let token = totp.generate(email + 'email');
     await sendEmail(email, token);
 
     res.status(201).send(newAdmin);
   } catch (error) {
-    res.status(500).send({ message: "Internal server error" });
+    adminLogger.log('error', 'internal server error');
+
+    res.status(500).send({ message: 'Internal server error' });
     console.log(error);
   }
 });

@@ -11,8 +11,8 @@ const Sessions = db.define('sessions', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  data: {
-    type: DataTypes.JSON,
+  ipAddress: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
 });

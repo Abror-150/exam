@@ -14,4 +14,15 @@ const learningCenterValidation = Joi.object({
   subjectsId: Joi.array().items(Joi.number().integer()),
 });
 
-module.exports = learningCenterValidation;
+const learningCenterValidationPatch = Joi.object({
+  name: Joi.string(),
+  phone: Joi.string(),
+  img: Joi.string().uri(),
+  regionId: Joi.number().integer().positive(),
+  address: Joi.string().min(5).max(255),
+
+  professionsId: Joi.array().items(Joi.number().integer()),
+  subjectsId: Joi.array().items(Joi.number().integer()),
+});
+
+module.exports = { learningCenterValidation, learningCenterValidationPatch };

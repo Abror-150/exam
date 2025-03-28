@@ -5,7 +5,9 @@ const route = Router();
 
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const { likeSchema } = require('../validations/likes');
+const { getRouteLogger } = require('../logger/logger');
 
+const likeLogger = getRouteLogger(__filename);
 /**
  * @swagger
  * /likes:
@@ -33,6 +35,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { error } = likeSchema.validate(req.body);
     if (error) {
+      likeLogger.log('warn', 'validation error');
       return res.status(400).send({ error: error.details[0].message });
     }
     const userId = req.userId;
@@ -42,15 +45,20 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     });
 
     if (existingLike) {
+      likeLogger.log('warn', 'User already liked this learning center');
+
       return res
         .status(400)
         .json({ message: 'User already liked this learning center' });
     }
 
     const one = await Like.create({ userId, learningCenterId });
+    likeLogger.log('info', 'like create');
 
     res.status(201).send(one);
   } catch (error) {
+    likeLogger.log('error', 'internal server error');
+
     res
       .status(400)
       .send({ error: "Ma'lumot noto'g'ri", details: error.message });
@@ -83,10 +91,16 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     const { id } = req.params;
     const deleted = await Like.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "Like o'chirildi" });
+      likeLogger.log('info', 'like deleted');
+
+      return res.send({ message: 'Like deleted' });
     }
+    likeLogger.log('info', 'like delete not found');
+
     res.status(404).send({ error: 'Like bosmagan' });
   } catch (error) {
+    likeLogger.log('error', 'internal server error');
+
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
