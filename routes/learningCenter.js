@@ -344,6 +344,8 @@ route.get("/:id", async (req, res) => {
           as: "registeredUser",
           attributes: ["id", "firstName", "lastName"],
         },
+        { model: Like, attributes: ["id", "learningCenterId", "userId"] },
+
         { model: Subject, as: "subjects", through: { attributes: [] } },
         { model: Comments },
         { model: Profession },

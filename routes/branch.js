@@ -238,12 +238,12 @@ route.get('/:id', async (req, res) => {
  *                   type: array
  *                   items:
  *                     type: integer
- *                   example: [1, 2]
+ *                   example: [1]
  *                 subjectsId:
  *                   type: array
  *                   items:
  *                     type: integer
- *                   example: [4, 5]
+ *                   example: [4]
  *       responses:
  *         201:
  *           description: "Filial muvaffaqiyatli yaratildi"
@@ -306,7 +306,6 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       branchLogger.log('info', 'phone already');
       return res.status(409).json({ message: 'Phone already exists' });
     }
-
     const branch = await Branch.create({
       name,
       phone,

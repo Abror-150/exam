@@ -439,3 +439,14 @@
 {"id":1,"level":"info","message":"ResourceCategory updated successfully","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\resourceCategory.js","timestamp":"2025-03-28T11:24:26.313Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T11:41:42.781Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\myInfo.js","timestamp":"2025-03-28T11:46:44.572Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:00:27.679Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T17:00:51.402Z"}
+{"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:06:47.696Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:07:05.175Z"}
+{"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:12:02.161Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:12:13.733Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:12:34.539Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:13:47.274Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:20:11.922Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T17:44:18.965Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T17:44:51.834Z"}
