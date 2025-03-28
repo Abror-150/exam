@@ -97,7 +97,7 @@ route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     }
     likeLogger.log('info', 'like delete not found');
 
-    res.status(404).send({ error: 'Like bosmagan' });
+    res.status(404).send({ error: 'Like not found' });
   } catch (error) {
     likeLogger.log('error', 'internal server error');
 

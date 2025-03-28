@@ -1,5 +1,5 @@
-const { Router } = require("express");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const { Op } = require('sequelize');
 const route = Router();
 const roleAuthMiddleware = require("../middlewares/roleAuth");
 const sessionsSchema = require("../validations/sessions");
@@ -43,9 +43,9 @@ const Users = require("../models/user");
  *         description: Xatolik yuz berdi
  */
 
-route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
-    let data = await Sessions.findAll();
+    let data = await Sessions.findAll({ include: [{ model: Users }] });
     res.send(data);
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -87,11 +87,13 @@ route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *       400:
  *         description: Bad request
  */
-route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
-    let data = await Sessions.findByPk(req.params.id);
+    let data = await Sessions.findByPk(req.params.id, {
+      include: [{ model: Users }],
+    });
     if (!data) {
-      return res.status(404).send({ message: "Session not found" });
+      return res.status(404).send({ message: 'Session not found' });
     }
     res.send(data);
   } catch (error) {
@@ -148,16 +150,16 @@ route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *                   type: string
  *                   example: "Server xatosi"
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const session = await Sessions.findByPk(req.params.id);
     if (!session) {
-      return res.status(404).json({ message: "Session topilmadi" });
+      return res.status(404).json({ message: 'Session topilmadi' });
     }
     await session.destroy();
-    res.json({ message: "Session ochirildi", session });
+    res.json({ message: 'Session ochirildi', session });
   } catch (error) {
-    res.status(500).send({ error: "Server xatosi", details: error.message });
+    res.status(500).send({ error: 'Server xatosi', details: error.message });
     console.log(error);
   }
 });

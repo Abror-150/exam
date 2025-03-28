@@ -5,8 +5,8 @@ const learningCenterValidation = Joi.object({
   phone: Joi.string()
     .pattern(/^\+?\d{9,15}$/)
     .required(),
-  img: Joi.string().uri().required(),
-  regionId: Joi.number().integer().positive().required(),
+    img: Joi.string().uri().allow(null).required(),
+    regionId: Joi.number().integer().positive().required(),
   address: Joi.string().min(5).max(255).required(),
   // branchNumber: Joi.number().integer(),
 
@@ -14,15 +14,4 @@ const learningCenterValidation = Joi.object({
   subjectsId: Joi.array().items(Joi.number().integer()),
 });
 
-const learningCenterValidationPatch = Joi.object({
-  name: Joi.string(),
-  phone: Joi.string(),
-  img: Joi.string().uri(),
-  regionId: Joi.number().integer().positive(),
-  address: Joi.string(),
-
-  professionsId: Joi.array().items(Joi.number().integer()),
-  subjectsId: Joi.array().items(Joi.number().integer()),
-});
-
-module.exports = { learningCenterValidation, learningCenterValidationPatch };
+module.exports = learningCenterValidation;

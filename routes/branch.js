@@ -395,7 +395,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *               img:
  *                 type: string
  *               regionId:
- *                 type: string
+ *                 type: integer
  *               address:
  *                 type: string
  *               learningCenterId:

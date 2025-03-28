@@ -32,7 +32,7 @@ const Resource = db.define('Resources', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  categoryId: {
+  resourceCategoriesId: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },

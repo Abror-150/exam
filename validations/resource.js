@@ -6,7 +6,7 @@ const ResourceValidation = Joi.object({
   img: Joi.string().uri().required(),
   describtion: Joi.string().min(5),
   link: Joi.string().uri().required(),
-  categoryId: Joi.number().integer().required(),
+  resourceCategoriesId: Joi.number().integer().required(),
 });
 
 const ResourcePatchValidation = Joi.object({
@@ -15,6 +15,6 @@ const ResourcePatchValidation = Joi.object({
   img: Joi.string().optional(),
   describtion: Joi.string().min(5).optional(),
   link: Joi.string().optional(),
-  categoryId: Joi.number().integer().optional(),
+  resourceCategoriesId: Joi.number().integer().optional(),
 }).min(1);
 module.exports = { ResourceValidation, ResourcePatchValidation };

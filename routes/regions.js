@@ -5,7 +5,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Region = require('../models/regions');
 const LearningCenter = require('../models/learningCenter');
 const Branches = require('../models/branches');
-const { regionSchema, message } = require('../validations/regions');
+const { regionValidation, message } = require('../validations/regions');
 const Branch = require('../models/branches');
 const { getRouteLogger } = require('../logger/logger');
 
@@ -223,12 +223,6 @@ route.post('/', async (req, res) => {
  */
 route.patch('/:id', async (req, res) => {
   try {
-    const { error } = regionSchema.validate(req.body);
-    if (error) {
-      regionLogger.log('warn', 'validation error');
-
-      return res.status(400).send({ error: error.details[0].message });
-    }
     const { id } = req.params;
     const one = await Region.findByPk(id);
     if (!one) {

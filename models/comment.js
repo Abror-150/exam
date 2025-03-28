@@ -1,9 +1,9 @@
-const { DataTypes } = require("sequelize");
-const { db } = require("../config/db");
-const Users = require("./user");
-const LearningCenter = require("./learningCenter");
+const { DataTypes } = require('sequelize');
+const { db } = require('../config/db');
+const Users = require('./user');
+const LearningCenter = require('./learningCenter');
 
-const Comments = db.define("Comments", {
+const Comments = db.define('Comments', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
