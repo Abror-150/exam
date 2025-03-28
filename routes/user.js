@@ -259,14 +259,13 @@ route.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid password' });
     }
 
-    let lastIp = req.ip || '127.0.0.1';
-    let ipAddress = req.ip;
+    let lastIp = req.ip;
     let userSesion = await Sessions.findOne({ where: { userId: user.id } });
-    let sesion = await Sessions.findOne({ where: { ipAddress } });
+    let sesion = await Sessions.findOne({ where: { lastIp } });
     if (!userSesion || !sesion) {
       await Sessions.create({
         userId: user.id,
-        ipAddress: ipAddress,
+        lastIp: lastIp,
       });
     }
 

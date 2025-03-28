@@ -191,6 +191,7 @@ route.get('/', async (req, res) => {
       include: [
         {
           model: Users,
+          as: 'user',
 
           attributes: ['id', 'firstName', 'lastName'],
         },
@@ -282,8 +283,12 @@ route.get('/:id', async (req, res) => {
  *               - learningCenterId
  *               - star
  *               - message
+ *               - branchId
  *             properties:
  *               learningCenterId:
+ *                 type: integer
+ *                 example: 1
+ *               branchId:
  *                 type: integer
  *                 example: 1
  *               star:
@@ -307,6 +312,9 @@ route.get('/:id', async (req, res) => {
  *                   example: 10
  *                
  *                 learningCenterId:
+ *                   type: integer
+ *                   example: 1
+ *                 branchId:
  *                   type: integer
  *                   example: 1
  *                 star:
@@ -349,7 +357,7 @@ route.get('/:id', async (req, res) => {
 
 route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
   try {
-    const { learningCenterId, star, message } = req.body;
+    const { learningCenterId, star, message, branchId } = req.body;
 
     const userId = req?.userId;
     const learningExists = await LearningCenter.findByPk(learningCenterId);
@@ -365,11 +373,14 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
       learningCenterId,
       star,
       message,
+      branchId,
     });
     commentLogger.log('info', 'post qilindi');
 
     res.send(newComment);
   } catch (error) {
+    console.log(error);
+
     commentLogger.log('error', 'internal server error');
 
     res.status(500).send({ error: 'server error' });

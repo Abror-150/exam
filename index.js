@@ -15,7 +15,7 @@ const uploadRoute = require('./routes/upload');
 const ResetPassword = require('./routes/resetPassword');
 const CourseRegisterRoute = require('./routes/courseRegister');
 const myInfoRoute = require('./routes/myInfo');
-// const SessionsRoute = require('./routes/sessions');
+const SessionsRoute = require('./routes/sessions');
 const AdminRoute = require('./routes/admin');
 const Export = require('./routes/excel');
 
@@ -39,7 +39,7 @@ app.use('/', myInfoRoute);
 app.use('/', ResetPassword);
 app.use('/uploads', express.static('uploads'));
 app.use('/upload', uploadRoute);
-// app.use('/sessions', SessionsRoute);
+app.use('/sessions', SessionsRoute);
 app.use('/add-admin', AdminRoute);
 app.use('/export', Export);
 
