@@ -437,3 +437,5 @@
 {"level":"info","message":"Resource updated","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T11:23:12.503Z"}
 {"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-28T11:24:09.956Z"}
 {"id":1,"level":"info","message":"ResourceCategory updated successfully","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\resourceCategory.js","timestamp":"2025-03-28T11:24:26.313Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T11:41:42.781Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\myInfo.js","timestamp":"2025-03-28T11:46:44.572Z"}
