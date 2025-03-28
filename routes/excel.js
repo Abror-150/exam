@@ -1,14 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const ExcelJS = require("exceljs");
-const Comments = require("../models/comment");
-const Branch = require("../models/branches");
-const LearningCenter = require("../models/learningCenter");
-const Resource = require("../models/resource");
-const Users = require("../models/user");
-const ResourceCategories = require("../models/resourceCategory");
-const Region = require("../models/regions");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
+const express = require('express');
+const route = express.Router();
+const ExcelJS = require('exceljs');
+const Comments = require('../models/comment');
+const Branch = require('../models/branches');
+const LearningCenter = require('../models/learningCenter');
+const Resource = require('../models/resource');
+const Users = require('../models/user');
+const ResourceCategories = require('../models/resourceCategory');
+const Region = require('../models/regions');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
 
 /**
  * @swagger
@@ -28,10 +28,10 @@ const createExcelFile = async (data, headers, sheetName, res, fileName) => {
   data.forEach((item) => sheet.addRow(Object.values(item)));
 
   res.setHeader(
-    "Content-Type",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   );
-  res.setHeader("Content-Disposition", `attachment; filename=${fileName}.xlsx`);
+  res.setHeader('Content-Disposition', `attachment; filename=${fileName}.xlsx`);
 
   await workbook.xlsx.write(res);
   res.end();
@@ -54,20 +54,20 @@ const createExcelFile = async (data, headers, sheetName, res, fileName) => {
  *               type: string
  *               format: binary
  */
-router.get("/comments", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/comments', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const userId = req.userId;
 
     if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
+      return res.status(400).json({ message: 'User ID is required' });
     }
 
     const comments = await Comments.findAll({
       where: { userId },
       include: [
-        { model: LearningCenter, attributes: ["name"] },
-        { model: Branch, attributes: ["name"] },
-        { model: Users, attributes: ["id", "firstName", "email"], as: "user" },
+        { model: LearningCenter, attributes: ['name'] },
+        { model: Branch, attributes: ['name'] },
+        { model: Users, attributes: ['id', 'firstName', 'email'], as: 'user' },
       ],
     });
 
@@ -75,28 +75,28 @@ router.get("/comments", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
       comment.id,
       comment.message,
       comment.star,
-      comment.LearningCenter?.name || "N/A",
-      comment.Branch?.name || "N/A",
+      comment.LearningCenter?.name || 'N/A',
+      comment.Branch?.name || 'N/A',
       comment.userId,
-      comment.User?.firstName || "N/A",
-      comment.User?.email || "N/A",
+      comment.User?.firstName || 'N/A',
+      comment.User?.email || 'N/A',
     ]);
 
     await createExcelFile(
       formattedComments,
       [
-        "ID",
-        "Message",
-        "Stars",
-        "Learning Center",
-        "Branch",
-        "User ID",
-        "User Name",
-        "User Email",
+        'ID',
+        'Message',
+        'Stars',
+        'Learning Center',
+        'Branch',
+        'User ID',
+        'User Name',
+        'User Email',
       ],
-      "Comments",
+      'Comments',
       res,
-      "user_comments"
+      'user_comments'
     );
   } catch (error) {
     console.log(error);
@@ -121,23 +121,23 @@ router.get("/comments", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *               type: string
  *               format: binary
  */
-router.get("/edu-centers", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/edu-centers', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const userId = req.userId;
 
     const eduCenters = await LearningCenter.findAll({
       where: { userId },
-      include: [{ model: Region, attributes: ["name"] }],
+      include: [{ model: Region, attributes: ['name'] }],
     });
 
-    console.log("Fetched EduCenters:", JSON.stringify(eduCenters, null, 2));
+    console.log('Fetched EduCenters:', JSON.stringify(eduCenters, null, 2));
 
     const formattedEduCenters = eduCenters.map((edu) => [
       edu.id,
       edu.name,
       edu.phone,
       edu.address,
-      edu.Region?.name || "N/A",
+      edu.Region?.name || 'N/A',
       edu.branchNumber,
       edu.user_id,
       edu.img,
@@ -146,21 +146,21 @@ router.get("/edu-centers", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     await createExcelFile(
       formattedEduCenters,
       [
-        "ID",
-        "Name",
-        "Phone",
-        "Address",
-        "Region",
-        "Branch Number",
-        "User ID",
-        "Img",
+        'ID',
+        'Name',
+        'Phone',
+        'Address',
+        'Region',
+        'Branch Number',
+        'User ID',
+        'Img',
       ],
-      "Learning Center",
+      'Learning Center',
       res,
-      "my_edu_centers"
+      'my_edu_centers'
     );
   } catch (error) {
-    console.log("Error fetching edu centers:", error);
+    console.log('Error fetching edu centers:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -182,21 +182,21 @@ router.get("/edu-centers", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *               type: string
  *               format: binary
  */
-router.get("/resources", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/resources', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const userId = req.userId;
 
     const resources = await Resource.findAll({
       where: { userId },
-      include: [{ model: ResourceCategories, attributes: ["name"] }],
+      include: [{ model: ResourceCategories, attributes: ['name'] }],
     });
 
-    console.log("Fetched Resources:", JSON.stringify(resources, null, 2));
+    console.log('Fetched Resources:', JSON.stringify(resources, null, 2));
 
     const formattedResources = resources.map((resource) => [
       resource.id,
       resource.name,
-      resource.Category?.name || "N/A",
+      resource.Category?.name || 'N/A',
       resource.user_id,
       resource.img,
       resource.file,
@@ -207,21 +207,21 @@ router.get("/resources", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
     await createExcelFile(
       formattedResources,
       [
-        "ID",
-        "Name",
-        "Category",
-        "User ID",
-        "Img",
-        "File",
-        "Link",
-        "Description",
+        'ID',
+        'Name',
+        'Category',
+        'User ID',
+        'Img',
+        'File',
+        'Link',
+        'Description',
       ],
-      "Resources",
+      'Resources',
       res,
-      "my_resources"
+      'my_resources'
     );
   } catch (error) {
-    console.log("Error fetching resources:", error);
+    console.log('Error fetching resources:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -243,14 +243,14 @@ router.get("/resources", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *               type: string
  *               format: binary
  */
-router.get("/profile", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/profile', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const userId = req.userId;
     const user = await Users.findByPk(userId, {
-      attributes: ["id", "firstName", "email", "phone", "role", "createdAt"],
+      attributes: ['id', 'firstName', 'email', 'phone', 'role', 'createdAt'],
     });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     await createExcelFile(
       [
@@ -263,10 +263,10 @@ router.get("/profile", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
           user.createdAt,
         ],
       ],
-      ["ID", "Fullname", "Email", "Role", "Phone", "Created At"],
-      "Profile",
+      ['ID', 'Fullname', 'Email', 'Role', 'Phone', 'Created At'],
+      'Profile',
       res,
-      "my_profile"
+      'my_profile'
     );
   } catch (error) {
     console.log(error);
@@ -274,4 +274,4 @@ router.get("/profile", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = route;

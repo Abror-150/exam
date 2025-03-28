@@ -1,12 +1,12 @@
 const express = require('express');
 const route = express.Router();
 const { Op, where } = require('sequelize');
-const { getRouteLogger } = require('../logger/logger');
 const Branch = require('../models/branches');
 const {
   branchesValidation,
   validateBranchUpdate,
 } = require('../validations/branches');
+const { getRouteLogger } = require('../logger/logger');
 const branchLogger = getRouteLogger(__filename);
 
 const LearningCenter = require('../models/learningCenter');
@@ -282,6 +282,8 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
 
     const learningCenter = await LearningCenter.findByPk(learningCenterId);
     if (!learningCenter) {
+      branchLogger.log('warn', 'center not found');
+
       return res.status(404).json({ error: 'Edu center not found' });
     }
     const region = await Region.findByPk(regionId);
@@ -325,7 +327,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
         where: { id: professionsId },
       });
 
-      if (validProfessions.length !== professionsId.length) {
+      if (validProfessions.length != professionsId.length) {
         return res
           .status(404)
           .json({ message: 'Some profession IDs are incorrect or not found!' });
@@ -358,6 +360,8 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     }
     res.status(201).send({ branch, branchNumber: count });
   } catch (error) {
+    branchLogger.log('error', 'internal server error');
+
     console.log('error', error);
 
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
@@ -405,10 +409,13 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
 route.patch('/:id', async (req, res) => {
   const { error } = validateBranchUpdate(req.body);
   if (error) {
+    branchLogger.log('warn', 'validation error');
+
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
     const branch = await Branch.findByPk(req.params.id);
+    branchLogger.log('warn', 'region not found');
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
     await branch.update(req.body);
@@ -416,6 +423,8 @@ route.patch('/:id', async (req, res) => {
 
     res.send(branch);
   } catch (error) {
+    branchLogger.log('error', 'internal server error');
+
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });
@@ -442,13 +451,17 @@ route.patch('/:id', async (req, res) => {
 route.delete('/:id', async (req, res) => {
   try {
     const branch = await Branch.findByPk(req.params.id);
-    if (!branch) return res.status(404).send({ message: 'Branch not found' });
+    if (!branch) {
+      branchLogger.log('warn', 'branch not found');
+      return res.status(404).send({ message: 'Branch not found' });
+    }
 
     await branch.destroy();
     branchLogger.log('info', 'delete ishladi');
 
     res.send(branch);
   } catch (error) {
+    branchLogger.log('error', 'internal server error');
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }
 });

@@ -5,4 +5,9 @@ const professionSchema = Joi.object({
   img: Joi.string().uri().required(),
 });
 
-module.exports = professionSchema;
+const professionPatchValidation = Joi.object({
+  name: Joi.string(),
+  img: Joi.string(),
+});
+
+module.exports = { professionSchema, professionPatchValidation };

@@ -1,12 +1,15 @@
-const { Router } = require("express");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const { Op } = require('sequelize');
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Region = require("../models/regions");
-const LearningCenter = require("../models/learningCenter");
-const Branches = require("../models/branches");
-const { regionSchema, message } = require("../validations/regions");
-const Branch = require("../models/branches");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Region = require('../models/regions');
+const LearningCenter = require('../models/learningCenter');
+const Branches = require('../models/branches');
+const { regionSchema, message } = require('../validations/regions');
+const Branch = require('../models/branches');
+const { getRouteLogger } = require('../logger/logger');
+
+const regionLogger = getRouteLogger(__filename);
 
 /**
  * @swagger
@@ -56,13 +59,13 @@ const Branch = require("../models/branches");
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     let {
       page = 1,
       limit = 10,
-      sortBy = "id",
-      order = "ASC",
+      sortBy = 'id',
+      order = 'ASC',
       name,
     } = req.query;
     page = parseInt(page);
@@ -85,10 +88,13 @@ route.get("/", async (req, res) => {
         { model: Branch },
       ],
     });
+    regionLogger.log('info', 'get qilindi');
     res.status(200).json(data);
   } catch (error) {
+    regionLogger.log('error', 'internal server error');
+
     console.error(error);
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -111,7 +117,7 @@ route.get("/", async (req, res) => {
  *       404:
  *         description: Viloyat topilmadi
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const region = await Region.findByPk(id, {
@@ -127,11 +133,17 @@ route.get("/:id", async (req, res) => {
       ],
     });
     if (!region) {
-      return res.status(404).json({ error: "viloyat topilmadi" });
+      regionLogger.log('info', 'region not found');
+
+      return res.status(404).json({ error: 'viloyat topilmadi' });
     }
+    regionLogger.log('info', 'get qilindi');
+
     res.json(region);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    regionLogger.log('error', 'internal server error');
+
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -158,17 +170,23 @@ route.get("/:id", async (req, res) => {
  *         description: Xato so‘rov
  */
 
-route.post("/", async (req, res) => {
+route.post('/', async (req, res) => {
   try {
     let { name } = req.body;
     let existRegion = await Region.findOne({ where: { name } });
     if (existRegion) {
-      return res.status(401).send({ message: "region already exists" });
+      regionLogger.log('warn', 'region already exists');
+
+      return res.status(401).send({ message: 'region already exists' });
     }
     const one = await Region.create({ name });
+    regionLogger.log('info', 'get post qilindi');
+
     res.status(201).json(one);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    regionLogger.log('error', 'internal server error');
+
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -203,21 +221,27 @@ route.post("/", async (req, res) => {
  *       404:
  *         description: Viloyat topilmadi
  */
-route.patch("/:id", async (req, res) => {
+route.patch('/:id', async (req, res) => {
   try {
     const { error } = regionSchema.validate(req.body);
     if (error) {
+      regionLogger.log('warn', 'validation error');
+
       return res.status(400).send({ error: error.details[0].message });
     }
     const { id } = req.params;
     const one = await Region.findByPk(id);
     if (!one) {
-      return res.status(404).send({ error: "viloyat topilmadi" });
+      regionLogger.log('warn', 'patch qilindi');
+
+      return res.status(404).send({ error: 'region not found' });
     }
     await one.update(req.body);
     res.json(one);
   } catch (error) {
-    res.status(500).json({ error: "Server xatosi", details: error.message });
+    regionLogger.log('error', 'internal server error');
+
+    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
 });
 
@@ -240,16 +264,21 @@ route.patch("/:id", async (req, res) => {
  *       404:
  *         description: Viloyat topilmadi
  */
-route.delete("/:id", async (req, res) => {
+route.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Region.destroy({ where: { id } });
     if (deleted) {
-      return res.send({ message: "viloyat o'chirildi", deleted });
+      regionLogger.log('info', 'delete qilindi');
+
+      return res.send({ message: 'region deleted', deleted });
     }
-    res.status(404).send({ error: "viloyat topilmadi" });
+    regionLogger.log('warn', 'region not found');
+    res.status(404).send({ error: 'Region not found' });
   } catch (error) {
-    res.status(500).send({ error: "Server xatosi", details: error.message });
+    regionLogger.log('error', 'internal server error');
+
+    res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
 });
 module.exports = route;

@@ -42,7 +42,7 @@ const Sessions = require("../models/sessions");
  *         description: Xatolik yuz berdi
  */
 
-route.get("/", async (req, res) => {
+route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     let data = await Sessions.findAll();
     res.send(data);
@@ -86,7 +86,7 @@ route.get("/", async (req, res) => {
  *       400:
  *         description: Bad request
  */
-route.get("/:id", async (req, res) => {
+route.get("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
   try {
     let data = await Sessions.findByPk(req.params.id);
     if (!data) {

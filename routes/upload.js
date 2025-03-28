@@ -1,18 +1,17 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const logger = require('../logger/logger');
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads");
+    cb(null, 'uploads');
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
   },
 });
 
@@ -49,14 +48,12 @@ const upload = multer({ storage });
  *                   description: Yuklangan rasmning to‘liq URL manzili
  *                   example: "http://localhost:3000/uploads/1710853424-product.jpg"
  */
-router.post("/", upload.single("file"), (req, res) => {
+router.post('/', upload.single('file'), (req, res) => {
   if (!req.file) {
-    logger.warn("POST /upload - Fayl yuklanmadi");
-    return res.status(400).json({ error: "Fayl yuklanmadi" });
+    return res.status(400).json({ error: 'Fayl yuklanmadi' });
   }
-  logger.info(`POST /upload - Fayl yuklandi: ${req.file.filename}`);
   res.json({
-    message: "Fayl muvaffaqiyatli yuklandi",
+    message: 'Fayl muvaffaqiyatli yuklandi',
     url: `http://localhost:3000/uploads/${req.file.filename}`,
   });
 });
@@ -81,14 +78,12 @@ router.post("/", upload.single("file"), (req, res) => {
  *       404:
  *         description: Fayl topilmadi
  */
-router.get("/:filename", (req, res) => {
-  const filePath = path.join(__dirname, "../uploads", req.params.filename);
+router.get('/:filename', (req, res) => {
+  const filePath = path.join(__dirname, '../uploads', req.params.filename);
 
   if (!fs.existsSync(filePath)) {
-    logger.warn(`GET /uploads/${req.params.filename} - Fayl topilmadi`);
-    return res.status(404).json({ error: "Fayl topilmadi" });
+    return res.status(404).json({ error: 'Fayl topilmadi' });
   }
-  logger.info(`GET /uploads/${req.params.filename} - Fayl yuborildi`);
   res.sendFile(filePath);
 });
 
