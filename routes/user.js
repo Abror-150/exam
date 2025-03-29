@@ -640,9 +640,9 @@ route.get(
   async (req, res) => {
     try {
       const userId = req.userId;
-      const ipAddress = req.ip;
+      const lastIp = req.ip;
 
-      const session = await Sessions.findOne({ where: { userId, ipAddress } });
+      const session = await Sessions.findOne({ where: { userId, lastIp } });
 
       if (session) {
         return res.status(200).json({ message: 'You are logged in', session });

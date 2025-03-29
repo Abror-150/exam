@@ -184,7 +184,7 @@ route.patch(
       if (!registration) {
         courseRegisterLogger.log("warn", "register not found");
 
-        return res.status(404).json({ message: "Register not found" });
+        return res.status(404).json({ message: "CourseRegister not found" });
       }
       courseRegisterLogger.log("info", "patch  qilindi");
 
