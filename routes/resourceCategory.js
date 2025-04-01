@@ -240,7 +240,16 @@ route.patch(
       return res.status(400).send({ error: error.details[0].message });
     }
     try {
+      let { name } = req.body;
       const resourceCategory = await ResourceCategory.findByPk(req.params.id);
+      const resourceCategoryExists = await ResourceCategory.findOne({
+        where: { name },
+      });
+      if (resourceCategoryExists) {
+        return res
+          .status(400)
+          .json({ message: 'resourceCategory name already exists' });
+      }
 
       if (!resourceCategory) {
         resourceCategoryLogger.log('warn', 'ResourceCategory not found', {

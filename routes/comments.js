@@ -1,13 +1,13 @@
-const express = require("express");
+const express = require('express');
 const route = express.Router();
-const Comments = require("../models/comment");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const Users = require("../models/user");
-const LearningCenter = require("../models/learningCenter");
-const { message } = require("../validations/regions");
-const { Op } = require("sequelize");
-const { getRouteLogger } = require("../logger/logger");
-const Branch = require("../models/branches");
+const Comments = require('../models/comment');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const Users = require('../models/user');
+const LearningCenter = require('../models/learningCenter');
+const { message } = require('../validations/regions');
+const { Op } = require('sequelize');
+const { getRouteLogger } = require('../logger/logger');
+const Branch = require('../models/branches');
 
 const commentLogger = getRouteLogger(__filename);
 /**
@@ -138,7 +138,7 @@ const commentLogger = getRouteLogger(__filename);
  *         description: Server xatosi
  */
 
-route.get("/", async (req, res) => {
+route.get('/', async (req, res) => {
   try {
     const {
       userId,
@@ -172,14 +172,14 @@ route.get("/", async (req, res) => {
       }
     }
 
-    let order = [["createdAt", "DESC"]];
+    let order = [['createdAt', 'DESC']];
     if (orderBy) {
       order = [
         [
           orderBy,
-          orderDirection && orderDirection.toUpperCase() === "ASC"
-            ? "ASC"
-            : "DESC",
+          orderDirection && orderDirection.toUpperCase() === 'ASC'
+            ? 'ASC'
+            : 'DESC',
         ],
       ];
     }
@@ -188,17 +188,17 @@ route.get("/", async (req, res) => {
 
     const { count, rows } = await Comments.findAndCountAll({
       where: whereClause,
-      attributes: ["id", "star"],
+      attributes: ['id', 'star'],
       include: [
         {
           model: Users,
-          as: "user",
+          as: 'user',
 
-          attributes: ["id", "firstName", "lastName"],
+          attributes: ['id', 'firstName', 'lastName'],
         },
         {
           model: LearningCenter,
-          attributes: ["id", "name"],
+          attributes: ['id', 'name'],
         },
       ],
     });
@@ -213,12 +213,12 @@ route.get("/", async (req, res) => {
       averageStar: parseFloat(averageStar.toFixed(2)),
       comments: rows,
     });
-    commentLogger.log("info", "get qilindi");
+    commentLogger.log('info', 'get qilindi');
   } catch (error) {
-    commentLogger.log("error", "internal server error");
+    commentLogger.log('error', 'internal server error');
 
     res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
-    console.error("Xatolik yuz berdi:", error);
+    console.error('Xatolik yuz berdi:', error);
   }
 });
 
@@ -243,24 +243,25 @@ route.get("/", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Comment'
  */
-route.get("/:id", async (req, res) => {
+route.get('/:id', async (req, res) => {
   try {
     const comment = await Comments.findByPk(req.params.id, {
-      include: [{ model: LearningCenter }, { model: Users }],
+      include: [{ model: LearningCenter }, { model: Users, as: 'user' }],
     });
 
     if (!comment) {
-      commentLogger.log("warn", "comment not found");
+      commentLogger.log('warn', 'comment not found');
 
-      return res.status(404).send({ message: "comment not found" });
+      return res.status(404).send({ message: 'comment not found' });
     }
-    commentLogger.log("info", "id boyicha get ");
+    commentLogger.log('info', 'id boyicha get ');
 
     res.send(comment);
   } catch (error) {
-    commentLogger.log("error", "internal server error");
+    commentLogger.log('error', 'internal server error');
+    console.log(error);
 
-    res.status(500).send({ error: "server error" });
+    res.status(500).send({ error: 'server error' });
   }
 });
 
@@ -356,7 +357,7 @@ route.get("/:id", async (req, res) => {
  *                   example: "Server error"
  */
 
-route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
   try {
     const { learningCenterId, star, message, branchId } = req.body;
 
@@ -364,15 +365,15 @@ route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
     const learningExists = await LearningCenter.findByPk(learningCenterId);
 
     if (!learningExists) {
-      commentLogger.log("warn", "edu center not found");
+      commentLogger.log('warn', 'edu center not found');
 
-      return res.status(404).send({ message: "edu center not found" });
+      return res.status(404).send({ message: 'edu center not found' });
     }
     const branchexists = await Branch.findByPk(branchId);
     if (!branchexists) {
-      commentLogger.log("warn", "edu center not found");
+      commentLogger.log('warn', 'edu center not found');
 
-      return res.status(404).send({ message: "branch not found" });
+      return res.status(404).send({ message: 'branch not found' });
     }
     const newComment = await Comments.create({
       userId,
@@ -381,15 +382,15 @@ route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
       message,
       branchId,
     });
-    commentLogger.log("info", "post qilindi");
+    commentLogger.log('info', 'post qilindi');
 
     res.send(newComment);
   } catch (error) {
     console.log(error);
 
-    commentLogger.log("error", "internal server error");
+    commentLogger.log('error', 'internal server error');
 
-    res.status(500).send({ error: "server error" });
+    res.status(500).send({ error: 'server error' });
   }
 });
 
@@ -427,30 +428,30 @@ route.post("/", roleAuthMiddleware(["ADMIN", "USER"]), async (req, res) => {
  */
 
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "USER", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER', 'SUPER_ADMIN']),
   async (req, res) => {
     try {
       const { learningCenterId, message, star } = req.body;
       const comment = await Comments.findByPk(req.params.id);
       if (!comment) {
-        commentLogger.log("warn", "comment not found");
+        commentLogger.log('warn', 'comment not found');
 
-        return res.status(404).send("Comment not found");
+        return res.status(404).send('Comment not found');
       }
       const learningCenter = await LearningCenter.findByPk(learningCenterId);
       if (!learningCenter) {
-        commentLogger.log("warn", "learningCenter not found");
+        commentLogger.log('warn', 'learningCenter not found');
 
-        return res.status(404).send({ message: "learningCenter not found" });
+        return res.status(404).send({ message: 'learningCenter not found' });
       }
-      commentLogger.log("info", "patch qilindi");
+      commentLogger.log('info', 'patch qilindi');
 
       await comment.update({ learningCenterId, message, star });
 
       res.send(comment);
     } catch (error) {
-      commentLogger.log("error", "internal server error");
+      commentLogger.log('error', 'internal server error');
 
       res.status(500).send({ message: `Xatolik yuz berdi: ${error.message}` });
     }
@@ -478,23 +479,23 @@ route.patch(
  */
 
 route.delete(
-  "/:id",
-  roleAuthMiddleware(["ADMIN", "USER"]),
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER']),
   async (req, res) => {
     try {
       const comment = await Comments.findByPk(req.params.id);
       if (!comment) {
-        commentLogger.log("error", "comment not found");
+        commentLogger.log('error', 'comment not found');
 
-        return res.status(404).send("Comment not found");
+        return res.status(404).send({ message: 'Comment not found' });
       }
-      commentLogger.log("info", "comment deleted");
+      commentLogger.log('info', 'comment deleted');
 
       await comment.destroy();
 
       res.send(comment);
     } catch (error) {
-      commentLogger.log("error", "internal server error");
+      commentLogger.log('error', 'internal server error');
 
       res.status(500).send(`Xatolik yuz berdi: ${error.message}`);
     }

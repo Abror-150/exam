@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const { totp } = require('otplib');
 const jwt = require('jsonwebtoken');
 const { sendSms, sendEmail } = require('../functions/eskiz');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const { getToken } = require('../functions/eskiz');
 const { refreshToken } = require('../functions/eskiz');
 const { getRouteLogger } = require('../logger/logger');
@@ -306,79 +306,105 @@ route.post('/login', async (req, res) => {
 route.post('/refresh', async (req, res) => {
   let { error } = refreshTokenValidation.validate(req.body);
   if (error) {
-    userLogger.log('error', 'validation error');
+    userLogger.log('error', 'Validation error');
     return res.status(400).json({ message: error.details[0].message });
   }
+
   try {
     let { refreshTok } = req.body;
-    const user = jwt.verify(refreshTok, 'refresh');
-    const newAccestoken = getToken(user.id);
-    res.send({ newAccestoken });
+
+    let user;
+    try {
+      user = jwt.verify(refreshTok, 'refresh');
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Refresh token expired' });
+      }
+      if (err.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Invalid refresh token' });
+      }
+      return res.status(400).json({ message: 'Bad request' });
+    }
+
+    const newAccessToken = getToken(user.id);
+    res.json({ newAccessToken });
   } catch (error) {
     userLogger.log('error', 'Internal server error');
-
     res.status(500).send({ message: 'Internal server error' });
-
     console.log(error);
   }
 });
 
 /**
  * @swagger
- * /users/me/password:
- *   patch:
- *     summary: "Foydalanuvchi parolini o'zgartirish"
- *     description: "Foydalanuvchi eski parolini tekshirib, yangi parol bilan almashtiradi."
- *     tags:
- *       - Profile
+ * paths:
+ *   /users/me/password:
+ *     patch:
+ *       summary: "Foydalanuvchi parolini yangilash"
+ *       description: "Foydalanuvchi eski parolini tasdiqlab, yangi parol bilan almashtiradi."
+ *       tags:
+ *         - Profile
  *
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               oldPassword:
- *                 type: string
- *                 example: "old_password123"
- *               newPassword:
- *                 type: string
- *                 example: "new_secure_password123"
- *     responses:
- *       200:
- *         description: "Parol muvaffaqiyatli o'zgartirildi"
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
  *               type: object
+ *               required:
+ *                 - oldPassword
+ *                 - newPassword
  *               properties:
- *                 message:
+ *                 oldPassword:
  *                   type: string
- *                   example: "Parol muvaffaqiyatli o'zgartirildi"
- *       400:
- *         description: "Eski parol noto'g'ri"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
+ *                   example: "SecureP@ssw0rd"
+ *                 newPassword:
  *                   type: string
- *                   example: "Eski parol noto'g'ri"
- *       500:
- *         description: "Server xatosi"
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Server xatosi"
- *                 details:
- *                   type: string
- *                   example: "Error details..."
+ *                   example: "NewP@ssw0rd123"
+ *       responses:
+ *         200:
+ *           description: "Parol muvaffaqiyatli yangilandi"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+ *                     example: "Password updated"
+ *         400:
+ *           description: "Yuborilgan ma'lumot xato"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   error:
+ *                     type: string
+ *                     example: "Eski parol noto'g'ri"
+ *         404:
+ *           description: "Foydalanuvchi topilmadi"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   error:
+ *                     type: string
+ *                     example: "Foydalanuvchi topilmadi"
+ *         500:
+ *           description: "Server xatosi"
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   error:
+ *                     type: string
+ *                     example: "Server xatosi"
+ *                   details:
+ *                     type: string
+ *                     example: "Internal Server Error"
  */
 
 route.patch(
@@ -387,7 +413,16 @@ route.patch(
   async (req, res) => {
     try {
       const { oldPassword, newPassword } = req.body;
+      if (!oldPassword || !newPassword) {
+        return res
+          .status(400)
+          .json({ error: 'Old va yangi parol talab qilinadi' });
+      }
+
       const user = await Users.findByPk(req.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+      }
 
       const isMatch = await bcrypt.compare(oldPassword, user.password);
       if (!isMatch) {
@@ -396,8 +431,9 @@ route.patch(
       }
 
       const hash = await bcrypt.hash(newPassword, 10);
-      await Users.update({ password: hash }, { where: { id: user.id } });
-      userLogger.log('info', 'user yangilandi');
+      await user.update({ password: hash });
+
+      userLogger.log('info', 'user paroli yangilandi');
       res.json({ message: 'Password updated' });
     } catch (error) {
       userLogger.log('error', 'internal server error');
@@ -405,92 +441,6 @@ route.patch(
     }
   }
 );
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: "Barcha foydalanuvchilar ro‘yxatini olish"
- *     description: "Bazadagi barcha foydalanuvchilarni qaytaradi."
- *     tags: [User]
- *     parameters:
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi ismi, familiyasi, email yoki telefon raqami bo‘yicha qidirish"
- *       - in: query
- *         name: firstName
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi ismi bo‘yicha qidirish"
- *       - in: query
- *         name: lastName
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi familiyasi bo‘yicha qidirish"
- *       - in: query
- *         name: email
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi emaili bo‘yicha qidirish"
- *       - in: query
- *         name: phone
- *         schema:
- *           type: string
- *         description: "Foydalanuvchi telefon raqami bo‘yicha qidirish"
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *           default: "id"
- *         description: "Qaysi ustun bo‘yicha tartiblash"
- *       - in: query
- *         name: order
- *         schema:
- *           type: string
- *           enum: [ASC, DESC]
- *           default: "ASC"
- *         description: "Tartiblash tartibi (ASC - o‘sish, DESC - kamayish)"
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: "Qaysi sahifani olish"
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: "Har bir sahifada nechta natija chiqarish"
- *     responses:
- *       200:
- *         description: "Foydalanuvchilar ro‘yxati"
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     example: 1
- *                   firstName:
- *                     type: string
- *                     example: "John"
- *                   lastName:
- *                     type: string
- *                     example: "Doe"
- *                   email:
- *                     type: string
- *                     example: "johndoe@example.com"
- *                   phone:
- *                     type: string
- *                     example: "+998901234567"
- *       500:
- *         description: "Server xatosi"
- */
 
 /**
  * @swagger
@@ -659,6 +609,93 @@ route.get(
   }
 );
 
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: "Barcha foydalanuvchilar ro‘yxatini olish"
+ *     description: "Bazadagi barcha foydalanuvchilarni qaytaradi."
+ *     tags: [User]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi ismi, familiyasi, email yoki telefon raqami bo‘yicha qidirish"
+ *       - in: query
+ *         name: firstName
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi ismi bo‘yicha qidirish"
+ *       - in: query
+ *         name: lastName
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi familiyasi bo‘yicha qidirish"
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi emaili bo‘yicha qidirish"
+ *       - in: query
+ *         name: phone
+ *         schema:
+ *           type: string
+ *         description: "Foydalanuvchi telefon raqami bo‘yicha qidirish"
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: "id"
+ *         description: "Qaysi ustun bo‘yicha tartiblash"
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: "ASC"
+ *         description: "Tartiblash tartibi (ASC - o‘sish, DESC - kamayish)"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: "Qaysi sahifani olish"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: "Har bir sahifada nechta natija chiqarish"
+ *     responses:
+ *       200:
+ *         description: "Foydalanuvchilar ro‘yxati"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   firstName:
+ *                     type: string
+ *                     example: "John"
+ *                   lastName:
+ *                     type: string
+ *                     example: "Doe"
+ *                   email:
+ *                     type: string
+ *                     example: "johndoe@example.com"
+ *                   phone:
+ *                     type: string
+ *                     example: "+998901234567"
+ *       500:
+ *         description: "Server xatosi"
+ */
+
 route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     let {
@@ -760,10 +797,10 @@ route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
 
 /**
  * @swagger
- * /users/me/password:
+ * /users/{id}:
  *   patch:
  *     summary: Foydalanuvchi ma'lumotlarini yangilash
- *     tags: [Profile]
+ *     tags: [User]
  *
  *     parameters:
  *       - in: path
@@ -788,9 +825,15 @@ route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *               email:
  *                 type: string
  *                 example: "ali@example.com"
+ *               password:
+ *                   type: string
+ *                   example: "123456"
  *               phone:
  *                 type: string
  *                 example: "+998901234567"
+ *               img:
+ *                   type: string
+ *                   example: "http://localhost:3000/api-docs/#/User/patch_users__id_"
  *
  *     responses:
  *       200:
@@ -809,6 +852,7 @@ route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *                 email:
  *                   type: string
  *                   example: "ali@example.com"
+ *
  *                 learningCenterId:
  *                   type: string
  *                   example: "ali@example.com"
@@ -817,6 +861,7 @@ route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
+
 route.patch(
   '/:id',
   roleAuthMiddlewares(['ADMIN', 'SUPER_ADMIN']),
@@ -828,16 +873,39 @@ route.patch(
     try {
       const { id } = req.params;
       const one = await Users.findByPk(id);
+
       if (!one) {
         userLogger.log('warn', 'user not found');
-        return res.status(404).send({ error: 'user not found' });
+        return res.status(404).send({ error: 'User not found' });
       }
-      await one.update(req.body);
 
+      let { firstName, lastName, email, phone } = req.body;
+
+      const existingUser = await Users.findOne({
+        where: {
+          [Op.or]: [
+            firstName ? { firstName } : null,
+            lastName ? { lastName } : null,
+            email ? { email } : null,
+            phone ? { phone } : null,
+          ].filter(Boolean),
+          id: { [Op.ne]: id },
+        },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ error: 'Some fields already exist' });
+      }
+      let userExists = await Users.findOne({ where: { firstName } });
+      if (userExists) {
+        return res.status(400).send({ message: 'first name already exists' });
+      }
+
+      await one.update(req.body);
       res.json(one);
     } catch (error) {
-      userLogger.log('error', 'internal server error');
-
+      userLogger.log('error', 'Internal server error');
+      console.log(error);
       res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
   }

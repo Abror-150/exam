@@ -84,50 +84,41 @@ const adminLogger = getRouteLogger(__filename);
  *       500:
  *         description: Internal server error
  */
+
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   const { error } = userValidation.validate(req.body);
   if (error) {
-    adminLogger.log('warn', 'validation error');
+    adminLogger.log('warn', 'Validation error');
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
-    console.log('Decoded User:', req.user);
-
     if (!req.user || req.user.role !== 'ADMIN') {
-      adminLogger.log('warn', 'admin create error');
-
+      adminLogger.log('warn', 'Admin create error');
       return res
         .status(403)
         .send({ message: 'Access denied: Only admins can create users' });
     }
 
-    let { firstName, phone, email, lastName, password, ...rest } = req.body;
+    let { firstName, phone, email, lastName, password, role, ...rest } =
+      req.body;
 
-    let adminExists = await Users.findOne({ where: { firstName } });
-    if (adminExists) {
-      adminLogger.log('warn', 'validation error');
-      return res.status(401).send({ message: 'first name already exists' });
+    if (role && role !== 'ADMIN') {
+      return res
+        .status(400)
+        .send({ message: 'Only ADMIN users can be created' });
     }
 
-    let lastNameExists = await Users.findOne({ where: { lastName } });
-    if (lastNameExists) {
-      adminLogger.log('warn', 'last name already exists');
+    let existingUser = await Users.findOne({
+      where: {
+        [Op.or]: [{ firstName }, { lastName }, { email }, { phone }],
+      },
+    });
 
-      return res.status(401).send({ message: 'last name already exists' });
-    }
-
-    let emailExists = await Users.findOne({ where: { email } });
-    if (emailExists) {
-      adminLogger.log('warn', 'email  already exists');
-
-      return res.status(401).send({ message: 'Email already exists' });
-    }
-
-    let phoneExists = await Users.findOne({ where: { phone } });
-    if (phoneExists) {
-      adminLogger.log('warn', 'phone  already exists');
-
-      return res.status(401).send({ message: 'Phone already exists' });
+    if (existingUser) {
+      adminLogger.log('warn', 'Duplicate user data');
+      return res
+        .status(401)
+        .send({ message: 'User with provided data already exists' });
     }
 
     let hash = bcrypt.hashSync(password, 10);
@@ -138,6 +129,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       lastName,
       phone,
       password: hash,
+      role,
       status: 'PENDING',
     });
 
@@ -146,8 +138,7 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
 
     res.status(201).send(newAdmin);
   } catch (error) {
-    adminLogger.log('error', 'internal server error');
-
+    adminLogger.log('error', 'Internal server error');
     res.status(500).send({ message: 'Internal server error' });
     console.log(error);
   }

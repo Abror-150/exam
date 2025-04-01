@@ -1,4 +1,4 @@
--- Active: 1740569912856@@127.0.0.1@3306@educenter
+-- Active: 1742458197189@@127.0.0.1@3306@educenters
 
 
 
@@ -36,3 +36,6 @@ SHOW COLUMNS FROM resources;
 
 
 ALTER TABLE resources DROP COLUMN categoryId;
+
+ALTER TABLE soxalar
+CHANGE COLUMN professionId professionsId INT;

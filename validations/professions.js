@@ -8,6 +8,6 @@ const professionSchema = Joi.object({
 const professionPatchValidation = Joi.object({
   name: Joi.string(),
   img: Joi.string(),
-});
+}).min(1);
 
 module.exports = { professionSchema, professionPatchValidation };

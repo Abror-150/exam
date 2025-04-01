@@ -28,16 +28,16 @@ let logger = winston.createLogger({
     new winston.transports.Console(),
     new winston.transports.File({ filename: 'loglar.log' }),
     new winston.transports.MongoDB({
-      db: 'mongodb+srv://shukrullayevikromxon:TvsJZnNVyZhWC6cw@educenter.ylo3aih.mongodb.net/?retryWrites=true&w=majority&appName=educenter',
+      db: 'mongodb://localhost:27017/mydatabase',
       collection: 'loglar',
-      options: {
-        tls: true,
-        tlsAllowInvalidCertificates: false,
-        tlsInsecure: false,
-        tlsCertificateKeyFile: undefined,
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
-      },
+      // options: {
+      //   tls: true,
+      //   tlsAllowInvalidCertificates: false,
+      //   tlsInsecure: false,
+      //   tlsCertificateKeyFile: undefined,
+      //   useUnifiedTopology: true,
+      //   useNewUrlParser: true,
+      // },
     }),
   ],
 });

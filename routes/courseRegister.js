@@ -1,15 +1,16 @@
-const express = require("express");
-const CourseRegister = require("../models/courseRegister");
-const Users = require("../models/user");
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const LearningCenter = require("../models/learningCenter");
+const express = require('express');
+const CourseRegister = require('../models/courseRegister');
+const Users = require('../models/user');
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const LearningCenter = require('../models/learningCenter');
 const {
   CourseRegistervalidation,
   CourseRegistervalidationPatch,
-} = require("../validations/courseRegister");
-const Branch = require("../models/branches");
+} = require('../validations/courseRegister');
+const Branch = require('../models/branches');
 const route = express.Router();
-const { getRouteLogger } = require("../logger/logger");
+const { getRouteLogger } = require('../logger/logger');
+const { message } = require('../validations/regions');
 
 const courseRegisterLogger = getRouteLogger(__filename);
 /**
@@ -42,10 +43,10 @@ const courseRegisterLogger = getRouteLogger(__filename);
  *       500:
  *         description: Server xatosi
  */
-route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
+route.post('/', roleAuthMiddleware(['USER', 'ADMIN']), async (req, res) => {
   let { error } = CourseRegistervalidation.validate(req.body);
   if (error) {
-    courseRegisterLogger.log("warn", "validation error");
+    courseRegisterLogger.log('warn', 'validation error');
     return res.status(400).send({ error: error.details[0].message });
   }
   try {
@@ -57,18 +58,18 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
     const branch = await Branch.findByPk(branchId);
 
     if (!user) {
-      courseRegisterLogger.log("warn", "user not found");
+      courseRegisterLogger.log('warn', 'user not found');
 
-      return res.status(404).json({ message: "User  not found" });
+      return res.status(404).json({ message: 'User  not found' });
     }
     if (!branch) {
-      courseRegisterLogger.log("warn", "branch not found");
-      return res.status(404).json({ message: "Branch not found" });
+      courseRegisterLogger.log('warn', 'branch not found');
+      return res.status(404).json({ message: 'Branch not found' });
     }
     if (!learningCenter) {
-      courseRegisterLogger.log("warn", "learning center  not found");
+      courseRegisterLogger.log('warn', 'learning center  not found');
 
-      return res.status(404).json({ message: "edu center  not found" });
+      return res.status(404).json({ message: 'edu center  not found' });
     }
 
     const existingRegistration = await CourseRegister.findOne({
@@ -76,10 +77,10 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
     });
 
     if (existingRegistration) {
-      courseRegisterLogger.log("warn", "already center user");
+      courseRegisterLogger.log('warn', 'already center user');
 
       return res.status(400).json({
-        message: "User is already registered in this learning center",
+        message: 'User is already registered in this learning center',
       });
     }
 
@@ -88,14 +89,14 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
       learningCenterId,
       branchId,
     });
-    courseRegisterLogger.log("info", "post qilindi");
+    courseRegisterLogger.log('info', 'post qilindi');
 
     res.status(201).json(registration);
   } catch (error) {
-    courseRegisterLogger.log("error", "internal server error");
+    courseRegisterLogger.log('error', 'internal server error');
 
-    console.error("Xatolik:", error);
-    res.status(500).json({ message: "Server xatosi", error: error.message });
+    console.error('Xatolik:', error);
+    res.status(500).json({ message: 'Server xatosi', error: error.message });
   }
 });
 
@@ -111,18 +112,18 @@ route.post("/", roleAuthMiddleware(["USER", "ADMIN"]), async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
+route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const registrations = await CourseRegister.findAll({
       include: [{ model: Users }],
     });
-    courseRegisterLogger.log("info", "get qilindi");
+    courseRegisterLogger.log('info', 'get qilindi');
 
     res.status(200).json(registrations);
   } catch (error) {
-    courseRegisterLogger.log("warn", "internal server error");
+    courseRegisterLogger.log('warn', 'internal server error');
 
-    res.status(500).json({ message: "Server xatosi" });
+    res.status(500).json({ message: 'Server xatosi' });
   }
 });
 
@@ -159,42 +160,54 @@ route.get("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *         description: Server xatosi
  */
 route.patch(
-  "/:id",
-  roleAuthMiddleware(["USER", "ADMIN", "SUPER_ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['USER', 'ADMIN', 'SUPER_ADMIN']),
   async (req, res) => {
     let { error } = CourseRegistervalidationPatch.validate(req.body);
     if (error) {
-      courseRegisterLogger.log("warn", "validation error");
+      courseRegisterLogger.log('warn', 'validation error');
       return res.status(400).send({ error: error.details[0].message });
     }
     try {
       const { id } = req.params;
       const userId = req.userId;
+
       const { learningCenterId, branchId } = req.body;
       const learningCenter = await LearningCenter.findByPk(learningCenterId);
-      if (!learningCenter) {
-        return res.status(404).send({ message: "learningCenter not found" });
-      }
-      const branch = await Branch.findByPk(branchId);
-
-      if (!branch) {
-        return res.status(404).send({ message: "branch not found" });
-      }
+      let centerExists = await CourseRegister.findOne({
+        where: { learningCenterId },
+      });
       const registration = await CourseRegister.findByPk(id);
       if (!registration) {
-        courseRegisterLogger.log("warn", "register not found");
+        courseRegisterLogger.log('warn', 'register not found');
 
-        return res.status(404).json({ message: "CourseRegister not found" });
+        return res.status(404).json({ message: 'CourseRegister not found' });
       }
-      courseRegisterLogger.log("info", "patch  qilindi");
+      if (centerExists) {
+        return res.status(400).send({ message: 'center already exists' });
+      }
+      if (!learningCenter) {
+        return res.status(404).send({ message: 'learningCenter not found' });
+      }
+
+      const branch = await Branch.findByPk(branchId);
+      let branchExists = await CourseRegister.findOne({ where: { branchId } });
+      if (branchExists) {
+        return res.status(400).send({ message: 'branch already exists' });
+      }
+
+      if (!branch) {
+        return res.status(404).send({ message: 'branch not found' });
+      }
+      courseRegisterLogger.log('info', 'patch  qilindi');
 
       await registration.update({ userId, learningCenterId, branchId });
       res.status(200).json(registration);
     } catch (error) {
-      courseRegisterLogger.log("error", "internal server error");
+      courseRegisterLogger.log('error', 'internal server error');
 
       console.error(error);
-      res.status(500).json({ message: "Server xatosi" });
+      res.status(500).json({ message: 'Server xatosi' });
     }
   }
 );
@@ -221,27 +234,27 @@ route.patch(
  *         description: Server xatosi
  */
 route.delete(
-  "/:id",
-  roleAuthMiddleware(["USER", "ADMIN"]),
+  '/:id',
+  roleAuthMiddleware(['USER', 'ADMIN']),
   async (req, res) => {
     try {
       const { id } = req.params;
       const registration = await CourseRegister.findByPk(id);
 
       if (!registration) {
-        courseRegisterLogger.log("warn", "register not found");
+        courseRegisterLogger.log('warn', 'register not found');
 
-        return res.status(404).json({ message: "Register not found" });
+        return res.status(404).json({ message: 'Register not found' });
       }
-      courseRegisterLogger.log("info", "deleted");
+      courseRegisterLogger.log('info', 'deleted');
 
       await registration.destroy();
-      res.status(200).json({ message: "Ro'yxatdan o'tish o'chirildi" });
+      res.status(200).json(registration);
     } catch (error) {
-      courseRegisterLogger.log("error", "internal server error");
+      courseRegisterLogger.log('error', 'internal server error');
 
       console.error(error);
-      res.status(500).json({ message: "Server xatosi" });
+      res.status(500).json({ message: 'Server xatosi' });
     }
   }
 );

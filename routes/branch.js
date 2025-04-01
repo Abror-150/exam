@@ -4,7 +4,7 @@ const { Op, where } = require('sequelize');
 const Branch = require('../models/branches');
 const {
   branchesValidation,
-  validateBranchUpdate,
+  branchesValidationPatch,
 } = require('../validations/branches');
 const { getRouteLogger } = require('../logger/logger');
 const branchLogger = getRouteLogger(__filename);
@@ -141,7 +141,8 @@ route.get('/', async (req, res) => {
       include: [
         { model: LearningCenter },
         { model: Region },
-        { model: Profession },
+        { model: Profession, through: { attributes: [] } },
+        { model: Subject, as: 'subjectslar', through: { attributes: [] } },
       ],
       order,
       limit: parseInt(limit),
@@ -201,66 +202,104 @@ route.get('/:id', async (req, res) => {
 
 /**
  * @swagger
- * paths:
- *   /branches:
- *     post:
- *       summary: "Yangi filial qo'shish"
- *       description: "Yangi filial qo'shish va u bilan bog'liq kasblar va fanlarni kiritish"
- *       tags:
- *         - Branches
- *
- *       requestBody:
- *         required: true
+ * /branches:
+ *   post:
+ *     summary: Create a new branch
+ *     tags:
+ *       - Branches
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - phone
+ *               - img
+ *               - regionId
+ *               - address
+ *               - learningCenterId
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Central Branch"
+ *               phone:
+ *                 type: string
+ *                 example: "+998901234567"
+ *               img:
+ *                 type: string
+ *                 example: "https://example.com/image.jpg"
+ *               regionId:
+ *                 type: integer
+ *                 example: 1
+ *               address:
+ *                 type: string
+ *                 example: "123 Main St, Tashkent"
+ *               learningCenterId:
+ *                 type: integer
+ *                 example: 2
+ *     responses:
+ *       201:
+ *         description: Branch created successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 name:
- *                   type: string
- *                   example: "Namuna filiali"
- *                 phone:
- *                   type: string
- *                   example: "+998901234567"
- *                 img:
- *                   type: string
- *                   example: "https://example.com/image.jpg"
- *                 regionId:
+ *                 branch:
+ *                   type: object
+ *                   example:
+ *                     id: 1
+ *                     name: "Central Branch"
+ *                     phone: "+998901234567"
+ *                     img: "https://example.com/image.jpg"
+ *                     regionId: 1
+ *                     address: "123 Main St, Tashkent"
+ *                     learningCenterId: 2
+ *                 branchNumber:
  *                   type: integer
- *                   example: 1
- *                 address:
+ *                   example: 3
+ *       400:
+ *         description: Invalid request format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
  *                   type: string
- *                   example: "Toshkent, Chilonzor 5"
- *                 learningCenterId:
- *                   type: integer
- *                   example: 2
- *                 professionsId:
- *                   type: array
- *                   items:
- *                     type: integer
- *                   example: [1]
- *                 subjectsId:
- *                   type: array
- *                   items:
- *                     type: integer
- *                   example: [4]
- *       responses:
- *         201:
- *           description: "Filial muvaffaqiyatli yaratildi"
- *           content:
- *             application/json:
- *               schema:
- *                 type: object
- *                 properties:
- *                   Branch:
- *                     type: object
- *                   branchNumber:
- *                     type: integer
- *                     example: 3
- *         400:
- *           description: "Validatsiya xatosi"
- *         500:
- *           description: "Server xatosi"
+ *                   example: "Validation error message"
+ *       404:
+ *         description: Learning center or region not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Edu center not found"
+ *       409:
+ *         description: Duplicate branch or phone number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Branch already exists"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
@@ -269,43 +308,28 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
-    const {
-      professionsId,
-      subjectsId,
-      name,
-      phone,
-      img,
-      regionId,
-      address,
-      learningCenterId,
-    } = req.body;
+    const { name, phone, img, regionId, address, learningCenterId } = req.body;
 
     const learningCenter = await LearningCenter.findByPk(learningCenterId);
     if (!learningCenter) {
-      branchLogger.log('warn', 'center not found');
-
       return res.status(404).json({ error: 'Edu center not found' });
     }
+
     const region = await Region.findByPk(regionId);
     if (!region) {
-      branchLogger.log('warn', 'region not found');
       return res.status(404).json({ error: 'Region not found' });
     }
-    const branchExists = await Branch.findOne({
-      where: { name },
-    });
-    if (branchExists) {
-      branchLogger.log('info', 'Branch already exists');
 
+    const branchExists = await Branch.findOne({ where: { name } });
+    if (branchExists) {
       return res.status(409).json({ message: 'Branch already exists' });
     }
-    const phoneExists = await Branch.findOne({
-      where: { phone },
-    });
+
+    const phoneExists = await Branch.findOne({ where: { phone } });
     if (phoneExists) {
-      branchLogger.log('info', 'phone already');
       return res.status(409).json({ message: 'Phone already exists' });
     }
+
     const branch = await Branch.create({
       name,
       phone,
@@ -314,56 +338,276 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
       address,
       learningCenterId,
     });
-    branchLogger.log('info', 'post qilindi');
 
     const count = await Branch.count({ where: { learningCenterId } });
     await LearningCenter.update(
       { branchNumber: count },
       { where: { id: learningCenterId } }
     );
-    if (professionsId && professionsId.length > 0) {
-      const validProfessions = await Profession.findAll({
-        where: { id: professionsId },
+
+    res.status(201).json({ branch, branchNumber: count });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /branches/subjects:
+ *   post:
+ *     summary: "Link professions to a branch"
+ *     description: "Berilgan `branchId` uchun subjects qo‘shadi."
+ *     tags:
+ *       - "Branches"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               branchId:
+ *                 type: integer
+ *                 example: 5
+ *               subjectId:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2]
+ *     responses:
+ *       201:
+ *         description: "Subjects linked successfully!"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Subjects linked successfully!"
+ *       400:
+ *         description: "Invalid request body!"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "branchId and subjectId are required and must be valid!"
+ *       404:
+ *         description: "Branch or Subject not found!"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Branch not found!"
+ *       500:
+ *         description: "Serverda xatolik yuz berdi"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Serverda xatolik yuz berdi"
+ */
+
+route.post('/subjects', roleAuthMiddleware(['ADMIN']), async (req, res) => {
+  try {
+    const { branchId, subjectId } = req.body;
+
+    if (!branchId || !Array.isArray(subjectId) || subjectId.length === 0) {
+      return res.status(400).json({
+        message: 'branchId and subjectId are required and must be valid!',
       });
-
-      if (validProfessions.length != professionsId.length) {
-        return res
-          .status(404)
-          .json({ message: 'Some profession IDs are incorrect or not found!' });
-      }
-
-      const professionData = professionsId.map((id) => ({
-        professionId: id,
-        branchId: branch.id,
-      }));
-
-      await ProfessionBranch.bulkCreate(professionData);
     }
 
-    if (subjectsId && subjectsId.length > 0) {
-      const validSubjects = await Subject.findAll({
-        where: { id: subjectsId },
-      });
+    const branch = await Branch.findByPk(branchId);
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found!' });
+    }
 
-      if (validSubjects.length !== subjectsId.length) {
-        return res
-          .status(404)
-          .json({ message: 'Some subject IDs are incorrect or not found!' });
-      }
+    const validSubjects = await Subject.findAll({ where: { id: subjectId } });
+    if (validSubjects.length !== subjectId.length) {
+      return res
+        .status(404)
+        .json({ message: 'Some subject IDs are incorrect!' });
+    }
 
-      const subjectData = subjectsId.map((id) => ({
+    const existingRelations = await SubBranch.findAll({
+      where: {
+        branchId,
+        subjectId,
+      },
+    });
+
+    const existingIds = existingRelations.map((rel) => rel.subjectId);
+
+    const newSubjects = subjectId.filter((id) => !existingIds.includes(id));
+    if (newSubjects.length === 0) {
+      return res
+        .status(409)
+        .json({ message: 'All subjects are already created' });
+    }
+    if (newSubjects.length > 0) {
+      const subjectData = newSubjects.map((id) => ({
         subjectId: id,
-        branchId: branch.id,
+        branchId,
       }));
       await SubBranch.bulkCreate(subjectData);
     }
-    res.status(201).send({ branch, branchNumber: count });
+
+    res.status(201).json({ message: 'Subjects creadet successfully!' });
   } catch (error) {
-    branchLogger.log('error', 'internal server error');
+    console.log('Error:', error);
+    res.status(500).json({ error: 'Serverda xatolik yuz berdi' });
+  }
+});
 
-    console.log('error', error);
+/**
+ * @swagger
+ * /branches/professions:
+ *   post:
+ *     summary: Link professions to a branch
+ *     tags:
+ *       - Branches
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - branchId
+ *               - professionId
+ *             properties:
+ *               branchId:
+ *                 type: integer
+ *                 example: 1
+ *               professionId:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [2, 3, 4]
+ *     responses:
+ *       201:
+ *         description: Professions linked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Professions linked successfully!"
+ *       400:
+ *         description: Invalid request format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "branchId and professionId are required and must be in a valid format!"
+ *       404:
+ *         description: Branch or profession IDs not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Some profession IDs are incorrect or not found!"
+ *       409:
+ *         description: All professions are already linked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "All professions are already linked"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Serverda xatolik yuz berdi"
+ */
 
-    res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
+route.post('/professions', roleAuthMiddleware(['ADMIN']), async (req, res) => {
+  try {
+    const { branchId, professionId } = req.body;
+
+    if (
+      !branchId ||
+      !Array.isArray(professionId) ||
+      professionId.length === 0
+    ) {
+      return res.status(400).json({
+        message:
+          'branchId and professionId are required and must be in a valid format!',
+      });
+    }
+
+    const branch = await Branch.findByPk(branchId);
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found!' });
+    }
+
+    const validProfessions = await Profession.findAll({
+      where: { id: professionId },
+    });
+
+    if (validProfessions.length !== professionId.length) {
+      return res.status(404).json({
+        message: 'Some profession IDs are incorrect or not found!',
+      });
+    }
+
+    const existingProfessions = await ProfessionBranch.findAll({
+      where: {
+        branchId,
+        professionId,
+      },
+    });
+
+    const existingIds = existingProfessions.map((p) => p.professionId);
+    const newProfessions = professionId.filter(
+      (id) => !existingIds.includes(id)
+    );
+
+    if (newProfessions.length === 0) {
+      return res
+        .status(409)
+        .json({ message: 'All professions are already created' });
+    }
+
+    const professionData = newProfessions.map((id) => ({
+      professionId: id,
+      branchId,
+    }));
+
+    await ProfessionBranch.bulkCreate(professionData);
+
+    res.status(201).json({ message: 'Profesions created ' });
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).json({ error: 'Serverda xatolik yuz berdi' });
   }
 });
 
@@ -406,7 +650,8 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *         description: Filial topilmadi
  */
 route.patch('/:id', async (req, res) => {
-  const { error } = validateBranchUpdate(req.body);
+  const { error } = branchesValidationPatch.validate(req.body);
+
   if (error) {
     branchLogger.log('warn', 'validation error');
 
@@ -414,6 +659,11 @@ route.patch('/:id', async (req, res) => {
   }
   try {
     const branch = await Branch.findByPk(req.params.id);
+    let { name } = req.body;
+    const branchexists = await Branch.findOne({ where: { name } });
+    if (branchexists) {
+      return res.status(400).send({ message: 'branch already exists' });
+    }
     branchLogger.log('warn', 'region not found');
     if (!branch) return res.status(404).send({ message: 'Branch not found' });
 
@@ -423,6 +673,7 @@ route.patch('/:id', async (req, res) => {
     res.send(branch);
   } catch (error) {
     branchLogger.log('error', 'internal server error');
+    console.log(error);
 
     res.status(500).send({ error: 'Serverda xatolik yuz berdi' });
   }

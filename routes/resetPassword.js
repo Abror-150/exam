@@ -138,7 +138,7 @@ route.post('/update-password', async (req, res) => {
 
     myCache.del(resetToken);
 
-    return res.json({ message: 'Parol updated' });
+    return res.json(user);
   } catch (error) {
     resentPasswordLogger.log('error', 'internal server error');
     console.error('Error updating password:', error);

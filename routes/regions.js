@@ -5,7 +5,7 @@ const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Region = require('../models/regions');
 const LearningCenter = require('../models/learningCenter');
 const Branches = require('../models/branches');
-const { regionValidation, message } = require('../validations/regions');
+const regionValidation = require('../validations/regions');
 const Branch = require('../models/branches');
 const { getRouteLogger } = require('../logger/logger');
 
@@ -171,6 +171,10 @@ route.get('/:id', async (req, res) => {
  */
 
 route.post('/', async (req, res) => {
+  let { error } = regionValidation.validate(req.body);
+  if (error) {
+    return res.status(400).send({ error: error.details[0].message });
+  }
   try {
     let { name } = req.body;
     let existRegion = await Region.findOne({ where: { name } });
@@ -222,13 +226,22 @@ route.post('/', async (req, res) => {
  *         description: Viloyat topilmadi
  */
 route.patch('/:id', async (req, res) => {
+  let { error } = regionValidation.validate(req.body);
+  if (error) {
+    return res.status(400).send({ error: error.details[0].message });
+  }
   try {
+    let { name } = req.body;
     const { id } = req.params;
     const one = await Region.findByPk(id);
+    const oneExists = await Region.findOne({ where: { name } });
     if (!one) {
       regionLogger.log('warn', 'patch qilindi');
 
       return res.status(404).send({ error: 'region not found' });
+    }
+    if (oneExists) {
+      return res.status(400).send({ message: 'region already updated' });
     }
     await one.update(req.body);
     res.json(one);
@@ -261,14 +274,14 @@ route.patch('/:id', async (req, res) => {
 route.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Region.destroy({ where: { id } });
-    if (deleted) {
-      regionLogger.log('info', 'delete qilindi');
-
-      return res.send({ message: 'region deleted', deleted });
+    const deleted = await Region.findByPk(id);
+    if (!deleted) {
+      return res.status(400).send({ message: 'region not found' });
     }
-    regionLogger.log('warn', 'region not found');
-    res.status(404).send({ error: 'Region not found' });
+    await deleted.destroy();
+
+    regionLogger.log('info', 'delete qilindi');
+    return res.send({ message: 'region deleted', deleted });
   } catch (error) {
     regionLogger.log('error', 'internal server error');
 

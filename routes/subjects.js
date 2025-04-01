@@ -83,7 +83,10 @@ route.get('/', async (req, res) => {
       order: [[sortBy, order.toUpperCase()]],
       limit,
       offset: (page - 1) * limit,
-      include: [{ model: Branch }],
+      include: [
+        { model: Branch },
+        { model: LearningCenter, as: 'centers', through: { attributes: [] } },
+      ],
     });
 
     subjectLogger.log('info', 'Subjects fetched successfully');
@@ -91,6 +94,77 @@ route.get('/', async (req, res) => {
   } catch (error) {
     subjectLogger.log('error', `Error fetching subjects: ${error.message}`);
     res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /subjects/centers/{subjectId}:
+ *   get:
+ *     summary: Subject va unga tegishli Learning Centerlarni olish
+ *     tags: [Subjects]
+ *     description: Berilgan subjectId bo‘yicha subject va unga bog‘langan barcha Learning Centerlarni qaytaradi.
+ *     parameters:
+ *       - in: path
+ *         name: subjectId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Subject ID
+ *     responses:
+ *       200:
+ *         description: Subject va Learning Centerlar ro‘yxati
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 8
+ *                 name:
+ *                   type: string
+ *                   example: "Tarix"
+ *                 centers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 2
+ *                       name:
+ *                         type: string
+ *                         example: "Najot Ta'lim"
+ *       404:
+ *         description: Subject topilmadi
+ *       500:
+ *         description: Serverda xatolik
+ */
+route.get('/centers/:subjectId', async (req, res) => {
+  try {
+    const { subjectId } = req.params;
+
+    const subject = await Subject.findByPk(subjectId, {
+      include: {
+        model: LearningCenter,
+        as: 'centers',
+        through: { attributes: [] },
+      },
+    });
+
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    res.json({
+      id: subject.id,
+      name: subject.name,
+      centers: subject.centers,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -119,9 +193,10 @@ route.get('/', async (req, res) => {
 route.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id);
     const oneId = await Subject.findByPk(id, {
       include: [
-        { model: LearningCenter, as: 'markazlar', through: { attributes: [] } },
+        { model: LearningCenter, as: 'centers', through: { attributes: [] } },
         { model: Branch },
       ],
     });
@@ -246,14 +321,19 @@ route.patch(
       return res.status(400).send({ message: error.details[0].message });
     }
     try {
+      let { name } = req.body;
       const { id } = req.params;
       const one = await Subject.findByPk(id);
+      const oneExists = await Subject.findOne({ where: { name } });
 
       if (!one) {
         subjectLogger.log('warn', `Subject with ID ${id} not found for update`);
         return res.status(404).send({ error: 'Subject not found' });
       }
 
+      if (oneExists) {
+        return res.status(400).send({ message: 'subject already exists' });
+      }
       await one.update(req.body);
       subjectLogger.log('info', `Subject with ID ${id} updated successfully`);
       res.json(one);
@@ -290,18 +370,24 @@ route.patch(
 route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Subject.destroy({ where: { id } });
+    const subject = await Subject.findByPk(id);
 
-    if (deleted) {
-      subjectLogger.log('info', `Subject with ID ${id} deleted successfully`);
-      return res.send({ message: 'Subject deleted' });
+    if (!subject) {
+      subjectLogger.log('warn', `Subject with ID ${id} not found for deletion`);
+      return res.status(404).json({ message: 'Subject not found' });
     }
 
-    subjectLogger.log('warn', `Subject with ID ${id} not found for deletion`);
-    res.status(404).send({ error: 'Subject not found' });
+    await subject.destroy();
+
+    subjectLogger.log('info', `Subject with ID ${id} deleted successfully`);
+    return res
+      .status(200)
+      .json({ message: `Subject with ID ${id} deleted successfully`, subject });
   } catch (error) {
     subjectLogger.log('error', `Error deleting subject: ${error.message}`);
-    res.status(500).send({ error: 'Server error', details: error.message });
+    return res
+      .status(500)
+      .json({ error: 'Server error', details: error.message });
   }
 });
 

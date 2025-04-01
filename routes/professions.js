@@ -13,6 +13,7 @@ const Subject = require('../models/subjects');
 const Users = require('../models/user');
 const Branch = require('../models/branches');
 const { getRouteLogger } = require('../logger/logger');
+const { message } = require('../validations/regions');
 
 const professionLogger = getRouteLogger(__filename);
 /**
@@ -236,8 +237,13 @@ route.patch(
       if (error) {
         return res.status(400).send({ error: error.details[0].message });
       }
+      let { name } = req.body;
       const { id } = req.params;
       const one = await Profession.findByPk(id);
+      const oneExists = await Profession.findOne({ where: { name } });
+      if (oneExists) {
+        return res.status(400).send({ message: 'profession already name' });
+      }
       if (!one) {
         return res.status(404).send({ error: 'Kasb not found' });
       }
@@ -278,17 +284,19 @@ route.patch(
 route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Profession.destroy({ where: { id } });
-    if (deleted) {
-      professionLogger.log('info', 'deleted');
+    const deleted = await Profession.findByPk(id);
 
-      return res.send(deleted);
+    if (!deleted) {
+      return res.status(400).send({ message: 'profession not found' });
     }
-    professionLogger.log('warn', 'kasb not found');
 
-    res.status(404).send({ error: 'Kasb not found' });
+    await deleted.destroy();
+    professionLogger.log('warn', 'kasb deleted');
+
+    res.status(404).send(deleted);
   } catch (error) {
     professionLogger.log('error', 'internal server error');
+    console.log(error);
 
     res.status(500).send({ error: 'Server xatosi', details: error.message });
   }
