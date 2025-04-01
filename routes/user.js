@@ -546,6 +546,68 @@ route.get('/me', roleAuthMiddlewares(['ADMIN', 'USER']), async (req, res) => {
 
 /**
  * @swagger
+ * /users/logout:
+ *   post:
+ *     summary: Logout user
+ *     description: Logs out the user by deleting their session using user ID.
+ *     tags:
+ *       - Profile
+ *
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: deleted
+ *       404:
+ *         description: Session not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Session not found
+ *
+ * components:
+ *   securitySchemes:
+ *     BearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
+route.post(
+  '/logout',
+  roleAuthMiddleware(['ADMIN', 'USER']),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      const session = await Sessions.findOne({ where: { userId } });
+
+      if (!session) {
+        return res.status(404).json({ message: 'Session not found' });
+      }
+
+      await Sessions.destroy({ where: { userId } });
+
+      res.json({ message: 'deleted' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+);
+
+/**
+ * @swagger
  * /users/me-sesion:
  *   get:
  *     summary: Get current user session

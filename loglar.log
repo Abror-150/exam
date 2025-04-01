@@ -199,7 +199,6 @@
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:22:50.053Z"}
 {"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:26:31.134Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:26:45.893Z"}
-<<<<<<< HEAD
 {"level":"error","message":"Internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\user.js","timestamp":"2025-03-28T07:54:04.795Z"}
 {"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T07:58:30.774Z"}
 {"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T07:59:36.286Z"}
@@ -215,7 +214,6 @@
 {"level":"info","message":"Resource updated","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:12:07.650Z"}
 {"level":"info","message":"Resource updated","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:12:10.931Z"}
 {"level":"info","message":"Resource updated","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\resource.js","timestamp":"2025-03-28T08:12:19.727Z"}
-=======
 {"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:51:31.840Z"}
 {"level":"info","message":"Branch already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:52:42.006Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T06:52:51.293Z"}
@@ -235,7 +233,6 @@
 {"level":"info","message":"like create","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\likes.js","timestamp":"2025-03-28T08:04:48.973Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\learningCenter.js","timestamp":"2025-03-28T08:05:54.965Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:08:45.333Z"}
-<<<<<<< HEAD
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\courseRegister.js","timestamp":"2025-03-28T08:38:41.411Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\courseRegister.js","timestamp":"2025-03-28T08:38:49.373Z"}
 {"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\myInfo.js","timestamp":"2025-03-28T08:38:59.246Z"}
@@ -253,8 +250,7 @@
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:42:35.664Z"}
 {"level":"error","message":"internal server error","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:44:56.013Z"}
 {"level":"error","message":"internal server error","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:47:53.858Z"}
-=======
->>>>>>> 062a960d6a22f2cbe03019e41b2c4cf312e0ec13
+
 {"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\regions.js","timestamp":"2025-03-28T08:21:01.861Z"}
 {"level":"info","message":"Branch already exists","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:24:58.179Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T08:25:09.047Z"}
@@ -280,7 +276,6 @@
 {"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:48:12.338Z"}
 {"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:48:55.540Z"}
 {"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\exam\\exam\\routes\\comments.js","timestamp":"2025-03-28T08:51:08.847Z"}
->>>>>>> d976b3ed57e6380de7c8f9ececf18092ffc816cf
 {"level":"info","message":"post qilindi","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\branch.js","timestamp":"2025-03-28T09:07:33.993Z"}
 {"level":"warn","message":"Subject 'string' already exists","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-28T09:08:08.909Z"}
 {"level":"info","message":"Subject 'ssss' created successfully","module":"C:\\Users\\Acer\\Desktop\\exam\\exam\\routes\\subjects.js","timestamp":"2025-03-28T09:08:16.039Z"}
@@ -1126,3 +1121,64 @@
 {"level":"info","message":"get boldi","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\user.js","timestamp":"2025-04-01T14:42:31.200Z"}
 {"level":"info","message":"like create","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\likes.js","timestamp":"2025-04-01T14:43:00.851Z"}
 {"level":"warn","message":"Duplicate user data","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\admin.js","timestamp":"2025-04-01T14:43:37.869Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T14:42:39.994Z"}
+{"level":"warn","message":"password error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T14:48:08.064Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-01T14:48:32.969Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T15:12:41.288Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T16:36:57.768Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T16:37:37.090Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T16:39:50.178Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T16:40:19.355Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:40:41.298Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:41:40.219Z"}
+{"level":"warn","message":"center not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:41:50.396Z"}
+{"level":"info","message":"deleted","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:41:54.720Z"}
+{"level":"warn","message":"center not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:41:57.401Z"}
+{"level":"info","message":"deleted","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:42:11.829Z"}
+{"level":"warn","message":"center not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:42:15.115Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\myInfo.js","timestamp":"2025-04-01T16:42:27.778Z"}
+{"level":"info","message":"get boldi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T16:42:42.613Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\professions.js","timestamp":"2025-04-01T16:42:49.442Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\resource.js","timestamp":"2025-04-01T16:43:00.026Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T16:43:08.610Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T16:43:13.396Z"}
+{"count":3,"level":"info","message":"Fetched all ResourceCategories","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\resourceCategory.js","timestamp":"2025-04-01T16:43:21.559Z"}
+{"level":"warn","message":"edu center not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T16:46:05.145Z"}
+{"level":"warn","message":"edu center not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T16:46:16.117Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T16:47:43.358Z"}
+{"level":"warn","message":"edu center not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T16:49:59.989Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T16:50:12.922Z"}
+{"level":"warn","message":"validatsiya error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:57:51.469Z"}
+{"level":"warn","message":"validatsiya error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:58:00.175Z"}
+{"level":"warn","message":"first name  already exist","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:58:07.189Z"}
+{"level":"warn","message":"last name  already exist","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:58:19.877Z"}
+{"level":"warn","message":"email   already exist","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:58:27.679Z"}
+{"level":"warn","message":"phone  already exist","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:58:44.406Z"}
+{"level":"warn","message":"phone  already exist","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:58:50.410Z"}
+{"level":"warn","message":"otp not valid","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:59:14.759Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:59:40.165Z"}
+{"level":"warn","message":"user  not  found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:59:47.324Z"}
+{"level":"warn","message":"password error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T17:59:55.293Z"}
+{"level":"warn","message":"password error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T18:00:01.611Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T18:00:24.979Z"}
+{"level":"info","message":"get id boyicha ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T18:01:50.420Z"}
+{"level":"info","message":"get id boyicha ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T18:02:15.886Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T18:02:33.957Z"}
+{"level":"warn","message":"comment not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:15:43.923Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:15:58.481Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:16:02.662Z"}
+{"level":"warn","message":"learningCenter not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:17:49.738Z"}
+{"level":"warn","message":"learningCenter not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:18:10.594Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T18:18:20.451Z"}
+{"level":"warn","message":"learningCenter not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:19:55.466Z"}
+{"level":"warn","message":"learningCenter not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:23:51.924Z"}
+{"level":"warn","message":"learningCenter not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:23:56.814Z"}
+{"level":"warn","message":"learningCenter not found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:26:11.465Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:28:31.246Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:28:34.148Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:28:36.711Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:30:09.929Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:31:47.438Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:31:50.999Z"}
+{"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:32:05.717Z"}
+{"count":3,"level":"info","message":"Fetched all ResourceCategories","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\resourceCategory.js","timestamp":"2025-04-01T18:34:19.221Z"}

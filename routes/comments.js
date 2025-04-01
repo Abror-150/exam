@@ -434,17 +434,25 @@ route.patch(
     try {
       const { learningCenterId, message, star } = req.body;
       const comment = await Comments.findByPk(req.params.id);
+      let exists = await Comments.findOne({
+        where: {
+          learningCenterId,
+        },
+      });
+
       if (!comment) {
         commentLogger.log('warn', 'comment not found');
 
-        return res.status(404).send('Comment not found');
+        return res.status(404).send({ message: 'Comment not found' });
       }
       const learningCenter = await LearningCenter.findByPk(learningCenterId);
+
       if (!learningCenter) {
         commentLogger.log('warn', 'learningCenter not found');
 
         return res.status(404).send({ message: 'learningCenter not found' });
       }
+
       commentLogger.log('info', 'patch qilindi');
 
       await comment.update({ learningCenterId, message, star });
