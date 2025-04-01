@@ -30,14 +30,14 @@ let logger = winston.createLogger({
     new winston.transports.MongoDB({
       db: 'mongodb://localhost:27017/mydatabase',
       collection: 'loglar',
-      // options: {
-      //   tls: true,
-      //   tlsAllowInvalidCertificates: false,
-      //   tlsInsecure: false,
-      //   tlsCertificateKeyFile: undefined,
-      //   useUnifiedTopology: true,
-      //   useNewUrlParser: true,
-      // },
+      options: {
+        tls: true,
+        tlsAllowInvalidCertificates: false,
+        tlsInsecure: false,
+        tlsCertificateKeyFile: undefined,
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+      },
     }),
   ],
 });

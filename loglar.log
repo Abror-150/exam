@@ -1121,3 +1121,8 @@
 {"level":"warn","message":"password error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T10:45:44.358Z"}
 {"level":"error","message":"validation error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T10:46:04.552Z"}
 {"level":"error","message":"Internal server error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T10:46:15.235Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\branch.js","timestamp":"2025-04-01T14:41:04.623Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T14:41:20.316Z"}
+{"level":"info","message":"get boldi","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\user.js","timestamp":"2025-04-01T14:42:31.200Z"}
+{"level":"info","message":"like create","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\likes.js","timestamp":"2025-04-01T14:43:00.851Z"}
+{"level":"warn","message":"Duplicate user data","module":"C:\\Users\\Acer\\Desktop\\all\\exam\\routes\\admin.js","timestamp":"2025-04-01T14:43:37.869Z"}
