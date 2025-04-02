@@ -39,3 +39,10 @@ ALTER TABLE resources DROP COLUMN categoryId;
 
 ALTER TABLE soxalar
 CHANGE COLUMN professionId professionsId INT;
+
+
+SELECT *from subjectbranches;
+SELECT *from subjectcenters;
+
+SELECT *from soxalar;
+RENAME TABLE markazs TO markaz;

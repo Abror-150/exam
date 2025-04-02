@@ -1182,3 +1182,35 @@
 {"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:31:50.999Z"}
 {"level":"info","message":"patch qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:32:05.717Z"}
 {"count":3,"level":"info","message":"Fetched all ResourceCategories","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\resourceCategory.js","timestamp":"2025-04-01T18:34:19.221Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:50:14.780Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-01T18:50:21.770Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\regions.js","timestamp":"2025-04-01T18:51:09.867Z"}
+{"level":"info","message":"Subjects fetched successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-01T18:51:23.440Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-01T18:51:30.770Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-01T18:51:37.129Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-01T18:51:43.632Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\myInfo.js","timestamp":"2025-04-01T18:51:50.394Z"}
+{"level":"info","message":"get boldi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T18:51:56.217Z"}
+{"level":"info","message":"id boyicha qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-01T18:52:06.285Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\professions.js","timestamp":"2025-04-01T18:52:15.838Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\resource.js","timestamp":"2025-04-01T18:52:30.938Z"}
+{"count":3,"level":"info","message":"Fetched all ResourceCategories","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\resourceCategory.js","timestamp":"2025-04-01T18:52:37.286Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T04:10:59.052Z"}
+{"level":"warn","message":"user  not  found","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-02T04:11:14.401Z"}
+{"level":"warn","message":"password error","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-02T04:11:26.509Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\regions.js","timestamp":"2025-04-02T04:12:01.040Z"}
+{"level":"info","message":"Subjects fetched successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:13.751Z"}
+{"level":"warn","message":"Subject with ID 100 not found for deletion","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:33.472Z"}
+{"level":"info","message":"Subject with ID 10 deleted successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:37.079Z"}
+{"level":"warn","message":"Subject with ID 10 not found for deletion","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:39.188Z"}
+{"level":"info","message":"Subject with ID 11 deleted successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:43.591Z"}
+{"level":"warn","message":"Subject with ID 11 not found for deletion","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:45.671Z"}
+{"level":"info","message":"Subject with ID 12 deleted successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:49.273Z"}
+{"level":"info","message":"Subject with ID 13 deleted successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:52.826Z"}
+{"level":"warn","message":"Subject with ID 13 not found for deletion","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:12:54.506Z"}
+{"level":"info","message":"Subjects fetched successfully","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-02T04:13:07.801Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-02T04:13:29.488Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-02T04:13:37.173Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T05:10:35.520Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T05:14:58.692Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T05:15:04.198Z"}

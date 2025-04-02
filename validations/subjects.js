@@ -7,6 +7,6 @@ const subjectSchema = Joi.object({
 const subjectPatchValidation = Joi.object({
   name: Joi.string().min(3),
   img: Joi.string().uri(),
-});
+}).min(1);
 
 module.exports = { subjectSchema, subjectPatchValidation };

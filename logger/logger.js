@@ -19,7 +19,7 @@
 
 const winston = require('winston');
 const { combine, json, timestamp } = winston.format;
-require('winston-mongodb').MongoDB;
+require('winston-mongodb');
 
 let logger = winston.createLogger({
   level: 'silly',
@@ -28,15 +28,12 @@ let logger = winston.createLogger({
     new winston.transports.Console(),
     new winston.transports.File({ filename: 'loglar.log' }),
     new winston.transports.MongoDB({
-      db: 'mongodb://localhost:27017/mydatabase',
+      db: 'mongodb+srv://shukrullayevikromxon:TvsJZnNVyZhWC6cw@educenter.ylo3aih.mongodb.net/?retryWrites=true&w=majority&appName=educenter',
       collection: 'loglar',
       options: {
         tls: true,
-        // tlsAllowInvalidCertificates: false,
-        tlsInsecure: false,
+        tlsAllowInvalidCertificates: false,
         tlsCertificateKeyFile: undefined,
-        // useUnifiedTopology: true,
-        // useNewUrlParser: true,
       },
     }),
   ],

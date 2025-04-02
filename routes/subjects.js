@@ -152,7 +152,6 @@ route.get('/centers/:subjectId', async (req, res) => {
         through: { attributes: [] },
       },
     });
-
     if (!subject) {
       return res.status(404).json({ message: 'Subject not found' });
     }
