@@ -532,7 +532,6 @@ route.get('/me', roleAuthMiddlewares(['ADMIN', 'USER']), async (req, res) => {
     });
 
     if (!user) {
-      logger.warn(`User profile not found: ${userId}`);
       return res.status(404).json({ error: 'User not found' });
     }
     res.json(user);

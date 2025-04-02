@@ -14,7 +14,7 @@ const Field = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    professionId: {
+    professionsId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },

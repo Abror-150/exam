@@ -1,6 +1,6 @@
 const { Sequelize } = require('sequelize');
 
-const db = new Sequelize('eduCenters', 'root', 'password', {
+const db = new Sequelize('eduCenters', 'root', 'abror.08082008', {
   host: 'localhost',
   dialect: 'mysql',
 });
@@ -9,8 +9,8 @@ async function connectedDb() {
     await db.authenticate();
     console.log('connected db');
     require('../models/connections');
-    await db.sync({ force: true });
-    console.log('ulandi ');
+    // await db.sync({ alter: true });
+    // console.log('ulandi ');
   } catch (error) {
     console.log(error);
   }
