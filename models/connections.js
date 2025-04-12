@@ -44,14 +44,14 @@ Comments.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 LearningCenter.hasMany(Branch, { foreignKey: 'learningCenterId' });
 Branch.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
-LearningCenter.hasMany(Profession, {
-  foreignKey: 'learningCenterId',
-  //   as: 'professions',
-});
-Profession.belongsTo(LearningCenter, {
-  foreignKey: 'learningCenterId',
-  //   as: 'userLearningCenter',
-});
+// LearningCenter.hasMany(Profession, {
+//   foreignKey: 'learningCenterId',
+//   as: 'kasblar',
+// });
+// Profession.belongsTo(LearningCenter, {
+//   foreignKey: 'professionId',
+//   //   as: 'userLearningCenter',
+// });
 
 Region.hasMany(LearningCenter, { foreignKey: 'regionId' });
 LearningCenter.belongsTo(Region, { foreignKey: 'regionId' });
@@ -113,14 +113,15 @@ Branch.belongsToMany(Subject, {
 });
 Profession.belongsToMany(LearningCenter, {
   through: Field,
+  as: 'learningcenters',
 
-  foreignKey: 'professionId',
+  foreignKey: 'professionsId',
 });
 
 LearningCenter.belongsToMany(Profession, {
   through: Field,
+  as: 'kasblars',
   foreignKey: 'learningCenterId',
-  as: 'professionlar',
 });
 
 Users.hasMany(Resource, { foreignKey: 'userId' });
@@ -147,5 +148,5 @@ Sessions.belongsTo(Users, { foreignKey: 'userId' });
 Field.belongsTo(Profession, { foreignKey: 'professionId' });
 Field.belongsTo(LearningCenter, { foreignKey: 'learningCenterId' });
 
-Profession.hasMany(Field, { foreignKey: 'professionId' });
+Profession.hasMany(Field, { foreignKey: 'professionsId' });
 LearningCenter.hasMany(Field, { foreignKey: 'learningCenterId' });

@@ -67,63 +67,73 @@ const resourceLogger = getRouteLogger(__filename);
  *         description: Server xatosi
  */
 
-route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  let { error } = ResourceValidation.validate(req.body);
-  if (error) {
-    resourceLogger.log('warn', 'validation error');
-    return res.status(400).send({ error: error.details[0].message });
+route.post(
+  '/',
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
+  async (req, res) => {
+    let { error } = ResourceValidation.validate(req.body);
+    if (error) {
+      resourceLogger.log('warn', 'validation error');
+      return res.status(400).send({ error: error.details[0].message });
+    }
+    try {
+      const { name, file, img, describtion, link, resourceCategoriesId } =
+        req.body;
+      const categoryExists = await ResourceCategory.findByPk(
+        resourceCategoriesId
+      );
+      if (!categoryExists) {
+        resourceLogger.log('warn', 'category  not found');
+
+        return res
+          .status(404)
+          .json({ message: 'resourceCategories not found' });
+      }
+      const userId = req.userId;
+
+      const existingResource = await Resource.findOne({
+        where: { name },
+      });
+
+      if (existingResource) {
+        resourceLogger.log('warn', 'resource already ');
+        return res
+          .status(400)
+          .json({ message: 'This resource already exists' });
+      }
+
+      const category = await ResourceCategory.findByPk(resourceCategoriesId);
+      if (!category) {
+        return res
+          .status(404)
+          .json({ message: 'resourceCategories not found' });
+      }
+
+      const resource = await Resource.create({
+        name,
+        file,
+        img,
+        describtion,
+        link,
+        userId,
+        resourceCategoriesId,
+      });
+      resourceLogger.log('info', 'post boldi');
+      res.status(201).json({
+        message: 'Resource added',
+        data: resource,
+      });
+    } catch (error) {
+      resourceLogger.log('error', 'internal server error');
+
+      console.error(error);
+      res.status(500).json({
+        message: "Resource qo'shishda xatolik",
+        error: error.message,
+      });
+    }
   }
-  try {
-    const { name, file, img, describtion, link, resourceCategoriesId } =
-      req.body;
-    const categoryExists = await ResourceCategory.findByPk(
-      resourceCategoriesId
-    );
-    if (!categoryExists) {
-      resourceLogger.log('warn', 'category  not found');
-
-      return res.status(404).json({ message: 'resourceCategories not found' });
-    }
-    const userId = req.userId;
-
-    const existingResource = await Resource.findOne({
-      where: { name },
-    });
-
-    if (existingResource) {
-      resourceLogger.log('warn', 'resource already ');
-      return res.status(400).json({ message: 'This resource already exists' });
-    }
-
-    const category = await ResourceCategory.findByPk(resourceCategoriesId);
-    if (!category) {
-      return res.status(404).json({ message: 'resourceCategories not found' });
-    }
-
-    const resource = await Resource.create({
-      name,
-      file,
-      img,
-      describtion,
-      link,
-      userId,
-      resourceCategoriesId,
-    });
-    resourceLogger.log('info', 'post boldi');
-    res.status(201).json({
-      message: 'Resource added',
-      data: resource,
-    });
-  } catch (error) {
-    resourceLogger.log('error', 'internal server error');
-
-    console.error(error);
-    res.status(500).json({
-      message: "Resource qo'shishda xatolik",
-      error: error.message,
-    });
-  }
-});
+);
 /**
  * @swagger
  * /resources/{id}:
@@ -178,47 +188,55 @@ route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.patch('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  let { error } = ResourcePatchValidation.validate(req.body);
+route.patch(
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
+  async (req, res) => {
+    let { error } = ResourcePatchValidation.validate(req.body);
 
-  if (error) {
-    resourceLogger.log('warn', 'validation error', { details: error.details });
-    return res.status(400).json({
-      error: error.details[0].message,
-    });
-  }
-
-  try {
-    let { name } = req.body;
-    const resource = await Resource.findByPk(req.params.id);
-    let resourceExists = await Resource.findOne({ where: { name } });
-    if (resourceExists) {
-      return res.status(400).send({ message: 'resouce name already updated' });
+    if (error) {
+      resourceLogger.log('warn', 'validation error', {
+        details: error.details,
+      });
+      return res.status(400).json({
+        error: error.details[0].message,
+      });
     }
 
-    if (!resource) {
-      resourceLogger.log('warn', 'resource not found');
-      return res.status(404).json({ message: 'Resource topilmadi' });
+    try {
+      let { name } = req.body;
+      const resource = await Resource.findByPk(req.params.id);
+      let resourceExists = await Resource.findOne({ where: { name } });
+      if (resourceExists) {
+        return res
+          .status(400)
+          .send({ message: 'resouce name already updated' });
+      }
+
+      if (!resource) {
+        resourceLogger.log('warn', 'resource not found');
+        return res.status(404).json({ message: 'Resource topilmadi' });
+      }
+
+      await resource.update(req.body);
+
+      resourceLogger.log('info', 'Resource updated');
+      res.json({
+        message: 'Resource updated',
+        data: resource,
+      });
+    } catch (error) {
+      resourceLogger.log('error', 'internal server error', {
+        error: error.message,
+      });
+      console.error('Error:', error);
+      res.status(500).json({
+        message: 'Resource yangilashda xatolik',
+        error: error.message,
+      });
     }
-
-    await resource.update(req.body);
-
-    resourceLogger.log('info', 'Resource updated');
-    res.json({
-      message: 'Resource updated',
-      data: resource,
-    });
-  } catch (error) {
-    resourceLogger.log('error', 'internal server error', {
-      error: error.message,
-    });
-    console.error('Error:', error);
-    res.status(500).json({
-      message: 'Resource yangilashda xatolik',
-      error: error.message,
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -463,28 +481,32 @@ route.get('/:id', async (req, res) => {
  *       500:
  *         description: Server xatosi
  */
-route.delete('/:id', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
-  try {
-    const resource = await Resource.findByPk(req.params.id);
-    if (!resource) {
-      resourceLogger.log('warn', 'resouce not found');
+route.delete(
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'CEO', 'USER']),
+  async (req, res) => {
+    try {
+      const resource = await Resource.findByPk(req.params.id);
+      if (!resource) {
+        resourceLogger.log('warn', 'resouce not found');
 
-      return res.status(404).json({ message: 'Resource topilmadi' });
+        return res.status(404).json({ message: 'Resource topilmadi' });
+      }
+      resourceLogger.log('info', ' delele qilindi');
+
+      await resource.destroy();
+      res.json(resource);
+    } catch (error) {
+      resourceLogger.log('error', 'internal server error');
+
+      console.error(error);
+      res.status(500).json({
+        message: 'Resource delete error',
+        error: error.message,
+      });
     }
-    resourceLogger.log('info', ' delele qilindi');
-
-    await resource.destroy();
-    res.json(resource);
-  } catch (error) {
-    resourceLogger.log('error', 'internal server error');
-
-    console.error(error);
-    res.status(500).json({
-      message: 'Resource delete error',
-      error: error.message,
-    });
   }
-});
+);
 
 /**
  * @swagger

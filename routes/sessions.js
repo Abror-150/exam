@@ -1,10 +1,10 @@
 const { Router } = require('express');
 const { Op } = require('sequelize');
 const route = Router();
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const sessionsSchema = require("../validations/sessions");
-const Sessions = require("../models/sessions");
-const Users = require("../models/user");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const sessionsSchema = require('../validations/sessions');
+const Sessions = require('../models/sessions');
+const Users = require('../models/user');
 
 /**
  * @swagger
@@ -43,15 +43,19 @@ const Users = require("../models/user");
  *         description: Xatolik yuz berdi
  */
 
-route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  try {
-    let data = await Sessions.findAll({ include: [{ model: Users }] });
-    res.send(data);
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-    console.log(error);
+route.get(
+  '/',
+  roleAuthMiddleware(['ADMIN', 'CEO', 'USER']),
+  async (req, res) => {
+    try {
+      let data = await Sessions.findAll({ include: [{ model: Users }] });
+      res.send(data);
+    } catch (error) {
+      res.status(400).send({ message: error.message });
+      console.log(error);
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -87,20 +91,24 @@ route.get('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *       400:
  *         description: Bad request
  */
-route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  try {
-    let data = await Sessions.findByPk(req.params.id, {
-      include: [{ model: Users }],
-    });
-    if (!data) {
-      return res.status(404).send({ message: 'Session not found' });
+route.get(
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
+  async (req, res) => {
+    try {
+      let data = await Sessions.findByPk(req.params.id, {
+        include: [{ model: Users }],
+      });
+      if (!data) {
+        return res.status(404).send({ message: 'Session not found' });
+      }
+      res.send(data);
+    } catch (error) {
+      res.status(400).send({ message: error.message });
+      console.log(error);
     }
-    res.send(data);
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-    console.log(error);
   }
-});
+);
 
 /**
  * @swagger
@@ -150,18 +158,22 @@ route.get('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
  *                   type: string
  *                   example: "Server xatosi"
  */
-route.delete('/:id', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  try {
-    const session = await Sessions.findByPk(req.params.id);
-    if (!session) {
-      return res.status(404).json({ message: 'Session topilmadi' });
+route.delete(
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'CEO', 'USER']),
+  async (req, res) => {
+    try {
+      const session = await Sessions.findByPk(req.params.id);
+      if (!session) {
+        return res.status(404).json({ message: 'Session topilmadi' });
+      }
+      await session.destroy();
+      res.json({ message: 'Session ochirildi', session });
+    } catch (error) {
+      res.status(500).send({ error: 'Server xatosi', details: error.message });
+      console.log(error);
     }
-    await session.destroy();
-    res.json({ message: 'Session ochirildi', session });
-  } catch (error) {
-    res.status(500).send({ error: 'Server xatosi', details: error.message });
-    console.log(error);
   }
-});
+);
 
 module.exports = route;

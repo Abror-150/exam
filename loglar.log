@@ -1214,3 +1214,118 @@
 {"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T05:10:35.520Z"}
 {"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T05:14:58.692Z"}
 {"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-02T05:15:04.198Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-12T10:22:45.482Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:23:50.628Z"}
+{"level":"warn","message":"user  not  found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:24:43.726Z"}
+{"level":"warn","message":"user  not  found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:24:50.958Z"}
+{"level":"warn","message":"user  not  found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:24:56.583Z"}
+{"level":"error","message":"Internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:25:14.819Z"}
+{"level":"warn","message":"phone  already exist","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:34:59.790Z"}
+{"level":"warn","message":"validatsiya error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:41:45.368Z"}
+{"level":"warn","message":"Validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\admin.js","timestamp":"2025-04-12T10:41:56.654Z"}
+{"level":"warn","message":"Validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\admin.js","timestamp":"2025-04-12T10:45:53.003Z"}
+{"level":"warn","message":"password error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T10:53:50.816Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T10:54:28.680Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T10:54:38.790Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T10:54:44.639Z"}
+{"level":"warn","message":"region already exists","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\regions.js","timestamp":"2025-04-12T10:54:54.583Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\regions.js","timestamp":"2025-04-12T10:55:02.300Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T10:55:21.544Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\professions.js","timestamp":"2025-04-12T10:56:07.030Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\professions.js","timestamp":"2025-04-12T10:56:17.099Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\professions.js","timestamp":"2025-04-12T10:56:24.428Z"}
+{"level":"warn","message":"validatsiya error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T11:40:24.243Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:49:46.435Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:52:33.889Z"}
+{"level":"warn","message":"branch not found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:53:02.682Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:53:33.128Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:53:49.977Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:54:03.132Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:54:07.265Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:54:34.788Z"}
+{"level":"warn","message":"branch not found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:54:53.512Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\courseRegister.js","timestamp":"2025-04-12T11:55:14.525Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:55:22.826Z"}
+{"level":"warn","message":"Validation error: \"img\" must be a valid uri","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-12T11:56:15.933Z"}
+{"level":"info","message":"Subject 'math' created successfully","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-12T11:56:24.120Z"}
+{"level":"info","message":"Subject 'history' created successfully","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\subjects.js","timestamp":"2025-04-12T11:56:30.425Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:56:56.132Z"}
+{"level":"info","message":"like create","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\likes.js","timestamp":"2025-04-12T11:57:08.175Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:57:13.192Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-12T11:57:26.562Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-12T11:57:34.005Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:57:39.604Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:58:11.817Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:58:28.377Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T11:59:37.340Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:00:11.686Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:09:05.929Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:11:15.953Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:11:21.886Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:11:48.236Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:11:51.009Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:12:26.437Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:12:34.455Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:12:57.293Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-12T12:13:29.941Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-12T12:14:37.313Z"}
+{"level":"info","message":"get ishladi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\branch.js","timestamp":"2025-04-12T12:14:58.433Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:15:47.947Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:16:43.168Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:16:58.564Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:17:13.895Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:17:27.924Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:17:40.142Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:17:45.440Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:17:56.151Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:18:10.514Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:18:19.462Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:18:25.816Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:19:41.952Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:19:48.722Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:20:01.419Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:20:12.872Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:20:21.975Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:20:35.241Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:20:55.623Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:21:09.031Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:21:29.286Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:21:42.200Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:21:51.177Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:22:01.654Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:22:15.019Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:23:09.985Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:23:22.412Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:23:35.472Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:23:42.682Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:25:45.171Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:26:07.291Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:28:35.781Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:29:43.478Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:31:17.353Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:32:15.396Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:32:22.839Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:33:36.159Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:33:41.624Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:34:40.991Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:35:06.205Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:35:23.778Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:35:28.494Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:35:30.317Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:37:40.733Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:38:38.485Z"}
+{"level":"error","message":"internal server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:38:40.900Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:43:28.347Z"}
+{"level":"error","message":"server error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T12:45:07.108Z"}
+{"level":"warn","message":"user  not  found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\user.js","timestamp":"2025-04-12T12:45:51.970Z"}
+{"level":"warn","message":"region already exists","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\regions.js","timestamp":"2025-04-12T12:46:26.488Z"}
+{"level":"info","message":"get post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\regions.js","timestamp":"2025-04-12T12:46:33.128Z"}
+{"level":"info","message":"post qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-12T12:48:18.070Z"}
+{"level":"info","message":"id boyicha get ","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\comments.js","timestamp":"2025-04-12T12:48:27.221Z"}
+{"level":"info","message":"like create","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\likes.js","timestamp":"2025-04-12T12:49:18.425Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\resource.js","timestamp":"2025-04-12T12:49:44.510Z"}
+{"level":"warn","message":"validation error","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\resource.js","timestamp":"2025-04-12T12:50:00.538Z"}
+{"level":"warn","message":"category  not found","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\resource.js","timestamp":"2025-04-12T12:50:06.665Z"}
+{"id":1,"level":"info","message":"ResourceCategory added","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\resourceCategory.js","timestamp":"2025-04-12T12:50:17.425Z"}
+{"level":"info","message":"post boldi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\resource.js","timestamp":"2025-04-12T12:50:22.343Z"}
+{"level":"info","message":"get qilindi","module":"C:\\Users\\user\\Desktop\\Najot Ta'lim\\oquv markaz\\exam\\routes\\learningCenter.js","timestamp":"2025-04-12T12:52:52.267Z"}

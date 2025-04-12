@@ -357,42 +357,46 @@ route.get('/:id', async (req, res) => {
  *                   example: "Server error"
  */
 
-route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
-  try {
-    const { learningCenterId, star, message, branchId } = req.body;
+route.post(
+  '/',
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
+  async (req, res) => {
+    try {
+      const { learningCenterId, star, message, branchId } = req.body;
 
-    const userId = req?.userId;
-    const learningExists = await LearningCenter.findByPk(learningCenterId);
+      const userId = req?.userId;
+      const learningExists = await LearningCenter.findByPk(learningCenterId);
 
-    if (!learningExists) {
-      commentLogger.log('warn', 'edu center not found');
+      if (!learningExists) {
+        commentLogger.log('warn', 'edu center not found');
 
-      return res.status(404).send({ message: 'edu center not found' });
+        return res.status(404).send({ message: 'edu center not found' });
+      }
+      const branchexists = await Branch.findByPk(branchId);
+      if (!branchexists) {
+        commentLogger.log('warn', 'edu center not found');
+
+        return res.status(404).send({ message: 'branch not found' });
+      }
+      const newComment = await Comments.create({
+        userId,
+        learningCenterId,
+        star,
+        message,
+        branchId,
+      });
+      commentLogger.log('info', 'post qilindi');
+
+      res.send(newComment);
+    } catch (error) {
+      console.log(error);
+
+      commentLogger.log('error', 'internal server error');
+
+      res.status(500).send({ error: 'server error' });
     }
-    const branchexists = await Branch.findByPk(branchId);
-    if (!branchexists) {
-      commentLogger.log('warn', 'edu center not found');
-
-      return res.status(404).send({ message: 'branch not found' });
-    }
-    const newComment = await Comments.create({
-      userId,
-      learningCenterId,
-      star,
-      message,
-      branchId,
-    });
-    commentLogger.log('info', 'post qilindi');
-
-    res.send(newComment);
-  } catch (error) {
-    console.log(error);
-
-    commentLogger.log('error', 'internal server error');
-
-    res.status(500).send({ error: 'server error' });
   }
-});
+);
 
 /**
  * @swagger
@@ -429,7 +433,7 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'USER']), async (req, res) => {
 
 route.patch(
   '/:id',
-  roleAuthMiddleware(['ADMIN', 'USER', 'SUPER_ADMIN']),
+  roleAuthMiddleware(['ADMIN', 'USER', 'SUPER_ADMIN', 'CEO']),
   async (req, res) => {
     try {
       const { learningCenterId, message, star } = req.body;
@@ -488,7 +492,7 @@ route.patch(
 
 route.delete(
   '/:id',
-  roleAuthMiddleware(['ADMIN', 'USER']),
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
   async (req, res) => {
     try {
       const comment = await Comments.findByPk(req.params.id);

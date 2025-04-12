@@ -1,12 +1,12 @@
-const { Router } = require("express");
-const Like = require("../models/likes");
-const { Op } = require("sequelize");
+const { Router } = require('express');
+const Like = require('../models/likes');
+const { Op } = require('sequelize');
 const route = Router();
 
-const roleAuthMiddleware = require("../middlewares/roleAuth");
-const { likeSchema } = require("../validations/likes");
-const { getRouteLogger } = require("../logger/logger");
-const LearningCenter = require("../models/learningCenter");
+const roleAuthMiddleware = require('../middlewares/roleAuth');
+const { likeSchema } = require('../validations/likes');
+const { getRouteLogger } = require('../logger/logger');
+const LearningCenter = require('../models/learningCenter');
 
 const likeLogger = getRouteLogger(__filename);
 /**
@@ -32,44 +32,48 @@ const likeLogger = getRouteLogger(__filename);
  *       400:
  *         description: Noto‘g‘ri ma‘lumot
  */
-route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
-  try {
-    const { error } = likeSchema.validate(req.body);
-    if (error) {
-      likeLogger.log("warn", "validation error");
-      return res.status(400).send({ error: error.details[0].message });
-    }
-    const userId = req.userId;
-    const { learningCenterId } = req.body;
-    const learningCenter = await LearningCenter.findByPk(learningCenterId);
-    if (!learningCenter) {
-      return res.status(404).send({ message: "learnigCenter not found" });
-    }
-    const existingLike = await Like.findOne({
-      where: { userId, learningCenterId },
-    });
+route.post(
+  '/',
+  roleAuthMiddleware(['ADMIN', 'CEO', 'USER']),
+  async (req, res) => {
+    try {
+      const { error } = likeSchema.validate(req.body);
+      if (error) {
+        likeLogger.log('warn', 'validation error');
+        return res.status(400).send({ error: error.details[0].message });
+      }
+      const userId = req.userId;
+      const { learningCenterId } = req.body;
+      const learningCenter = await LearningCenter.findByPk(learningCenterId);
+      if (!learningCenter) {
+        return res.status(404).send({ message: 'learnigCenter not found' });
+      }
+      const existingLike = await Like.findOne({
+        where: { userId, learningCenterId },
+      });
 
-    if (existingLike) {
-      likeLogger.log("warn", "User already liked this learning center");
+      if (existingLike) {
+        likeLogger.log('warn', 'User already liked this learning center');
 
-      return res
+        return res
+          .status(400)
+          .json({ message: 'User already liked this learning center' });
+      }
+
+      const one = await Like.create({ userId, learningCenterId });
+      likeLogger.log('info', 'like create');
+
+      res.status(201).send(one);
+    } catch (error) {
+      likeLogger.log('error', 'internal server error');
+
+      res
         .status(400)
-        .json({ message: "User already liked this learning center" });
+        .send({ error: "Ma'lumot noto'g'ri", details: error.message });
+      console.log(error);
     }
-
-    const one = await Like.create({ userId, learningCenterId });
-    likeLogger.log("info", "like create");
-
-    res.status(201).send(one);
-  } catch (error) {
-    likeLogger.log("error", "internal server error");
-
-    res
-      .status(400)
-      .send({ error: "Ma'lumot noto'g'ri", details: error.message });
-    console.log(error);
   }
-});
+);
 
 /**
  * @swagger
@@ -91,27 +95,31 @@ route.post("/", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
  *       404:
  *         description: Like topilmadi
  */
-route.delete("/:id", roleAuthMiddleware(["ADMIN"]), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const like = await Like.findByPk(id);
-    if (!like) {
-      return res.status(404).send({ message: "like not found" });
+route.delete(
+  '/:id',
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const like = await Like.findByPk(id);
+      if (!like) {
+        return res.status(404).send({ message: 'like not found' });
+      }
+      const deleted = await Like.destroy({ where: { id } });
+      if (deleted) {
+        likeLogger.log('info', 'like deleted');
+
+        return res.send({ message: 'Like deleted' });
+      }
+      likeLogger.log('info', 'like delete not found');
+
+      res.status(404).send({ error: 'Like not found' });
+    } catch (error) {
+      likeLogger.log('error', 'internal server error');
+
+      res.status(500).send({ error: 'Server xatosi', details: error.message });
     }
-    const deleted = await Like.destroy({ where: { id } });
-    if (deleted) {
-      likeLogger.log("info", "like deleted");
-
-      return res.send({ message: "Like deleted" });
-    }
-    likeLogger.log("info", "like delete not found");
-
-    res.status(404).send({ error: "Like not found" });
-  } catch (error) {
-    likeLogger.log("error", "internal server error");
-
-    res.status(500).send({ error: "Server xatosi", details: error.message });
   }
-});
+);
 
 module.exports = route;

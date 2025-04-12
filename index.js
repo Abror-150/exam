@@ -51,4 +51,4 @@ app.use('/add-admin', AdminRoute);
 app.use('/export', Export);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.listen(3000, () => console.log('server started on port 3000'));
+app.listen(4000, () => console.log('server started on port 4000'));

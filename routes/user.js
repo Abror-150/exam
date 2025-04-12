@@ -100,22 +100,6 @@ route.post('/register', async (req, res) => {
   }
   try {
     let { firstName, phone, email, lastName, password, ...rest } = req.body;
-    let userExists = await Users.findOne({
-      where: { firstName },
-    });
-    if (userExists) {
-      userLogger.log('warn', 'first name  already exist');
-
-      return res.status(401).send({ message: 'first name already exists' });
-    }
-    let lastNameExists = await Users.findOne({
-      where: { lastName },
-    });
-    if (lastNameExists) {
-      userLogger.log('warn', 'last name  already exist');
-
-      return res.status(401).send({ message: 'last name already exists' });
-    }
 
     let emailExists = await Users.findOne({
       where: { email },
@@ -147,6 +131,8 @@ route.post('/register', async (req, res) => {
     await sendEmail(email, token);
     res.send(newUser);
   } catch (error) {
+    console.log(error);
+
     userLogger.log('error', 'server error');
     res.status(500).send({ message: 'Internal server error' });
   }
@@ -224,7 +210,7 @@ route.post('/verify', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               firstName:
+ *               email:
  *                 type: string
  *               password:
  *                 type: string
@@ -244,8 +230,8 @@ route.post('/login', async (req, res) => {
     return res.status(400).json({ message: error.details[0].message });
   }
   try {
-    let { firstName, password } = req.body;
-    let user = await Users.findOne({ where: { firstName } });
+    let { email, password } = req.body;
+    let user = await Users.findOne({ where: { email } });
 
     if (!user) {
       userLogger.log('warn', 'user  not  found');
@@ -260,16 +246,24 @@ route.post('/login', async (req, res) => {
     }
 
     let lastIp = req.ip;
+    let device = req.headers['user-agent'];
+    console.log(device);
+
     let userSesion = await Sessions.findOne({ where: { userId: user.id } });
     let sesion = await Sessions.findOne({ where: { lastIp } });
     if (!userSesion || !sesion) {
       await Sessions.create({
         userId: user.id,
         lastIp: lastIp,
+        device: device,
       });
     }
+    console.log(Sessions);
 
-    await Users.update({ lastIp: lastIp }, { where: { id: user.id } });
+    await Users.update(
+      { lastIp: lastIp, device: device },
+      { where: { id: user.id } }
+    );
 
     let accesToken = getToken(user.id, user.role);
     let refreToken = refreshToken(user);
@@ -522,26 +516,38 @@ route.patch(
  *                   example: "Xatolik tafsilotlari"
  */
 
-route.get('/me', roleAuthMiddlewares(['ADMIN', 'USER']), async (req, res) => {
-  try {
-    const userId = req.userId;
-    console.log(userId);
+route.get(
+  '/me',
+  roleAuthMiddlewares(['ADMIN', 'USER', 'CEO']),
+  async (req, res) => {
+    try {
+      const userId = req.userId;
+      console.log(userId);
 
-    const user = await Users.findByPk(userId, {
-      attributes: ['id', 'firstName', 'lastName', 'email', 'img', 'lastIp'],
-    });
+      const user = await Users.findByPk(userId, {
+        attributes: [
+          'id',
+          'firstName',
+          'lastName',
+          'email',
+          'img',
+          'lastIp',
+          'device',
+        ],
+      });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(user);
+    } catch (error) {
+      userLogger.log('info', 'internal server error');
+
+      console.error('Xatolik:', error);
+      res.status(500).json({ error: 'Server xatosi', details: error.message });
     }
-    res.json(user);
-  } catch (error) {
-    userLogger.log('info', 'internal server error');
-
-    console.error('Xatolik:', error);
-    res.status(500).json({ error: 'Server xatosi', details: error.message });
   }
-});
+);
 
 /**
  * @swagger
@@ -585,7 +591,7 @@ route.get('/me', roleAuthMiddlewares(['ADMIN', 'USER']), async (req, res) => {
  */
 route.get(
   '/me-sesion',
-  roleAuthMiddleware(['ADMIN', 'USER']),
+  roleAuthMiddleware(['ADMIN', 'USER', 'CEO']),
   async (req, res) => {
     try {
       const userId = req.userId;

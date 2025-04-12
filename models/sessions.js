@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { db } = require('../config/db');
+const { string } = require('joi');
 
 const Sessions = db.define('sessions', {
   id: {
@@ -12,6 +13,10 @@ const Sessions = db.define('sessions', {
     allowNull: false,
   },
   lastIp: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  device: {
     type: DataTypes.STRING,
     allowNull: false,
   },

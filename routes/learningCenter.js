@@ -104,158 +104,6 @@ route.post('/', roleAuthMiddleware(['ADMIN', 'CEO']), async (req, res) => {
 
 /**
  * @swagger
- * /learning-centers/professions:
- *   post:
- *     summary: Learning Centerga new professions add
- *     description: Admin yoki CEO Learning Centerga professions bog‘laydi.
- *     tags: [Learning Centers]
- *
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - learningCenterId
- *               - professionsId
- *             properties:
- *               learningCenterId:
- *                 type: integer
- *                 example: 1
- *                 description: Bog‘lanayotgan Learning Centerning ID-si
- *               professionsId:
- *                 type: array
- *                 items:
- *                   type: integer
- *                 example: [1, 2]
- *                 description: Bog‘lanayotgan professions ID-lari
- *     responses:
- *       201:
- *         description: Professions muvaffaqiyatli bog‘landi.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Professions linked successfully!
- *       400:
- *         description: Yaroqsiz ma'lumotlar
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: ProfessionsId must be a non-empty array
- *       404:
- *         description: Learning Center yoki profession topilmadi
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Some professions not found
- *                 invalidIds:
- *                   type: array
- *                   items:
- *                     type: integer
- *                   example: [5, 6]
- *       500:
- *         description: Server xatosi
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Server error
- *                 error:
- *                   type: string
- *                   example: Some internal server error message
- */
-
-route.post(
-  '/professions',
-  roleAuthMiddleware(['ADMIN', 'CEO']),
-  async (req, res) => {
-    try {
-      const { learningCenterId, professionsId } = req.body;
-
-      const learningCenter = await LearningCenter.findByPk(learningCenterId);
-      if (!learningCenter) {
-        return res.status(404).json({ message: 'Learning Center not found' });
-      }
-
-      if (!Array.isArray(professionsId) || professionsId.length === 0) {
-        return res
-          .status(400)
-          .json({ message: 'ProfessionsId must be a non-empty array' });
-      }
-
-      const validProfessions = await Profession.findAll({
-        where: { id: professionsId },
-        attributes: ['id', 'name'],
-      });
-
-      const validIds = validProfessions.map((p) => p.id);
-      const invalidIds = professionsId.filter((id) => !validIds.includes(id));
-
-      if (invalidIds.length > 0) {
-        return res
-          .status(404)
-          .json({ message: 'Some professions not found', invalidIds });
-      }
-
-      const existingFields = await Field.findAll({
-        where: {
-          learningCenterId,
-          professionsId: validIds,
-        },
-        attributes: ['professionsId'],
-      });
-
-      const existingIds = existingFields.map((f) => f.professionsId);
-      const newProfessions = validProfessions.filter(
-        (p) => !existingIds.includes(p.id)
-      );
-
-      if (existingIds.length > 0) {
-        return res.status(409).json({
-          message: 'Some professions are already added',
-          alreadyExists: validProfessions.filter((p) =>
-            existingIds.includes(p.id)
-          ),
-        });
-      }
-
-      const professionData = newProfessions.map((p) => ({
-        professionsId: p.id,
-        learningCenterId,
-      }));
-
-      await Field.bulkCreate(professionData);
-
-      res.status(201).json({
-        message: 'Professions successfully added',
-        addedProfessions: newProfessions,
-      });
-    } catch (error) {
-      console.log(error);
-
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  }
-);
-
-/**
- * @swagger
  * /learning-centers/subjects:
  *   post:
  *     summary: Learning Centerga yangi subjects bog‘lash
@@ -500,27 +348,22 @@ route.get(
         include: [
           { model: Branch, attributes: ['id', 'name', 'address'] },
           { model: Region, attributes: ['name'] },
-
-          { model: Region, attributes: ['name'] },
           {
             model: Users,
             as: 'registeredUser',
             attributes: ['id', 'firstName', 'lastName'],
             through: { attributes: [] },
           },
-          { model: Subject, as: 'subjects', through: { attributes: [] } },
           { model: Like, attributes: ['id', 'learningCenterId', 'userId'] },
           {
             model: Subject,
             as: 'subjects',
-
             through: { attributes: [] },
           },
           {
             model: Comments,
             attributes: ['id', 'message', 'userId', 'learningCenterId'],
           },
-          // { model: Profession },
         ],
         attributes: {
           include: [

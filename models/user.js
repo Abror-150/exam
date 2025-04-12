@@ -51,13 +51,16 @@ const Users = db.define('users', {
   lastIp: {
     type: DataTypes.STRING,
   },
+  device: {
+    type: DataTypes.STRING,
+  },
   learningCenterId: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'markazs', 
+      model: 'markazs',
       key: 'id',
     },
-  }
+  },
 });
 
 module.exports = Users;

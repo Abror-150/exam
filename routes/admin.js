@@ -8,7 +8,7 @@ const { getToken } = require('../functions/eskiz');
 const { refreshToken } = require('../functions/eskiz');
 const roleAuthMiddleware = require('../middlewares/roleAuth');
 const Users = require('../models/user');
-const { userValidation } = require('../validations/user');
+const { userValidation2 } = require('../validations/user');
 const { sendEmail } = require('../functions/eskiz');
 const { getRouteLogger } = require('../logger/logger');
 const adminLogger = getRouteLogger(__filename);
@@ -86,7 +86,7 @@ const adminLogger = getRouteLogger(__filename);
  */
 
 route.post('/', roleAuthMiddleware(['ADMIN']), async (req, res) => {
-  const { error } = userValidation.validate(req.body);
+  const { error } = userValidation2.validate(req.body);
   if (error) {
     adminLogger.log('warn', 'Validation error');
     return res.status(400).json({ message: error.details[0].message });

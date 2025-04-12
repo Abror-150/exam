@@ -9,7 +9,7 @@ const swaggerOptions = {
       version: '1.0.0',
       description: "O'quv Markaz",
     },
-    servers: [{ url: 'http://35.157.236.95:3000' }],
+    servers: [{ url: 'http://localhost:4000' }],
     components: {
       securitySchemes: {
         BearerAuth: {

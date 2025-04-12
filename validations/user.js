@@ -19,9 +19,34 @@ const userValidation = Joi.object({
     .required(),
   img: Joi.string().uri().optional(),
   role: Joi.string()
-    .valid('ADMIN', 'USER', 'SUPER_ADMIN', 'CEO')
+    .valid('USER', 'SUPER_ADMIN', 'CEO')
 
     .default('USER'),
+  status: Joi.string().optional(),
+  lastIp: Joi.string().ip().optional(),
+});
+const userValidation2 = Joi.object({
+  firstName: Joi.string().min(2).max(50).required(),
+  lastName: Joi.string().min(2).max(50).required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string()
+    .pattern(/^(\+998|998)?(33|55|77|88|90|91|93|94|95|97|98|99)\d{7}$/)
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Phone number must be in Uzbekistan format: +998 XX XXX XX XX',
+    }),
+  password: Joi.string().min(6).max(100).required(),
+  password: Joi.string()
+    .min(6)
+    .max(100)
+
+    .required(),
+  img: Joi.string().uri().optional(),
+  role: Joi.string()
+    .valid('ADMIN')
+
+    .default('ADMIN'),
   status: Joi.string().optional(),
   lastIp: Joi.string().ip().optional(),
 });
@@ -53,7 +78,7 @@ const userValidationPatch = Joi.object({
 }).min(1);
 
 const loginValidation = Joi.object({
-  firstName: Joi.string().required(),
+  email: Joi.string().required().email(),
   password: Joi.string().required(),
 });
 
@@ -100,4 +125,5 @@ module.exports = {
   sendOtpValidation,
   refreshTokenValidation,
   userValidationPatch,
+  userValidation2,
 };
